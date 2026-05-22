@@ -98,7 +98,9 @@ Open in Expo Go or run `npx expo run:ios` / `run:android`.
 
 ## Supabase + GitHub
 
-The `supabase/` folder is meant to be pushed to GitHub and linked from the Supabase Dashboard (**Integrations → GitHub**). Use **working directory `.`** (repo root). See [`supabase/README.md`](supabase/README.md) and the [official GitHub integration guide](https://supabase.com/docs/guides/deployment/branching/github-integration).
+The `supabase/` folder is meant to be pushed to GitHub and linked from the Supabase Dashboard (**Integrations → GitHub**). Use **working directory `.`** (repo root). Migrations may run via the integration; **Edge Functions** often need an explicit **`npm run supabase:functions`** (after `supabase link`) unless your integration deploys them on merge — see [`supabase/README.md`](supabase/README.md).
+
+Official: [GitHub integration](https://supabase.com/docs/guides/deployment/branching/github-integration).
 
 ## License
 

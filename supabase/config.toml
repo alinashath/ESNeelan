@@ -226,12 +226,14 @@ max_frequency = "5s"
 # enabled = true
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
-# Send SMS via MsgOwl REST (Supabase generates OTP; MsgOwl delivers the text).
-# Enable after deploying `sms-hook` and setting secrets (see README).
-# [auth.hook.send_sms]
-# enabled = true
-# uri = "http://host.docker.internal:54321/functions/v1/sms-hook"
-# secrets = "env(SMS_HOOK_SECRET)"
+# Send SMS via MsgOwl (Supabase signs payload; this hook verifies with SEND_SMS_HOOK_SECRET).
+# Hosted: set the same secret in Dashboard → Auth → Hooks → Send SMS, and in Edge → sms-hook secrets.
+# Local: set SMS_HOOK_SECRET in a .env file loaded by `supabase start` (see Supabase CLI docs) and
+# SEND_SMS_HOOK_SECRET for the sms-hook container, or use `supabase secrets set` when linked.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/sms-hook"
+secrets = "env(SMS_HOOK_SECRET)"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]

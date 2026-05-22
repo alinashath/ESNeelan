@@ -162,6 +162,27 @@ create trigger auctions_updated_at before update on public.auctions
 create trigger complaints_updated_at before update on public.complaints
   for each row execute function public.set_updated_at ();
 
--- Realtime
-alter publication supabase_realtime add table public.auctions;
-alter publication supabase_realtime add table public.bids;
+-- Realtime (must be idempotent: if this fails, the whole migration rolls back and no tables exist)
+do $$
+begin
+  begin
+    alter publication supabase_realtime add table public.auctions;
+  exception
+    when others then
+      if sqlerrm not ilike '%already%'
+         and sqlerrm not ilike '%member of publication%'
+      then
+        raise;
+      end if;
+  end;
+  begin
+    alter publication supabase_realtime add table public.bids;
+  exception
+    when others then
+      if sqlerrm not ilike '%already%'
+         and sqlerrm not ilike '%member of publication%'
+      then
+        raise;
+      end if;
+  end;
+end $$;
