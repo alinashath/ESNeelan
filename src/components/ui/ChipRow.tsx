@@ -12,6 +12,7 @@ export function ChipRow({ children, style }: Props) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={[{ paddingVertical: space.xs }, style]}
     >
       {Children.map(children, (child, i) => (

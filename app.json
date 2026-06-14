@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ESNeelan",
+    "name": "ES Neelan",
     "slug": "ESNeelan",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,9 +8,15 @@
     "scheme": "esneelan",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -29,7 +35,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app uses your photos to attach auction listing images."
+          "photosPermission": "The app uses your photos for profile pictures and auction listing images."
         }
       ],
       [

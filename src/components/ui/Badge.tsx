@@ -1,5 +1,5 @@
 import { View, type ViewProps } from "react-native";
-import { colors, radii, space } from "@/src/theme/tokens";
+import { accentBorderSubtle, colors, radii, space } from "@/src/theme/tokens";
 import { TextCaption } from "./TextCaption";
 
 type Props = ViewProps & {
@@ -7,36 +7,47 @@ type Props = ViewProps & {
   variant?: "neutral" | "accent" | "danger" | "warning";
 };
 
-const bg: Record<NonNullable<Props["variant"]>, string> = {
-  neutral: colors.surfaceMuted,
-  accent: colors.accent,
-  danger: colors.danger,
-  warning: colors.warning,
+const shell = {
+  alignSelf: "flex-start" as const,
+  paddingHorizontal: space.md,
+  paddingVertical: space.xs,
+  borderWidth: 1,
 };
 
 export function Badge({ title, variant = "neutral", style, ...rest }: Props) {
-  const backgroundColor = bg[variant];
-  const textColor =
-    variant === "accent" || variant === "warning"
-      ? colors.primary
-      : variant === "danger"
-        ? colors.white
-        : colors.text;
+  const palette =
+    variant === "accent"
+      ? {
+          backgroundColor: colors.accentMuted,
+          borderColor: accentBorderSubtle,
+          color: colors.accent,
+        }
+      : variant === "danger" || variant === "warning"
+        ? {
+            backgroundColor: "rgba(232,85,85,0.12)",
+            borderColor: "rgba(232,85,85,0.3)",
+            color: colors.danger,
+          }
+        : {
+            backgroundColor: colors.tertiaryMuted,
+            borderColor: colors.border,
+            color: colors.textMuted,
+          };
+
   return (
     <View
       style={[
+        shell,
         {
-          alignSelf: "flex-start",
-          paddingHorizontal: space.md,
-          paddingVertical: space.xs,
-          borderRadius: radii.sm,
-          backgroundColor,
+          borderRadius: radii.pill,
+          backgroundColor: palette.backgroundColor,
+          borderColor: palette.borderColor,
         },
         style,
       ]}
       {...rest}
     >
-      <TextCaption style={{ color: textColor, fontWeight: "700" }}>
+      <TextCaption style={{ color: palette.color, fontWeight: "600" }}>
         {title}
       </TextCaption>
     </View>

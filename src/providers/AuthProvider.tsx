@@ -1,15 +1,23 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { assertSupabaseConfigured, supabase } from "@/src/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
-import { supabase, assertSupabaseConfigured } from "@/src/lib/supabase";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
 export type UserRole = "buyer" | "seller" | "admin";
+
+export type ProfileAccountType = "individual" | "business";
+
+export type SellerVerificationStatus =
+  | "none"
+  | "pending"
+  | "approved"
+  | "rejected";
 
 export type Profile = {
   id: string;
@@ -17,6 +25,20 @@ export type Profile = {
   display_name: string | null;
   role: UserRole;
   suspended_at: string | null;
+  avatar_storage_path: string | null;
+  account_type: ProfileAccountType;
+  contact_email: string | null;
+  location_text: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  postal_code: string | null;
+  seller_verification_status: SellerVerificationStatus;
+  seller_verification_note: string | null;
+  seller_applied_at: string | null;
+  seller_decided_at: string | null;
+  seller_verification_id_document_path: string | null;
+  seller_verification_business_reg_path: string | null;
 };
 
 type AuthCtx = {
@@ -39,7 +61,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadProfile = useCallback(async (uid: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, phone, display_name, role, suspended_at")
+      .select(
+        "id, phone, display_name, role, suspended_at, avatar_storage_path, account_type, contact_email, location_text, address_line1, address_line2, city, postal_code, seller_verification_status, seller_verification_note, seller_applied_at, seller_decided_at, seller_verification_id_document_path, seller_verification_business_reg_path",
+      )
       .eq("id", uid)
       .maybeSingle();
     if (error) {
@@ -47,7 +71,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       return;
     }
-    setProfile(data as Profile);
+    if (!data) {
+      setProfile(null);
+      return;
+    }
+    const row = data as Record<string, unknown>;
+    setProfile({
+      ...(data as Profile),
+      seller_verification_status:
+        (row.seller_verification_status as
+          | SellerVerificationStatus
+          | undefined) ?? "none",
+      seller_verification_note:
+        (row.seller_verification_note as string | null) ?? null,
+      seller_applied_at: (row.seller_applied_at as string | null) ?? null,
+      seller_decided_at: (row.seller_decided_at as string | null) ?? null,
+      seller_verification_id_document_path:
+        (row.seller_verification_id_document_path as string | null) ?? null,
+      seller_verification_business_reg_path:
+        (row.seller_verification_business_reg_path as string | null) ?? null,
+    });
   }, []);
 
   useEffect(() => {

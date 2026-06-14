@@ -1,4 +1,6 @@
-// Supabase Auth Hook: Send SMS — verifies Standard Webhooks payload, then sends OTP via MsgOwl REST.
+// Supabase Auth Hook: Send SMS — verifies Standard Webhooks payload, then delivers the OTP via MsgOwl.
+// Prefer MsgOwl OTP API (separate key from REST): https://msgowl.com/docs#sendOTP
+// REST messages API: https://msgowl.com/docs — requires a REST access key with message.write scope.
 // https://supabase.com/docs/guides/auth/auth-hooks/send-sms-hook
 import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
@@ -7,6 +9,14 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, webhook-id, webhook-timestamp, webhook-signature",
 };
+
+function firstEnv(...names: string[]): string | undefined {
+  for (const n of names) {
+    const v = Deno.env.get(n);
+    if (v != null && String(v).trim() !== "") return v;
+  }
+  return undefined;
+}
 
 function normalizeMsgOwlRecipient(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -73,10 +83,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const accessKey = Deno.env.get("MSGOWL_ACCESS_KEY");
-    const senderId = Deno.env.get("MSGOWL_SENDER_ID") ?? "BIDSTREAM";
-    if (!accessKey) {
-      console.warn("sms-hook: MSGOWL_ACCESS_KEY not set; skipping send");
+    const otpKey = firstEnv("MSG_OWL_OTP_KEY", "MSGOWL_OTP_KEY");
+    const restKey = firstEnv(
+      "MSGOWL_ACCESS_KEY",
+      "MSG_OWL_REST_KEY",
+      "MSG_OWL_KEY",
+    );
+    const senderId = firstEnv("MSGOWL_SENDER_ID", "MSG_OWL_SENDER_ID") ??
+      "ESNeelan";
+    const otpBase =
+      firstEnv("MSG_OWL_OTP_URL", "MSGOWL_OTP_URL") ?? "https://otp.msgowl.com";
+
+    if (!otpKey && !restKey) {
+      console.warn(
+        "sms-hook: set MSG_OWL_OTP_KEY (OTP API) and/or MSGOWL_ACCESS_KEY / MSG_OWL_REST_KEY (REST); skipping send",
+      );
       return new Response(JSON.stringify({}), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,21 +105,39 @@ Deno.serve(async (req) => {
     }
 
     const { phone, otp } = parsed;
-    const recipients = normalizeMsgOwlRecipient(phone);
-    const body = `Your BIDSTREAM code is ${otp}`;
+    const phoneNumber = normalizeMsgOwlRecipient(phone);
 
-    const res = await fetch("https://rest.msgowl.com/messages", {
-      method: "POST",
-      headers: {
-        Authorization: `AccessKey ${accessKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        recipients,
-        sender_id: senderId,
-        body,
-      }),
-    });
+    let res: Response;
+    if (otpKey) {
+      // OTP product: same auth style as community SDKs (AccessKey + OTP key, not REST key).
+      // Pass Supabase-generated code so the user still verifies with Supabase only.
+      res = await fetch(`${otpBase.replace(/\/$/, "")}/send`, {
+        method: "POST",
+        headers: {
+          Authorization: `AccessKey ${otpKey}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          code: otp,
+        }),
+      });
+    } else {
+      const body = `Your ES Neelan code is ${otp}`;
+      res = await fetch("https://rest.msgowl.com/messages", {
+        method: "POST",
+        headers: {
+          Authorization: `AccessKey ${restKey!}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipients: phoneNumber,
+          sender_id: senderId,
+          body,
+        }),
+      });
+    }
 
     const text = await res.text();
     if (!res.ok) {

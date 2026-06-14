@@ -23,8 +23,8 @@ export function ButtonIcon({
           typeof style === "function" ? style(state) : style;
         return [
           {
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             borderRadius: radii.pill,
             alignItems: "center",
             justifyContent: "center",

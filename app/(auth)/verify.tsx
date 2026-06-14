@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { Alert, View } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { supabase } from "@/src/lib/supabase";
-import { promoteAdminIfAllowed } from "@/src/lib/functions";
-import { useAuth } from "@/src/providers/AuthProvider";
+import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { Screen } from "@/src/components/ui/Screen";
+import { TextBody } from "@/src/components/ui/TextBody";
 import { TextField } from "@/src/components/ui/TextField";
 import { TextTitle } from "@/src/components/ui/TextTitle";
-import { TextBody } from "@/src/components/ui/TextBody";
-import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
+import { promoteAdminIfAllowed } from "@/src/lib/functions";
+import { supabase } from "@/src/lib/supabase";
+import { useAuth } from "@/src/providers/AuthProvider";
 import { space } from "@/src/theme/tokens";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { Alert } from "react-native";
 
 export default function VerifyScreen() {
   const { phone } = useLocalSearchParams<{ phone: string }>();
@@ -58,7 +58,11 @@ export default function VerifyScreen() {
         onChangeText={setCode}
         maxLength={8}
       />
-      <ButtonPrimary title="Verify & continue" loading={loading} onPress={verify} />
+      <ButtonPrimary
+        title="Verify & continue"
+        loading={loading}
+        onPress={verify}
+      />
     </Screen>
   );
 }

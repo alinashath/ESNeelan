@@ -1,0 +1,1197 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<h2 class="sr-only">ES Neelan Luxury Auction Platform – Redesigned UI with design tokens and components</h2>
+
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --gold-pale: #F5EDD4;
+  --obsidian: #0A0A0F;
+  --deep-bg: #12111A;
+  --card-bg: #1C1B27;
+  --card-border: #2A2840;
+  --ivory: #F5F0E8;
+  --ivory-muted: #BDB8AC;
+  --platinum: #8B8FA8;
+  --burgundy: #2A0E3A;
+  --success-green: #2ECC8A;
+  --alert-red: #E85555;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --shadow-gold: 0 0 0 1px rgba(201,168,76,0.25);
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body-wrap {
+  display: block;
+  font-family: var(--font-body);
+  background: var(--obsidian);
+  color: var(--ivory);
+}
+
+.page { background: var(--obsidian); font-family: var(--font-body); color: var(--ivory); }
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ivory);
+  line-height: 1.2;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+  margin: 2rem 0;
+  opacity: 0.3;
+}
+
+/* ── DESIGN TOKENS PAGE ── */
+.tokens-page {
+  background: var(--deep-bg);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
+  border: 1px solid var(--card-border);
+}
+
+.tokens-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ivory);
+  margin-bottom: 4px;
+}
+
+.tokens-sub {
+  font-size: 12px;
+  color: var(--platinum);
+  margin-bottom: 1.5rem;
+}
+
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.token-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.token-card-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--platinum);
+  margin-bottom: 10px;
+}
+
+.color-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.color-info { flex: 1; }
+.color-name { font-size: 11px; font-weight: 500; color: var(--ivory); }
+.color-hex { font-size: 10px; color: var(--platinum); font-family: monospace; }
+
+.type-row {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--card-border);
+}
+.type-row:last-child { border: none; margin-bottom: 0; padding-bottom: 0; }
+.type-label { font-size: 10px; color: var(--platinum); margin-bottom: 4px; }
+
+.radius-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.radius-chip {
+  background: var(--card-border);
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--ivory-muted);
+}
+
+.spacing-col { display: flex; flex-direction: column; gap: 6px; }
+.spacing-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.spacing-bar { height: 8px; background: var(--gold); border-radius: 2px; opacity: 0.7; }
+.spacing-label { font-size: 10px; color: var(--platinum); white-space: nowrap; }
+
+/* ── NAVBAR ── */
+.navbar {
+  background: rgba(10,10,15,0.95);
+  border-bottom: 1px solid var(--card-border);
+  padding: 0 2rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ivory);
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--gold);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.nav-link {
+  font-size: 13px;
+  color: var(--platinum);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 400;
+  border: none;
+  background: none;
+}
+
+.nav-link.active {
+  background: rgba(201,168,76,0.12);
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.25);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-badge {
+  position: relative;
+  cursor: pointer;
+}
+.badge-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: var(--alert-red);
+  border-radius: 50%;
+  border: 2px solid var(--obsidian);
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--obsidian);
+  border: none;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid rgba(201,168,76,0.4);
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--platinum);
+  border: 1px solid var(--card-border);
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 400;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+/* ── SEARCH BAR ── */
+.search-wrap {
+  padding: 1.5rem 2rem 1rem;
+  background: var(--deep-bg);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  padding: 10px 18px;
+  max-width: 640px;
+}
+
+.search-bar input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--ivory);
+  font-size: 14px;
+  font-family: var(--font-body);
+  flex: 1;
+}
+
+.search-bar input::placeholder { color: var(--platinum); }
+
+.search-icon { color: var(--platinum); font-size: 16px; }
+
+.quick-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.quick-tag {
+  font-size: 12px;
+  color: var(--platinum);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+}
+
+/* ── CATEGORY PILLS ── */
+.cat-pills {
+  display: flex;
+  gap: 8px;
+  padding: 0.75rem 2rem;
+  background: var(--deep-bg);
+  border-bottom: 1px solid var(--card-border);
+  flex-wrap: wrap;
+}
+
+.cat-pill {
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  color: var(--platinum);
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.cat-pill.selected {
+  background: rgba(201,168,76,0.12);
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 500;
+}
+
+/* ── HERO FEATURED ── */
+.hero-section {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+  padding: 1.25rem 2rem;
+  background: var(--deep-bg);
+}
+
+.hero-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  min-height: 240px;
+  background: linear-gradient(135deg, #1a1525 0%, #0d0b14 100%);
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+}
+
+.hero-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0.3) 60%, transparent 100%);
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+}
+
+.featured-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: var(--gold);
+  color: var(--obsidian);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ivory);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.hero-title-sm {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ivory);
+  margin-bottom: 6px;
+}
+
+.hero-bid-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bid-label { font-size: 10px; color: var(--platinum); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+.bid-amount { font-size: 20px; font-weight: 600; color: var(--gold); }
+.bid-amount-sm { font-size: 15px; font-weight: 600; color: var(--gold); }
+
+.countdown {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.countdown-unit {
+  text-align: center;
+}
+
+.countdown-num {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ivory);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  width: 30px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.countdown-lbl {
+  font-size: 8px;
+  color: var(--platinum);
+  text-align: center;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.countdown-sep {
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+/* ── AUCTION CARD ── */
+.auctions-section {
+  padding: 1.5rem 2rem;
+  background: var(--deep-bg);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.view-all {
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.auction-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.auction-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.auction-card:hover {
+  border-color: rgba(201,168,76,0.4);
+}
+
+.auction-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #1e1c2e 0%, #14121f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.auction-img-placeholder {
+  font-size: 40px;
+  opacity: 0.3;
+}
+
+.live-pulse {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(10,10,15,0.85);
+  border: 1px solid rgba(46,204,138,0.35);
+  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--success-green);
+  letter-spacing: 0.05em;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--success-green);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.bid-count {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(10,10,15,0.85);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--platinum);
+}
+
+.auction-body {
+  padding: 12px;
+}
+
+.auction-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ivory);
+  margin-bottom: 2px;
+  font-family: var(--font-display);
+}
+
+.auction-cat {
+  font-size: 10px;
+  color: var(--platinum);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.auction-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bid-pill {
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.bid-btn {
+  width: 30px;
+  height: 30px;
+  background: var(--gold);
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--obsidian);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  margin: 0 2rem 1.5rem;
+  overflow: hidden;
+}
+
+.stat-item {
+  padding: 1.25rem;
+  text-align: center;
+  border-right: 1px solid var(--card-border);
+}
+
+.stat-item:last-child { border: none; }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ivory);
+  margin-bottom: 3px;
+}
+.stat-lbl { font-size: 11px; color: var(--platinum); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ── COMPONENT SHOWCASE ── */
+.components-page {
+  background: var(--deep-bg);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--card-border);
+  margin-bottom: 2rem;
+}
+
+.comp-section { margin-bottom: 1.75rem; }
+.comp-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.comp-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.35); }
+.badge-live { background: rgba(46,204,138,0.12); color: var(--success-green); border: 1px solid rgba(46,204,138,0.3); }
+.badge-alert { background: rgba(232,85,85,0.12); color: var(--alert-red); border: 1px solid rgba(232,85,85,0.3); }
+.badge-neutral { background: rgba(139,143,168,0.1); color: var(--platinum); border: 1px solid var(--card-border); }
+
+.input-field {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  color: var(--ivory);
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  width: 200px;
+}
+
+.input-field::placeholder { color: var(--platinum); }
+.input-field:focus { border-color: rgba(201,168,76,0.5); }
+
+.toast-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 280px;
+}
+
+.toast-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.toast-icon.gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+.toast-icon.green { background: rgba(46,204,138,0.12); color: var(--success-green); }
+.toast-icon.red { background: rgba(232,85,85,0.12); color: var(--alert-red); }
+
+.toast-msg { font-size: 12px; color: var(--ivory); }
+.toast-sub { font-size: 11px; color: var(--platinum); }
+
+.progress-wrap { width: 100%; }
+.progress-bar-bg {
+  width: 100%;
+  height: 5px;
+  background: var(--card-border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
+  border-radius: var(--radius-pill);
+}
+.progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--platinum); margin-top: 5px; }
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.15);
+  border: 2px solid rgba(201,168,76,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+</style>
+
+<div class="page">
+
+<!-- ════════════════════ DESIGN TOKENS ════════════════════ -->
+<div class="tokens-page">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem;">
+    <div>
+      <p class="tokens-title">Design Tokens</p>
+      <p class="tokens-sub">ES Neelan Luxury Auction — Complete Token System</p>
+    </div>
+    <div class="featured-badge">⬤ System v1.0</div>
+  </div>
+
+  <div class="token-grid">
+
+    <!-- COLOR PALETTE -->
+    <div class="token-card">
+      <p class="token-card-label">Core Palette</p>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#C9A84C;"></div>
+        <div class="color-info"><p class="color-name">Auction Gold</p><p class="color-hex">--gold: #C9A84C</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#E8C96A;"></div>
+        <div class="color-info"><p class="color-name">Gold Light</p><p class="color-hex">--gold-light: #E8C96A</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#F5EDD4;"></div>
+        <div class="color-info"><p class="color-name">Gold Pale</p><p class="color-hex">--gold-pale: #F5EDD4</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#0A0A0F; border-color:rgba(255,255,255,0.2);"></div>
+        <div class="color-info"><p class="color-name">Obsidian</p><p class="color-hex">--obsidian: #0A0A0F</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#12111A; border-color:rgba(255,255,255,0.15);"></div>
+        <div class="color-info"><p class="color-name">Deep BG</p><p class="color-hex">--deep-bg: #12111A</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#1C1B27; border-color:rgba(255,255,255,0.12);"></div>
+        <div class="color-info"><p class="color-name">Card BG</p><p class="color-hex">--card-bg: #1C1B27</p></div>
+      </div>
+    </div>
+
+    <!-- SEMANTIC COLORS -->
+    <div class="token-card">
+      <p class="token-card-label">Semantic Colors</p>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#F5F0E8;"></div>
+        <div class="color-info"><p class="color-name">Ivory</p><p class="color-hex">--ivory: #F5F0E8</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#BDB8AC;"></div>
+        <div class="color-info"><p class="color-name">Ivory Muted</p><p class="color-hex">--ivory-muted: #BDB8AC</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#8B8FA8;"></div>
+        <div class="color-info"><p class="color-name">Platinum</p><p class="color-hex">--platinum: #8B8FA8</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#2A2840; border-color:rgba(255,255,255,0.1);"></div>
+        <div class="color-info"><p class="color-name">Card Border</p><p class="color-hex">--card-border: #2A2840</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#2ECC8A;"></div>
+        <div class="color-info"><p class="color-name">Live Green</p><p class="color-hex">--success: #2ECC8A</p></div>
+      </div>
+      <div class="color-row">
+        <div class="color-swatch" style="background:#E85555;"></div>
+        <div class="color-info"><p class="color-name">Alert Red</p><p class="color-hex">--alert-red: #E85555</p></div>
+      </div>
+    </div>
+
+    <!-- TYPOGRAPHY -->
+    <div class="token-card">
+      <p class="token-card-label">Typography</p>
+      <div class="type-row">
+        <p class="type-label">Display — Playfair Display</p>
+        <p style="font-family:'Playfair Display',serif; font-size:20px; color:var(--ivory); font-weight:700; line-height:1.2;">Luxury Bid</p>
+        <p style="font-family:'Playfair Display',serif; font-size:14px; color:var(--platinum); font-style:italic;">Fine Provenance</p>
+      </div>
+      <div class="type-row">
+        <p class="type-label">Body — Inter</p>
+        <p style="font-size:14px; color:var(--ivory); font-weight:400;">Current bid · Ends soon</p>
+        <p style="font-size:12px; color:var(--platinum);">32 active bidders</p>
+      </div>
+      <div class="type-row">
+        <p class="type-label">Scale</p>
+        <p style="font-size:10px; color:var(--platinum);">10px — Eyebrow / Category</p>
+        <p style="font-size:12px; color:var(--platinum);">12px — Meta / Labels</p>
+        <p style="font-size:14px; color:var(--ivory-muted);">14px — Body</p>
+        <p style="font-size:18px; color:var(--ivory);">18px — Sub-heading</p>
+        <p style="font-family:'Playfair Display',serif; font-size:24px; color:var(--ivory); font-weight:700;">24px — Display</p>
+      </div>
+    </div>
+
+    <!-- SPACING & RADIUS -->
+    <div class="token-card">
+      <p class="token-card-label">Spacing</p>
+      <div class="spacing-col" style="margin-bottom:14px;">
+        <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:4px;"></div><span class="spacing-label">4px — xs</span></div>
+        <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:8px;"></div><span class="spacing-label">8px — sm</span></div>
+        <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:12px;"></div><span class="spacing-label">12px — md</span></div>
+        <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:16px;"></div><span class="spacing-label">16px — lg</span></div>
+        <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:24px;"></div><span class="spacing-label">24px — xl</span></div>
+        <div class="spacing-bar-wrap"><div class="spacing-bar" style="width:32px;"></div><span class="spacing-label">32px — 2xl</span></div>
+      </div>
+      <p class="token-card-label" style="margin-bottom:8px;">Border Radius</p>
+      <div class="radius-row">
+        <div class="radius-chip" style="border-radius:6px;">sm / 6</div>
+        <div class="radius-chip" style="border-radius:12px;">md / 12</div>
+        <div class="radius-chip" style="border-radius:20px;">lg / 20</div>
+        <div class="radius-chip" style="border-radius:999px;">pill</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ELEVATION / SHADOW TOKENS -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;">
+    <div class="token-card" style="display:flex; flex-direction:column; gap:8px;">
+      <p class="token-card-label">Shadow Tokens</p>
+      <div style="background:var(--card-bg); border-radius:var(--radius-md); padding:10px 14px; box-shadow:0 0 0 1px rgba(201,168,76,0.25);">
+        <p class="color-name" style="font-size:11px;">Gold Ring</p>
+        <p class="color-hex">shadow-gold</p>
+      </div>
+      <div style="background:var(--card-bg); border-radius:var(--radius-md); padding:10px 14px; box-shadow:0 4px 24px rgba(0,0,0,0.4);">
+        <p class="color-name" style="font-size:11px;">Card Lift</p>
+        <p class="color-hex">shadow-card</p>
+      </div>
+    </div>
+    <div class="token-card">
+      <p class="token-card-label">Motion</p>
+      <div class="type-row">
+        <p class="type-label">Transition — Default</p>
+        <p class="color-hex">all 0.2s ease</p>
+      </div>
+      <div class="type-row">
+        <p class="type-label">Transition — Slow</p>
+        <p class="color-hex">all 0.4s ease</p>
+      </div>
+      <div class="type-row">
+        <p class="type-label">Pulse (live badge)</p>
+        <p class="color-hex">1.5s infinite ease-in-out</p>
+      </div>
+    </div>
+    <div class="token-card">
+      <p class="token-card-label">Z-Index Scale</p>
+      <p style="font-size:11px; color:var(--platinum); margin-bottom:4px;">base: 0</p>
+      <p style="font-size:11px; color:var(--platinum); margin-bottom:4px;">card-overlay: 1</p>
+      <p style="font-size:11px; color:var(--platinum); margin-bottom:4px;">dropdown: 5</p>
+      <p style="font-size:11px; color:var(--platinum); margin-bottom:4px;">navbar: 10</p>
+      <p style="font-size:11px; color:var(--platinum);">modal: 100</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ COMPONENTS ════════════════════ -->
+<div class="components-page">
+  <div style="margin-bottom:1.5rem;">
+    <p class="tokens-title">Component Library</p>
+    <p class="tokens-sub">All reusable UI primitives — rendered live</p>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="comp-section">
+    <p class="comp-title">Buttons</p>
+    <div class="comp-row">
+      <button class="btn-primary">Place Bid</button>
+      <button class="btn-outline">Watch Item</button>
+      <button class="btn-ghost">Share</button>
+      <button class="btn-primary" style="opacity:0.4; cursor:not-allowed;" disabled>Ended</button>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="comp-section">
+    <p class="comp-title">Badges & Status</p>
+    <div class="comp-row">
+      <span class="badge badge-gold">Featured</span>
+      <span class="badge badge-live"><span class="pulse-dot" style="display:inline-block; margin-right:4px; margin-bottom:-1px;"></span>Live</span>
+      <span class="badge badge-alert">Ending Soon</span>
+      <span class="badge badge-neutral">Estate Sale</span>
+      <span class="badge badge-gold">Reserve Met</span>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="comp-section">
+    <p class="comp-title">Form Inputs</p>
+    <div class="comp-row">
+      <input class="input-field" placeholder="Enter bid amount (MVR)" />
+      <input class="input-field" placeholder="Search auctions..." style="width:160px;" />
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="comp-section">
+    <p class="comp-title">Notifications & Toasts</p>
+    <div class="comp-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
+      <div class="toast-card">
+        <div class="toast-icon gold">⬆</div>
+        <div><p class="toast-msg">You've been outbid!</p><p class="toast-sub">Speed Boat · 31,200 MVR placed</p></div>
+      </div>
+      <div class="toast-card">
+        <div class="toast-icon green">✓</div>
+        <div><p class="toast-msg">Bid placed successfully</p><p class="toast-sub">30,600 MVR · Speed Boat</p></div>
+      </div>
+      <div class="toast-card">
+        <div class="toast-icon red">⏱</div>
+        <div><p class="toast-msg">Ending in 5 minutes</p><p class="toast-sub">Art Collection · Lot #47</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BID PROGRESS -->
+  <div class="comp-section">
+    <p class="comp-title">Bid Progress</p>
+    <div class="progress-wrap" style="max-width:400px;">
+      <p style="font-size:12px; color:var(--platinum); margin-bottom:6px;">Reserve progress</p>
+      <div class="progress-bar-bg"><div class="progress-fill" style="width:72%;"></div></div>
+      <div class="progress-meta"><span>Current: 30,600 MVR</span><span>Reserve: 42,000 MVR</span></div>
+    </div>
+  </div>
+
+  <!-- AVATARS + NAV LINK -->
+  <div class="comp-section">
+    <p class="comp-title">Avatars & Navigation</p>
+    <div class="comp-row" style="margin-bottom:10px;">
+      <div class="avatar">AM</div>
+      <div class="avatar" style="background:rgba(46,204,138,0.12); border-color:rgba(46,204,138,0.3); color:var(--success-green);">JR</div>
+      <div class="avatar" style="background:rgba(232,85,85,0.12); border-color:rgba(232,85,85,0.3); color:var(--alert-red);">PL</div>
+    </div>
+    <div class="comp-row">
+      <span class="nav-link active">Home</span>
+      <span class="nav-link">Explore</span>
+      <span class="nav-link">Bids</span>
+      <span class="nav-link">Alerts</span>
+    </div>
+  </div>
+
+  <!-- COUNTDOWN COMPONENT -->
+  <div class="comp-section">
+    <p class="comp-title">Countdown Timer</p>
+    <div class="countdown">
+      <div class="countdown-unit"><div class="countdown-num">02</div><div class="countdown-lbl">hrs</div></div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit"><div class="countdown-num">14</div><div class="countdown-lbl">min</div></div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit"><div class="countdown-num">38</div><div class="countdown-lbl">sec</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════ LIVE UI MOCKUP ════════════════════ -->
+<div style="background:var(--deep-bg); border:1px solid var(--card-border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:1.5rem;">
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo">
+      <div class="logo-icon">⬆</div>
+      ES Neelan
+    </div>
+    <div class="nav-links">
+      <span class="nav-link active">Home</span>
+      <span class="nav-link">Explore</span>
+      <span class="nav-link">List Item</span>
+      <span class="nav-link">Bids</span>
+      <div class="nav-badge">
+        <span class="nav-link">Alerts</span>
+        <div class="badge-dot"></div>
+      </div>
+      <span class="nav-link">Profile</span>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-primary">Place Bid</button>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <div class="search-bar">
+      <i class="ti ti-search search-icon" aria-hidden="true"></i>
+      <input placeholder="Search rare lots, estates, collections…" />
+      <span class="badge badge-gold" style="cursor:pointer;">Filter</span>
+    </div>
+    <div class="quick-tags">
+      <span class="quick-tag">Watches</span>
+      <span class="quick-tag">Fine Art</span>
+      <span class="quick-tag">Marine</span>
+      <span class="quick-tag">Jewelry</span>
+    </div>
+  </div>
+
+  <!-- Category pills -->
+  <div class="cat-pills">
+    <span class="cat-pill selected">All</span>
+    <span class="cat-pill">Home & Dining</span>
+    <span class="cat-pill">Art & Craft</span>
+    <span class="cat-pill">Jewelry & Watches</span>
+    <span class="cat-pill">Marine</span>
+    <span class="cat-pill">Collectibles</span>
+  </div>
+
+  <!-- Hero featured -->
+  <div class="hero-section">
+    <div class="hero-card">
+      <div style="width:100%; height:100%; position:absolute; background:linear-gradient(135deg,#0d1520 0%,#1a2540 40%,#0a0f1a 100%);"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="featured-badge">★ Featured Item</div>
+        <p class="hero-title">Speed Boat</p>
+        <div class="hero-bid-row">
+          <div>
+            <p class="bid-label">Current Bid</p>
+            <p class="bid-amount">30,600 MVR</p>
+          </div>
+          <div class="countdown" style="flex-direction:column; align-items:flex-end; gap:4px;">
+            <p class="bid-label">Ends in</p>
+            <div style="display:flex; gap:5px; align-items:center;">
+              <div class="countdown-unit"><div class="countdown-num">02</div><div class="countdown-lbl">hrs</div></div>
+              <div class="countdown-sep">:</div>
+              <div class="countdown-unit"><div class="countdown-num">14</div><div class="countdown-lbl">min</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div style="width:100%; height:100%; position:absolute; background:linear-gradient(135deg,#1a0d20 0%,#2a1540 40%,#100a1a 100%);"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="featured-badge">★ Featured Item</div>
+        <p class="hero-title-sm">Floral Collection</p>
+        <div class="hero-bid-row">
+          <div>
+            <p class="bid-label">Current Bid</p>
+            <p class="bid-amount-sm">710 MVR</p>
+          </div>
+          <span class="badge badge-live" style="align-self:flex-end;"><span class="pulse-dot"></span>Live</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trending auctions -->
+  <div class="auctions-section">
+    <div class="section-header">
+      <div>
+        <p class="section-label">Live Now</p>
+        <p class="section-title" style="font-size:20px;">Trending Auctions</p>
+      </div>
+      <span class="view-all">View All →</span>
+    </div>
+    <div class="auction-grid">
+
+      <div class="auction-card">
+        <div class="auction-img" style="background:linear-gradient(135deg,#0d1520,#1a2540);">
+          <span class="auction-img-placeholder">⛵</span>
+          <div class="live-pulse"><div class="pulse-dot"></div>Live</div>
+          <div class="bid-count">7 bids</div>
+        </div>
+        <div class="auction-body">
+          <p class="auction-title">First Auction</p>
+          <p class="auction-cat">Marine · Estate</p>
+          <div class="auction-footer">
+            <div class="bid-pill">610 MVR</div>
+            <button class="bid-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="auction-card">
+        <div class="auction-img" style="background:linear-gradient(135deg,#1a120d,#2a1e12);">
+          <span class="auction-img-placeholder">🖼</span>
+          <div class="live-pulse"><div class="pulse-dot"></div>Live</div>
+          <div class="bid-count">14 bids</div>
+        </div>
+        <div class="auction-body">
+          <p class="auction-title">Abstract Seascape</p>
+          <p class="auction-cat">Fine Art · Painting</p>
+          <div class="auction-footer">
+            <div class="bid-pill">4,200 MVR</div>
+            <button class="bid-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="auction-card">
+        <div class="auction-img" style="background:linear-gradient(135deg,#1a1a0d,#2a2a12);">
+          <span class="auction-img-placeholder">⌚</span>
+          <div class="bid-count">31 bids</div>
+          <div style="position:absolute;bottom:10px;right:10px;background:rgba(232,85,85,0.15);border:1px solid rgba(232,85,85,0.35);border-radius:999px;padding:3px 8px;font-size:10px;color:#E85555;font-weight:600;">58 min</div>
+        </div>
+        <div class="auction-body">
+          <p class="auction-title">Swiss Tourbillon</p>
+          <p class="auction-cat">Jewelry & Watches</p>
+          <div class="auction-footer">
+            <div class="bid-pill">18,500 MVR</div>
+            <button class="bid-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <p class="stat-num">1.2k+</p>
+      <p class="stat-lbl">Live Items</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-num">98%</p>
+      <p class="stat-lbl">Success Rate</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-num">24/7</p>
+      <p class="stat-lbl">Support</p>
+    </div>
+  </div>
+
+  <div style="padding:1rem 2rem; display:flex; justify-content:center; gap:12px; border-top:1px solid var(--card-border); margin-top:0;">
+    <span style="font-size:11px; color:var(--platinum);">© 2026 ES Neelan</span>
+    <span style="font-size:11px; color:var(--platinum);">·</span>
+    <span style="font-size:11px; color:var(--gold); cursor:pointer;">Terms</span>
+    <span style="font-size:11px; color:var(--platinum);">·</span>
+    <span style="font-size:11px; color:var(--gold); cursor:pointer;">Privacy</span>
+  </div>
+
+</div>
+
+</div>

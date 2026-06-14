@@ -1,10 +1,14 @@
 import { Pressable, type PressableProps } from "react-native";
-import { colors, radii, space } from "@/src/theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, goldBorderSubtle, radii, space, buttonPrimaryPadding } from "@/src/theme/tokens";
 import { TextBody } from "./TextBody";
 
-type Props = PressableProps & { title: string };
+type Props = PressableProps & {
+  title: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+};
 
-export function ButtonSecondary({ title, disabled, style, ...rest }: Props) {
+export function ButtonSecondary({ title, disabled, style, icon, ...rest }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -14,14 +18,15 @@ export function ButtonSecondary({ title, disabled, style, ...rest }: Props) {
           typeof style === "function" ? style(state) : style;
         return [
           {
-            borderWidth: 1.5,
-            borderColor: colors.primary,
-            paddingVertical: space.md,
-            paddingHorizontal: space.xl,
-            borderRadius: radii.md,
+            borderWidth: 1,
+            borderColor: goldBorderSubtle,
+            ...buttonPrimaryPadding,
+            borderRadius: radii.pill,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: colors.background,
+            backgroundColor: "transparent",
+            flexDirection: "row",
+            gap: space.sm,
             opacity: state.pressed ? 0.75 : disabled ? 0.45 : 1,
           },
           fromParent,
@@ -29,7 +34,8 @@ export function ButtonSecondary({ title, disabled, style, ...rest }: Props) {
       }}
       {...rest}
     >
-      <TextBody style={{ color: colors.primary, fontWeight: "600" }}>
+      {icon ? <Ionicons name={icon} size={20} color={colors.accent} /> : null}
+      <TextBody style={{ color: colors.accent, fontWeight: "600" }}>
         {title}
       </TextBody>
     </Pressable>

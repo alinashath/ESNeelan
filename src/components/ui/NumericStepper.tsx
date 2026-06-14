@@ -5,18 +5,23 @@ import { TextBody } from "./TextBody";
 type Props = {
   value: number;
   min?: number;
+  max?: number;
   step?: number;
   onChange: (n: number) => void;
   label?: string;
+  format?: (n: number) => string;
 };
 
 export function NumericStepper({
   value,
   min = 1,
+  max = Number.MAX_SAFE_INTEGER,
   step = 1,
   onChange,
   label,
+  format,
 }: Props) {
+  const display = format ? format(value) : String(value);
   return (
     <View>
       {label ? (
@@ -26,7 +31,7 @@ export function NumericStepper({
       ) : null}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Pressable
-          onPress={() => onChange(Math.max(min, value - step))}
+          onPress={() => onChange(Math.max(min, Math.min(max, value - step)))}
           style={{
             width: 44,
             height: 44,
@@ -44,14 +49,14 @@ export function NumericStepper({
           style={{
             minWidth: 64,
             textAlign: "center",
-            fontWeight: "700",
+            fontWeight: "600",
             fontSize: 18,
           }}
         >
-          {value}
+          {display}
         </TextBody>
         <Pressable
-          onPress={() => onChange(value + step)}
+          onPress={() => onChange(Math.max(min, Math.min(max, value + step)))}
           style={{
             width: 44,
             height: 44,

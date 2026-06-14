@@ -79,7 +79,7 @@ export function SelectField<T extends string>({
               >
                 <TextBody
                   style={{
-                    fontWeight: o.value === value ? "700" : "400",
+                    fontWeight: o.value === value ? "600" : "400",
                   }}
                 >
                   {o.label}

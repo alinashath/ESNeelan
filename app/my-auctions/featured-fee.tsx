@@ -1,0 +1,245 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, Image, Pressable, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams, type Href } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "@/src/lib/supabase";
+import { useAuth } from "@/src/providers/AuthProvider";
+import { useAppSettings } from "@/src/data/app-settings";
+import { Screen } from "@/src/components/ui/Screen";
+import { TextTitle } from "@/src/components/ui/TextTitle";
+import { TextBody } from "@/src/components/ui/TextBody";
+import { TextCaption } from "@/src/components/ui/TextCaption";
+import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
+import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
+import { InfoCallout } from "@/src/components/ui/InfoCallout";
+import { colors, radii, space } from "@/src/theme/tokens";
+import { useState } from "react";
+
+function formatMvr(n: number): string {
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
+}
+
+export default function MyAuctionFeaturedFeeScreen() {
+  const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const id =
+    typeof rawId === "string" ? rawId : Array.isArray(rawId) ? (rawId[0] ?? "") : "";
+  const { session } = useAuth();
+  const qc = useQueryClient();
+  const { data: appSettings } = useAppSettings();
+  const [proofUri, setProofUri] = useState<string | null>(null);
+  const [mime, setMime] = useState("image/jpeg");
+  const [busy, setBusy] = useState(false);
+
+  const { data: auction, isPending, refetch } = useQuery({
+    queryKey: ["auction-draft", id],
+    enabled: !!id && !!session,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("auctions")
+        .select(
+          "id, seller_id, status, bid_type, listing_fee_proof_path, featured_listing_fee_pending",
+        )
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        id: string;
+        seller_id: string;
+        status: string;
+        bid_type: string;
+        listing_fee_proof_path: string | null;
+        featured_listing_fee_pending: boolean | null;
+      } | null;
+    },
+  });
+
+  async function pickProof() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission", "Photo library access is required.");
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.75,
+    });
+    if (res.canceled || !res.assets[0]) return;
+    setProofUri(res.assets[0].uri);
+    setMime(res.assets[0].mimeType ?? "image/jpeg");
+  }
+
+  async function submit() {
+    if (!id || !session || !auction) return;
+    if (auction.seller_id !== session.user.id) {
+      Alert.alert("Listing", "You can only update your own listings.");
+      return;
+    }
+
+    const isDraftFeatured = auction.status === "draft" && auction.bid_type === "featured";
+    const isActivePending =
+      auction.status === "active" && Boolean(auction.featured_listing_fee_pending);
+
+    if (!isDraftFeatured && !isActivePending) {
+      Alert.alert("Listing", "This listing is not in a featured fee payment step.");
+      return;
+    }
+
+    if (!proofUri) {
+      Alert.alert("Proof", "Upload a screenshot of your fee transfer.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const path = `${id}/fee_${Date.now()}.jpg`;
+      const res = await fetch(proofUri);
+      if (!res.ok) throw new Error("Could not read the image.");
+      const buf = await res.arrayBuffer();
+      const body = new Uint8Array(buf);
+      const { error: upErr } = await supabase.storage.from("payment-proofs").upload(path, body, {
+        contentType: mime,
+        upsert: true,
+      });
+      if (upErr) throw upErr;
+
+      const { data: proofRpc, error: proofErr } = await supabase.rpc("seller_set_featured_listing_fee_proof", {
+        p_auction_id: id,
+        p_storage_path: path,
+      });
+      if (proofErr) throw proofErr;
+      const pr = proofRpc as { ok?: boolean; error?: string };
+      if (pr && pr.ok === false) throw new Error(pr.error ?? "Could not save proof");
+
+      if (isDraftFeatured) {
+        const { data: rpc, error: rpcErr } = await supabase.rpc("submit_auction_for_approval", {
+          p_auction_id: id,
+        });
+        if (rpcErr) throw rpcErr;
+        const r = rpc as { ok?: boolean; error?: string };
+        if (!r?.ok) throw new Error(r?.error ?? "Submit failed");
+        Alert.alert("Submitted", "Your payment proof is with admin for verification.");
+      } else {
+        Alert.alert("Submitted", "Your payment proof is with admin for verification.");
+      }
+
+      qc.invalidateQueries({ queryKey: ["auction", id] });
+      qc.invalidateQueries({ queryKey: ["auction-draft", id] });
+      qc.invalidateQueries({ queryKey: ["my-auctions"] });
+      qc.invalidateQueries({ queryKey: ["admin-awaiting-payment"] });
+      qc.invalidateQueries({ queryKey: ["admin-queue-counts"] });
+      router.replace(`/my-auctions/${id}` as Href);
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not submit");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!id) {
+    return (
+      <Screen scroll>
+        <TextBody>Missing listing id.</TextBody>
+      </Screen>
+    );
+  }
+
+  if (isPending || !auction) {
+    return (
+      <Screen scroll>
+        <TextBody>Loading…</TextBody>
+      </Screen>
+    );
+  }
+
+  if (auction.seller_id !== session?.user.id) {
+    return (
+      <Screen scroll>
+        <TextBody>You can only manage your own listings.</TextBody>
+      </Screen>
+    );
+  }
+
+  const isDraftFeatured = auction.status === "draft" && auction.bid_type === "featured";
+  const isActivePending =
+    auction.status === "active" && Boolean(auction.featured_listing_fee_pending);
+
+  if (!isDraftFeatured && !isActivePending) {
+    return (
+      <Screen scroll>
+        <TextTitle>Featured listing fee</TextTitle>
+        <TextBody style={{ marginTop: space.md }}>
+          This listing is not waiting for a featured fee payment. Open it from My auctions if you want to
+          request a featured listing.
+        </TextBody>
+        <ButtonPrimary
+          title="Back to listing"
+          onPress={() => router.replace(`/my-auctions/${id}` as Href)}
+          style={{ marginTop: space.lg }}
+        />
+      </Screen>
+    );
+  }
+
+  const feeAmt = appSettings?.featured_listing_fee_amount ?? 150;
+  const acct = appSettings?.featured_listing_fee_account_number ?? "—";
+  const acctName = appSettings?.featured_listing_fee_account_name ?? "—";
+
+  return (
+    <Screen scroll>
+      <TextTitle style={{ marginBottom: space.sm }}>Featured listing fee</TextTitle>
+      {isActivePending ? (
+        <TextCaption style={{ marginBottom: space.md, color: colors.textSecondary }}>
+          Your listing stays live while we verify your featured listing payment.
+        </TextCaption>
+      ) : null}
+      <InfoCallout
+        message={`Pay MVR ${formatMvr(feeAmt)} to ${acctName}. Account: ${acct}. Upload proof below, then submit for admin verification.`}
+      />
+
+      <Pressable
+        onPress={pickProof}
+        style={{
+          marginTop: space.lg,
+          borderWidth: 2,
+          borderStyle: "dashed",
+          borderColor: colors.border,
+          borderRadius: radii.lg,
+          padding: space.lg,
+          backgroundColor: colors.surfaceMuted,
+          alignItems: "center",
+        }}
+      >
+        <Ionicons name="cloud-upload-outline" size={36} color={colors.textMuted} />
+        <TextBody style={{ fontWeight: "600", marginTop: space.sm }}>Upload payment proof</TextBody>
+        <TextCaption style={{ marginTop: space.xs, textAlign: "center" }}>
+          Screenshot of bank transfer or receipt.
+        </TextCaption>
+      </Pressable>
+
+      {proofUri ? (
+        <Image
+          source={{ uri: proofUri }}
+          style={{
+            marginTop: space.md,
+            width: "100%",
+            height: 200,
+            borderRadius: radii.lg,
+            backgroundColor: colors.surfaceMuted,
+          }}
+        />
+      ) : null}
+
+      <View style={{ marginTop: space.xl, gap: space.md }}>
+        <ButtonPrimary title="Submit for verification" loading={busy} disabled={!proofUri} onPress={submit} />
+        <ButtonSecondary
+          title="Back"
+          onPress={() => {
+            void refetch();
+            router.replace(`/my-auctions/${id}` as Href);
+          }}
+        />
+      </View>
+    </Screen>
+  );
+}

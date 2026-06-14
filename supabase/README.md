@@ -92,14 +92,23 @@ supabase functions deploy close-expired-auctions
 
 ### 3. Set secrets (Dashboard or CLI)
 
+New migrations may add tables/columns (e.g. `auction_categories`, `categories.parent_id` / `ecosystem`, curated category seed). Run `supabase db push` after pull.
+
 Functions need runtime secrets, e.g.:
 
 | Function | Typical secrets |
 |----------|-------------------|
-| `sms-hook` | `SEND_SMS_HOOK_SECRET` (must match **Authentication → Hooks → Send SMS** hook secret), `MSGOWL_ACCESS_KEY`, `MSGOWL_SENDER_ID`. For local `supabase start`, you can use `SMS_HOOK_SECRET` instead if you align it with `[auth.hook.send_sms]` in `config.toml`. |
+| `sms-hook` | `SEND_SMS_HOOK_SECRET` (match **Auth → Hooks → Send SMS**), **`MSG_OWL_OTP_KEY`** or `MSGOWL_OTP_KEY` (preferred for [OTP send](https://msgowl.com/docs#sendOTP)), or REST: `MSGOWL_ACCESS_KEY` / `MSG_OWL_REST_KEY` / `MSG_OWL_KEY` + sender `MSGOWL_SENDER_ID` / `MSG_OWL_SENDER_ID`. Optional `MSG_OWL_OTP_URL`. `MSG_OWL_OTP_SECRET` is stored by some teams for other flows; this hook authenticates OTP send with **`AccessKey` + OTP key** only (see [MsgOwl auth](https://msgowl.com/docs)). |
 | `promote-admin` | `ADMIN_PHONES` (`SUPABASE_*` keys are usually injected automatically on deploy — confirm under **Edge Functions → Secrets**) |
-| `process-notifications` | Optional `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL` for email; DB access uses injected service credentials when available |
-| `close-expired-auctions` | Same; schedule this function (e.g. cron) after deploy |
+| `process-notifications` | Optional `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, **`NOTIFICATION_EMAIL_ENABLED=true`** (email off by default). **MsgOwl REST** (`MSGOWL_ACCESS_KEY` / aliases + `MSGOWL_SENDER_ID`) for SMS on priority types. In-app list uses `notification_outbox` directly. |
+| `close-expired-auctions` | Same; **schedule cron** (e.g. every 1–2 min) so lots move from **active** to **ended** / **awaiting_winner_consent** on time. Without it, listings stay **active** in the DB until the job runs. |
+
+## Auction close + consent (operator note)
+
+- SQL **`close_expired_auctions()`** (invoked by **`close-expired-auctions`**) selects the highest valid bid, sets status to **`awaiting_winner_consent`**, and enqueues:
+  - **`winner_consent_requested`** → high bidder (full legal copy in app + email).
+  - **`auction_pending_winner_consent`** → seller (high bidder selected; **not** payment-stage wording yet).
+- After the bidder calls **`winner_give_consent`**, status becomes **`payment_stage`**, **`winner_consent_terms_version`** is stored, and the seller gets **`winner_consented`** (may contact winner).
 
 ### Phone OTP: “Unsupported phone provider”
 
@@ -111,6 +120,8 @@ Supabase returns this when **Phone** sign-in is enabled but there is **no SMS de
    `https://<YOUR_PROJECT_REF>.supabase.co/functions/v1/sms-hook`  
    and generate/copy the **hook secret**. Put the **same** value in **Edge Functions → Secrets** as `SEND_SMS_HOOK_SECRET` for `sms-hook`.
 4. The hook receives a [Standard Webhooks](https://github.com/standard-webhooks/standard-webhooks)-signed body; `sms-hook` verifies it with `standardwebhooks` when `SEND_SMS_HOOK_SECRET` (or `SMS_HOOK_SECRET`) is set.
+
+5. **MsgOwl `401 Invalid authorization key`:** use **`MSG_OWL_OTP_KEY`** for the [OTP `/send`](https://msgowl.com/docs#sendOTP) path (what the hook prefers when that secret exists), or a REST key with **`message.write`** for `rest.msgowl.com/messages`. Do not put your **sender ID** (e.g. `Effimetic`) in any `ACCESS_KEY` field.
 
 Local dev: `[auth.hook.send_sms]` in [`config.toml`](config.toml) points at `sms-hook`; set `SMS_HOOK_SECRET` in the env file your CLI loads for `supabase start`, and ensure the function can verify the same value (via `SMS_HOOK_SECRET` or `SEND_SMS_HOOK_SECRET`).
 
