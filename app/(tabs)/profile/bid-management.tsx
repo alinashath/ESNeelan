@@ -12,6 +12,7 @@ import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { BidManagementListRow } from "@/src/components/ui/BidManagementListRow";
+import { ManagedListingPreviewCard } from "@/src/components/ui/ManagedListingPreviewCard";
 import { space, colors } from "@/src/theme/tokens";
 import {
   ActivityUnderlineTabs,
@@ -308,36 +309,25 @@ export default function BidManagementScreen() {
                 const endsAt =
                   endsAtRaw != null && String(endsAtRaw).trim() !== "" ? String(endsAtRaw) : null;
                 const live = isAuctionLiveForUi(status, endsAt);
-                const winnerId = a.winner_id != null ? String(a.winner_id) : "";
                 const pill = live
                   ? "Live"
                   : String(status).toLowerCase() === "active"
                     ? "Closed"
                     : listingPillFromStatus(status);
                 const tone = live ? "live" : "muted";
-                const currentLabel = live ? "Current bid" : "Sold";
                 return (
                   <View key={id} style={{ gap: space.sm }}>
-                    <BidManagementListRow
+                    <ManagedListingPreviewCard
                       imageUrl={img}
                       title={title}
+                      status={status}
                       statusPill={pill}
                       statusPillTone={tone}
-                      metaLines={[
-                        { label: currentLabel, value: `${fmtMoney(current)} MVR`, emphasize: true },
-                        {
-                          label: "Total bids",
-                          value: `${bids} ${bids === 1 ? "bid" : "bids"}`,
-                        },
-                        ...(winnerId
-                          ? [{ label: "Winner", value: "Assigned — open manage", emphasize: true as const }]
-                          : []),
-                      ]}
+                      currentMvr={current}
+                      bidCount={bids}
+                      endsAtIso={endsAt}
+                      onManage={() => router.push(`/my-auctions/${id}` as Href)}
                       onViewLot={() => router.push(`/auction/${id}` as Href)}
-                      primaryAction={{
-                        label: "Manage listing",
-                        onPress: () => router.push(`/my-auctions/${id}` as Href),
-                      }}
                     />
                     {status === "won" ? (
                       <ButtonSecondary

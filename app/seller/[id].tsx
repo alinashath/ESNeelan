@@ -5,6 +5,7 @@ import {
   Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,7 @@ import {
   useExploreCatalog,
   useSellerPublicProfile,
 } from "@/src/data/auctions";
+import { useSellerCollectionsCatalog } from "@/src/data/seller-collections";
 import { useScreenContentWidth } from "@/src/components/layout/content-width";
 import { layout } from "@/src/theme/layout";
 import {
@@ -75,6 +77,8 @@ export default function SellerStorefrontScreen() {
     isError: profileError,
     refetch: refetchProfile,
   } = useSellerPublicProfile(sellerId);
+
+  const { data: sellerCollections } = useSellerCollectionsCatalog(sellerId || undefined);
 
   const catalogFilters = useMemo(
     () => ({
@@ -308,6 +312,62 @@ export default function SellerStorefrontScreen() {
               />
             ))}
           </ChipRow>
+        </View>
+      ) : null}
+
+      {sellerCollections?.length ? (
+        <View style={{ marginTop: space.lg }}>
+          <TextCaption style={{ fontWeight: "600", marginBottom: space.sm, letterSpacing: 0.4 }}>
+            COLLECTIONS
+          </TextCaption>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ flexDirection: "row", gap: space.sm, paddingRight: space.md }}
+          >
+            {sellerCollections.map((col) => (
+              <Pressable
+                key={col.id}
+                onPress={() => router.push(`/collection/${col.id}` as Href)}
+                accessibilityRole="button"
+                accessibilityLabel={`Open collection ${col.name}`}
+                style={({ pressed }) => ({
+                  width: 132,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  overflow: "hidden",
+                  backgroundColor: pressed ? colors.surfaceMuted : colors.background,
+                })}
+              >
+                <View style={{ height: 88, backgroundColor: colors.surfaceMuted }}>
+                  {col.cover_url ? (
+                    <Image
+                      source={{ uri: col.cover_url }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                      accessibilityIgnoresInvertColors
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        flex: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="albums-outline" size={28} color={colors.textMuted} />
+                    </View>
+                  )}
+                </View>
+                <View style={{ padding: space.sm }}>
+                  <TextCaption numberOfLines={2} style={{ fontWeight: "600", fontSize: 12 }}>
+                    {col.name}
+                  </TextCaption>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
         </View>
       ) : null}
     </View>

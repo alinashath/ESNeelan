@@ -86,6 +86,17 @@ export default function RootLayout() {
               headerLeft: makeRootStackBackHeader("/(tabs)" as Href, colors.text),
             }}
           />
+          <Stack.Screen
+            name="collection/[id]"
+            options={{
+              headerShown: true,
+              title: "Collection",
+              headerTintColor: colors.text,
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: colors.background },
+              headerLeft: makeRootStackBackHeader("/(tabs)" as Href, colors.text),
+            }}
+          />
           <Stack.Screen name="categories" options={{ headerShown: false, title: "Categories" }} />
           <Stack.Screen name="sellers" options={{ headerShown: false, title: "Sellers" }} />
           <Stack.Screen

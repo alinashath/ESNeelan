@@ -294,6 +294,12 @@ export default function ProfileScreen() {
           onPress={() => router.push("/my-auctions")}
         />
         <ProfileMenuRow
+          icon="albums-outline"
+          title="Collections"
+          subtitle="Optional groups for your seller page"
+          onPress={() => router.push("/profile/collections" as Href)}
+        />
+        <ProfileMenuRow
           icon="trophy-outline"
           title="Won auctions"
           subtitle="Lots you won"

@@ -25,6 +25,8 @@ type Props = {
   showLiveBadge?: boolean;
   /** `active` in DB but `ends_at` has passed — show muted “Closed” (not LIVE). */
   showClosedBadge?: boolean;
+  /** When false, hides heart + share (e.g. seller managing a draft). Default true. */
+  showListingActions?: boolean;
 };
 
 const OVERLAY_BTN = {
@@ -44,6 +46,7 @@ export function AuctionDetailHeroGallery({
   shareMessage,
   showLiveBadge,
   showClosedBadge,
+  showListingActions = true,
 }: Props) {
   const { width: winW, height: winH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -214,37 +217,39 @@ export function AuctionDetailHeroGallery({
             <TextCaption style={{ color: colors.white, fontWeight: "600" }}>Closed</TextCaption>
           </View>
         ) : null}
-        <View
-          pointerEvents="box-none"
-          style={{
-            position: "absolute",
-            top: heroStatusBadge ? 52 : space.md,
-            right: space.md,
-            gap: space.sm,
-            alignItems: "flex-end",
-          }}
-        >
-          <Pressable
-            onPress={() => setFavorited((v) => !v)}
-            accessibilityRole="button"
-            accessibilityLabel={favorited ? "Remove from saved" : "Save listing"}
-            style={OVERLAY_BTN}
+        {showListingActions ? (
+          <View
+            pointerEvents="box-none"
+            style={{
+              position: "absolute",
+              top: heroStatusBadge ? 52 : space.md,
+              right: space.md,
+              gap: space.sm,
+              alignItems: "flex-end",
+            }}
           >
-            <Ionicons
-              name={favorited ? "heart" : "heart-outline"}
-              size={22}
-              color={favorited ? colors.accent : colors.textSecondary}
-            />
-          </Pressable>
-          <Pressable
-            onPress={() => void onShare()}
-            accessibilityRole="button"
-            accessibilityLabel="Share listing"
-            style={OVERLAY_BTN}
-          >
-            <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
-          </Pressable>
-        </View>
+            <Pressable
+              onPress={() => setFavorited((v) => !v)}
+              accessibilityRole="button"
+              accessibilityLabel={favorited ? "Remove from saved" : "Save listing"}
+              style={OVERLAY_BTN}
+            >
+              <Ionicons
+                name={favorited ? "heart" : "heart-outline"}
+                size={22}
+                color={favorited ? colors.accent : colors.textSecondary}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() => void onShare()}
+              accessibilityRole="button"
+              accessibilityLabel="Share listing"
+              style={OVERLAY_BTN}
+            >
+              <Ionicons name="share-outline" size={22} color={colors.textSecondary} />
+            </Pressable>
+          </View>
+        ) : null}
 
         {imageUrls.length > 1 ? (
           <View

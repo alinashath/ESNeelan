@@ -41,6 +41,24 @@ export default function ProfileTabStackLayout() {
           headerBackTitle: "Profile",
         }}
       />
+      <Stack.Screen
+        name="collections"
+        options={{
+          headerShown: true,
+          title: "Collections",
+          headerLeft: makeRootStackBackHeader("/(tabs)/profile"),
+          headerBackTitle: "Profile",
+        }}
+      />
+      <Stack.Screen
+        name="collection/[id]"
+        options={{
+          headerShown: true,
+          title: "Collection",
+          headerLeft: makeRootStackBackHeader("/(tabs)/profile/collections"),
+          headerBackTitle: "Collections",
+        }}
+      />
     </Stack>
   );
 }

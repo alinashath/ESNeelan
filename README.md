@@ -105,7 +105,8 @@ Run `npm run web` (or `npx expo start --web`). On large viewports, `Screen` cent
 | Path                                      | Purpose                                                                             |
 | ----------------------------------------- | ----------------------------------------------------------------------------------- |
 | `app/`                                    | expo-router routes: tabs, auth, `auction/[id]`, `my-auctions/*`, `won/*`, `admin/*` |
-| `app/my-auctions/*`                       | Your listings: searchable list → detail → public auction                            |
+| `app/(tabs)/profile/collections*`         | Seller **collections** (optional groups, cover image, link auctions)                |
+| `app/collection/[id]`                     | Public view of a seller collection’s listings                                       |
 | `app/won/*`                               | Won lots: searchable list → detail                                                  |
 | `src/theme/tokens.ts`                     | Colors, spacing, radii, typography                                                  |
 | `src/theme/layout.ts`                     | Web max content width + responsive grid breakpoints                                 |

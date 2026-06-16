@@ -20,7 +20,7 @@ export default function MyAuctionsLayout() {
           headerLeft: makeRootStackBackHeader("/(tabs)"),
         }}
       />
-      <Stack.Screen name="[id]" options={{ title: "Your listing" }} />
+      <Stack.Screen name="[id]" options={{ title: "Manage listing" }} />
       <Stack.Screen name="featured-fee" options={{ title: "Featured listing fee" }} />
     </Stack>
   );
