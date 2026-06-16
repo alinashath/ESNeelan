@@ -5,7 +5,6 @@ import { supabase } from "@/src/lib/supabase";
 import { useMyAuctions, useMyBids, useWonAuctions } from "@/src/data/user-auctions";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { Screen } from "@/src/components/ui/Screen";
-import { HeaderLogoRow } from "@/src/components/ui/HeaderLogoRow";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
@@ -19,7 +18,7 @@ import {
   type ActivityTabKey,
 } from "@/src/components/ui/MyActivityWhiteCards";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
-import { auctionStatusLabel } from "@/src/lib/auction-status-label";
+import { formatMoneyAmount } from "@/src/lib/format-money";
 
 type AuctionJoin = {
   id: string;
@@ -35,7 +34,7 @@ type AuctionJoin = {
 } | null;
 
 function fmtMoney(n: number) {
-  return new Intl.NumberFormat(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n);
+  return formatMoneyAmount(n);
 }
 
 function wonStatusPill(status: string): { pill: string; tone: "live" | "muted" | "urgent" } {
@@ -46,7 +45,7 @@ function wonStatusPill(status: string): { pill: string; tone: "live" | "muted" |
   return { pill: status.replace(/_/g, " ").toUpperCase(), tone: "muted" };
 }
 
-export default function MyBidsScreen() {
+export default function BidManagementScreen() {
   const { session } = useAuth();
   const [tab, setTab] = useState<ActivityTabKey>("active");
   const [includeClosedBids, setIncludeClosedBids] = useState(false);
@@ -127,10 +126,6 @@ export default function MyBidsScreen() {
 
   return (
     <Screen scroll>
-      <HeaderLogoRow />
-      <View style={{ height: 1, backgroundColor: colors.border, marginBottom: space.lg }} />
-
-      <TextTitle style={{ marginBottom: space.xs }}>Bid management</TextTitle>
       <TextCaption style={{ marginBottom: space.md, color: colors.textMuted }}>
         Track live bids, settle wins, and manage listings — use View lot for the public auction page.
       </TextCaption>
@@ -183,8 +178,9 @@ export default function MyBidsScreen() {
                   dateStyle: "medium",
                   timeStyle: "short",
                 });
-                const pill = live ? "LIVE" : "ENDED";
+                const pill = live ? "Live" : "Closed";
                 const tone = live ? "live" : "muted";
+                const currentLabel = live ? "Current bid" : "Sold";
                 return (
                   <BidManagementListRow
                     key={r.id}
@@ -193,10 +189,13 @@ export default function MyBidsScreen() {
                     statusPill={pill}
                     statusPillTone={tone}
                     metaLines={[
-                      { label: "Current bid", value: `${fmtMoney(current)} MVR`, emphasize: true },
+                      { label: currentLabel, value: `${fmtMoney(current)} MVR`, emphasize: true },
+                      {
+                        label: "Total bids",
+                        value: `${bids} ${bids === 1 ? "bid" : "bids"}`,
+                      },
                       { label: "Your bid", value: `${fmtMoney(Number(r.amount))} MVR`, emphasize: leading },
                       { label: "Position", value: leading ? "Leading" : "Outbid" },
-                      { label: "Bids", value: String(bids) },
                       { label: "Placed", value: placed },
                     ]}
                     onViewLot={() => router.push(`/auction/${a.id}`)}
@@ -235,7 +234,6 @@ export default function MyBidsScreen() {
                     statusPillTone={tone}
                     metaLines={[
                       { label: "Winning bid", value: `${fmtMoney(high)} MVR`, emphasize: true },
-                      { label: "Status", value: auctionStatusLabel(status) },
                       ...(paySnippet ? [{ label: "Payment", value: paySnippet }] : []),
                     ]}
                     onViewLot={() => router.push(`/auction/${id}` as Href)}
@@ -311,8 +309,13 @@ export default function MyBidsScreen() {
                   endsAtRaw != null && String(endsAtRaw).trim() !== "" ? String(endsAtRaw) : null;
                 const live = isAuctionLiveForUi(status, endsAt);
                 const winnerId = a.winner_id != null ? String(a.winner_id) : "";
-                const pill = live ? "LIVE" : listingPillFromStatus(status);
+                const pill = live
+                  ? "Live"
+                  : String(status).toLowerCase() === "active"
+                    ? "Closed"
+                    : listingPillFromStatus(status);
                 const tone = live ? "live" : "muted";
+                const currentLabel = live ? "Current bid" : "Sold";
                 return (
                   <View key={id} style={{ gap: space.sm }}>
                     <BidManagementListRow
@@ -321,9 +324,11 @@ export default function MyBidsScreen() {
                       statusPill={pill}
                       statusPillTone={tone}
                       metaLines={[
-                        { label: "Current bid", value: `${fmtMoney(current)} MVR`, emphasize: true },
-                        { label: "Bids", value: String(bids) },
-                        { label: "Status", value: auctionStatusLabel(status) },
+                        { label: currentLabel, value: `${fmtMoney(current)} MVR`, emphasize: true },
+                        {
+                          label: "Total bids",
+                          value: `${bids} ${bids === 1 ? "bid" : "bids"}`,
+                        },
                         ...(winnerId
                           ? [{ label: "Winner", value: "Assigned — open manage", emphasize: true as const }]
                           : []),

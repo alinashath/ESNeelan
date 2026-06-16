@@ -34,8 +34,8 @@ export function ButtonSecondary({ title, disabled, style, icon, ...rest }: Props
       }}
       {...rest}
     >
-      {icon ? <Ionicons name={icon} size={20} color={colors.accent} /> : null}
-      <TextBody style={{ color: colors.accent, fontWeight: "600" }}>
+      {icon ? <Ionicons name={icon} size={20} color={colors.primary} /> : null}
+      <TextBody style={{ color: colors.primary, fontWeight: "600" }}>
         {title}
       </TextBody>
     </Pressable>

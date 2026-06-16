@@ -1,37 +1,39 @@
-import { useMemo, useState } from "react";
+import { useMemo, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
+  Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
-import {
-  useActiveAuctions,
-  useActiveCategoryRoots,
-  useCuratedCategories,
-} from "@/src/data/auctions";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
+import { useActiveAuctions, useCuratedCategories } from "@/src/data/auctions";
+import { useHomeSearchAutocompleteCandidates } from "@/src/lib/use-home-search-autocomplete";
 import { Screen } from "@/src/components/ui/Screen";
 import { HeaderLogoRow } from "@/src/components/ui/HeaderLogoRow";
 import { SearchField } from "@/src/components/ui/SearchField";
-import { SearchQuickChips } from "@/src/components/ui/SearchQuickChips";
-import { Chip } from "@/src/components/ui/Chip";
-import { ChipRow } from "@/src/components/ui/ChipRow";
 import { HomeFeaturedCarousel } from "@/src/components/ui/HomeFeaturedCarousel";
+import { HomeTopSellers } from "@/src/components/ui/HomeTopSellers";
 import { AuctionCard } from "@/src/components/ui/AuctionCard";
-import { HomeStatsBar } from "@/src/components/ui/HomeStatsBar";
+import { HomeMarketingFooter } from "@/src/components/ui/HomeMarketingFooter";
+import { HomeFeaturedArticles } from "@/src/components/ui/HomeFeaturedArticles";
 import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
-import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
 import { useScreenContentWidth } from "@/src/components/layout/content-width";
 import { getTrendingGridColumns } from "@/src/theme/layout";
 import { useWebWideTabHeader } from "@/src/lib/web-tabs-layout";
-import { colors, space } from "@/src/theme/tokens";
+import { useHomeCatalogSearch } from "@/src/context/HomeCatalogSearchContext";
+import { appleSpacing, colors, fontFamilies, space } from "@/src/theme/tokens";
 import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
 
 function toCardAuction(
-  item: AuctionCardAuction & { description?: string | null },
+  item: AuctionCardAuction & {
+    description?: string | null;
+    item_condition_label?: string | null;
+    listing_detail_chip_labels?: string[];
+  },
 ): AuctionCardAuction {
   return {
     id: item.id,
@@ -43,15 +45,19 @@ function toCardAuction(
     bid_count: item.bid_count,
     image_url: item.image_url ?? null,
     description: item.description ?? null,
+    item_condition_label: item.item_condition_label ?? null,
+    listing_detail_chip_labels: item.listing_detail_chip_labels ?? [],
   };
 }
 
 export default function HomeScreen() {
   const wideWebHeader = useWebWideTabHeader();
   const hideHomeLogoRow = process.env.EXPO_OS === "web" && wideWebHeader;
+  const { search, setSearch } = useHomeCatalogSearch();
 
   const screenW = useScreenContentWidth();
-  const gap = space.md;
+  /** Pinterest masonry gutter — `{spacing.sm}` */
+  const gap = space.sm;
   /** Screen horizontal padding + FlatList `contentContainerStyle` horizontal padding */
   const listInnerW = Math.max(0, screenW - space.lg * 4);
   const numColumns = getTrendingGridColumns(screenW);
@@ -59,20 +65,23 @@ export default function HomeScreen() {
   const colW =
     (listInnerW - gap * Math.max(0, numColumns - 1)) / Math.max(1, numColumns);
 
-  const [search, setSearch] = useState("");
-  const [categoryId, setCategoryId] = useState<string | null>(null);
   const { data: curated } = useCuratedCategories();
-  const { data: activeRoots } = useActiveCategoryRoots(curated);
-  const roots = activeRoots ?? [];
   const filters = useMemo(
     () => ({
       search: search.trim() || undefined,
-      categoryId: curated != null ? (categoryId ?? undefined) : undefined,
       curatedCategories: curated,
     }),
-    [search, categoryId, curated],
+    [search, curated],
   );
   const { data: auctions, isLoading, isRefetching, refetch } = useActiveAuctions(filters);
+
+  const searchAutocompleteCandidates = useHomeSearchAutocompleteCandidates();
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   const featuredList = useMemo(
     () => (auctions ?? []).filter((a) => a.is_featured),
@@ -84,63 +93,65 @@ export default function HomeScreen() {
     return auctions.filter((a) => !featuredIds.has(a.id));
   }, [auctions, featuredIds]);
 
+  const trendingViewAllLabelStyle = {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontWeight: "600" as const,
+    fontSize: 12,
+    letterSpacing: 0.8,
+    color: colors.primary,
+    textTransform: "uppercase" as const,
+  };
+
   const header = (
     <>
       {!hideHomeLogoRow ? <HeaderLogoRow /> : null}
-      <SearchField
-        placeholder="Search auctions..."
-        value={search}
-        onChangeText={setSearch}
-      />
-      <SearchQuickChips
-        suggestions={["Phone", "Watch", "Art", "Home"]}
-        onPick={(term) => setSearch(term)}
-      />
-      <View style={{ marginTop: space.lg }}>
-        <ChipRow>
-          <Chip
-            title="ALL"
-            appearance="outlined"
-            selected={categoryId === null}
-            onPress={() => setCategoryId(null)}
-          />
-          {roots.map((c) => (
-            <Chip
-              key={c.id}
-              title={c.name.toUpperCase()}
-              appearance="outlined"
-              selected={categoryId === c.id}
-              onPress={() => setCategoryId(c.id)}
-            />
-          ))}
-        </ChipRow>
-      </View>
+      {hideHomeLogoRow ? null : (
+        <SearchField
+          placeholder="Search"
+          value={search}
+          onChangeText={setSearch}
+          suggestions={searchAutocompleteCandidates}
+        />
+      )}
 
       {featuredList.length ? (
-        <HomeFeaturedCarousel
-          auctions={featuredList as AuctionCardAuction[]}
-          toCardAuction={toCardAuction}
-        />
+        <View style={{ marginTop: space.lg }}>
+          <HomeFeaturedCarousel
+            auctions={featuredList as AuctionCardAuction[]}
+            toCardAuction={toCardAuction}
+          />
+        </View>
       ) : null}
+
+      <HomeFeaturedArticles />
+
+      <HomeTopSellers columnWidth={colW} gap={gap} multiColumn={multiCol} />
 
       <View
         style={{
-          marginTop: space.xxxl,
+          marginTop: appleSpacing.section,
+          marginBottom: space.xl,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
         }}
       >
-        <TextSectionTitle style={{ marginBottom: 0 }}>Trending Auctions</TextSectionTitle>
+        <TextSectionTitle>Trending Auctions</TextSectionTitle>
         <Pressable
           onPress={() => router.push("/(tabs)/explore")}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="View all auctions"
         >
-          <TextCaption style={{ fontWeight: "600", letterSpacing: 1, color: colors.primary }}>
-            VIEW ALL →
-          </TextCaption>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={trendingViewAllLabelStyle}>VIEW ALL</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={14}
+              color={colors.primary}
+              style={{ marginLeft: 4 }}
+            />
+          </View>
         </Pressable>
       </View>
     </>
@@ -149,23 +160,23 @@ export default function HomeScreen() {
   const listEmpty =
     isLoading && rest.length === 0 ? (
       <View style={{ paddingVertical: space.xxl, alignItems: "center" }}>
-        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading auctions" />
+        <ActivityIndicator size="large" color={colors.accent} accessibilityLabel="Loading auctions" />
       </View>
     ) : !isLoading && rest.length === 0 ? (
       (auctions?.length ?? 0) === 0 ? (
         <ListEmptyState
           icon="hammer-outline"
           title="No live auctions yet"
-          description="Try another category, clear your search, or check Explore for the full catalog."
-          actionLabel="Browse Explore"
+          description="Clear your search or browse the full catalog."
+          actionLabel="View all"
           onActionPress={() => router.push("/(tabs)/explore")}
         />
       ) : (
         <ListEmptyState
           icon="star-outline"
           title="Everything here is in Featured"
-          description="Scroll up for featured auctions, or open Explore for the full catalog."
-          actionLabel="Open Explore"
+          description="Scroll up for featured auctions, or browse the full catalog."
+          actionLabel="View all"
           onActionPress={() => router.push("/(tabs)/explore")}
         />
       )
@@ -173,7 +184,7 @@ export default function HomeScreen() {
 
   const footer = (
     <View style={{ marginTop: space.lg }}>
-      <HomeStatsBar />
+      <HomeMarketingFooter />
     </View>
   );
 
@@ -190,11 +201,12 @@ export default function HomeScreen() {
         ListFooterComponent={footer}
         ListEmptyComponent={listEmpty}
         keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => void refetch()}
-            tintColor={colors.primary}
+            tintColor={colors.accent}
           />
         }
         columnWrapperStyle={multiCol ? { gap } : undefined}

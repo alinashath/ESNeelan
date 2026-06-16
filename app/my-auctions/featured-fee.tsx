@@ -15,10 +15,7 @@ import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { colors, radii, space } from "@/src/theme/tokens";
 import { useState } from "react";
-
-function formatMvr(n: number): string {
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
-}
+import { formatMoneyAmount } from "@/src/lib/format-money";
 
 export default function MyAuctionFeaturedFeeScreen() {
   const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
@@ -194,7 +191,7 @@ export default function MyAuctionFeaturedFeeScreen() {
         </TextCaption>
       ) : null}
       <InfoCallout
-        message={`Pay MVR ${formatMvr(feeAmt)} to ${acctName}. Account: ${acct}. Upload proof below, then submit for admin verification.`}
+        message={`Pay MVR ${formatMoneyAmount(feeAmt)} to ${acctName}. Account: ${acct}. Upload proof below, then submit for admin verification.`}
       />
 
       <Pressable

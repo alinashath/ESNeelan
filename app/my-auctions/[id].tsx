@@ -139,7 +139,9 @@ export default function MyAuctionDetailScreen() {
       <TextTitle>{title}</TextTitle>
       <View style={{ flexDirection: "row", gap: space.sm, marginTop: space.sm, flexWrap: "wrap" }}>
         <Badge title={bidType === "featured" ? "FEATURED" : "STANDARD"} variant="accent" />
-        <TextCaption style={{ fontWeight: "600" }}>{auctionStatusLabel(status)}</TextCaption>
+        <TextCaption style={{ fontWeight: "600" }}>
+          {auctionStatusLabel(status, endsAt || undefined)}
+        </TextCaption>
       </View>
       {status === "active" && feePending ? (
         <TextCaption style={{ marginTop: space.xs, color: colors.textSecondary }}>

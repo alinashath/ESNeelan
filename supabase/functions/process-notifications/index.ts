@@ -118,7 +118,10 @@ function buildSmsBody(type: string, payload: Record<string, unknown>): string | 
 function mvr(v: unknown): string | null {
   const n = num(v);
   if (n == null) return null;
-  return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n)} MVR`;
+  return `${new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)} MVR`;
 }
 
 function joinParas(lines: string[]): string {

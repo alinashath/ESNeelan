@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/src/lib/supabase";
 import { storagePublicUrl } from "@/src/lib/storage-url";
+import { getAvatarPublicUrl } from "@/src/lib/avatar";
 import type { CategoryRow } from "@/src/data/category-utils";
 import { collectSubtreeIds } from "@/src/data/category-utils";
+import { buildAuctionListPresentation } from "@/src/lib/auction-list-presentation";
+import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
 
 export type { CategoryRow };
 
@@ -21,7 +24,15 @@ export type AuctionListRow = {
   image_path: string | null;
   is_featured?: boolean;
   featured_sort_order?: number | null;
+  item_condition?: string | null;
+  delivery_options?: string[] | null;
+  listing_attributes?: unknown;
+  item_condition_label?: string;
+  listing_detail_chip_labels?: string[];
 };
+
+/** Aggregate of `public.seller_ratings` for a seller (buyer feedback after completed sales). */
+export type SellerRatingSummary = { avg: number; count: number };
 
 export function useActiveAuctions(filters?: {
   categoryId?: string | null;
@@ -57,6 +68,7 @@ export function useActiveAuctions(filters?: {
         .select(
           `
           id, title, description, status, ends_at, starts_at, current_highest_bid, starting_price, bid_count, category_id, seller_id, is_featured, featured_sort_order,
+          item_condition, delivery_options, listing_attributes,
           auction_images ( storage_path, sort_order )
         `,
         )
@@ -92,6 +104,12 @@ export function useActiveAuctions(filters?: {
           (a, b) => a.sort_order - b.sort_order,
         );
         const first = imgs[0]?.storage_path ?? null;
+        const pres = buildAuctionListPresentation(filters?.curatedCategories, {
+          category_id: r.category_id,
+          item_condition: (r as { item_condition?: string | null }).item_condition,
+          delivery_options: (r as { delivery_options?: string[] | null }).delivery_options,
+          listing_attributes: (r as { listing_attributes?: unknown }).listing_attributes,
+        });
         return {
           id: r.id,
           title: r.title,
@@ -110,6 +128,7 @@ export function useActiveAuctions(filters?: {
           image_url: first
             ? storagePublicUrl("auction-images", first)
             : null,
+          ...pres,
         };
       });
     },
@@ -126,6 +145,8 @@ export type ExploreCatalogFilters = {
   listingScope?: ExploreListingScope;
   hasBids?: ExploreHasBidsFilter;
   curatedCategories?: CategoryRow[];
+  /** When set, restrict catalog to this seller’s listings (storefront). */
+  sellerId?: string;
 };
 
 function compareExploreRows(
@@ -175,6 +196,7 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
         .select(
           `
           id, title, description, status, ends_at, starts_at, current_highest_bid, starting_price, bid_count, category_id, seller_id, is_featured, featured_sort_order,
+          item_condition, delivery_options, listing_attributes,
           auction_images ( storage_path, sort_order )
         `,
         )
@@ -186,6 +208,10 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
         q = q.eq("status", "ended");
       } else {
         q = q.in("status", ["active", "ended"]);
+      }
+
+      if (filters?.sellerId) {
+        q = q.eq("seller_id", filters.sellerId);
       }
 
       if (auctionIds) {
@@ -215,6 +241,12 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
           (a, b) => a.sort_order - b.sort_order,
         );
         const first = imgs[0]?.storage_path ?? null;
+        const pres = buildAuctionListPresentation(filters?.curatedCategories, {
+          category_id: r.category_id,
+          item_condition: (r as { item_condition?: string | null }).item_condition,
+          delivery_options: (r as { delivery_options?: string[] | null }).delivery_options,
+          listing_attributes: (r as { listing_attributes?: unknown }).listing_attributes,
+        });
         return {
           id: r.id,
           title: r.title,
@@ -233,6 +265,7 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
           image_url: first
             ? storagePublicUrl("auction-images", first)
             : null,
+          ...pres,
         };
       });
 
@@ -252,6 +285,7 @@ export function useAuctionDetail(id: string) {
           `
           *,
           auction_categories (
+            category_id,
             sort_order,
             categories ( name, slug )
           ),
@@ -263,11 +297,36 @@ export function useAuctionDetail(id: string) {
       if (error) throw error;
       if (!a) return null;
 
+      const sellerId = (a as { seller_id: string }).seller_id;
+
       const { data: seller } = await supabase
         .from("profiles")
-        .select("id, display_name")
-        .eq("id", (a as { seller_id: string }).seller_id)
+        .select("id, display_name, avatar_storage_path")
+        .eq("id", sellerId)
         .maybeSingle();
+
+      const sellerWithAvatar = seller
+        ? {
+            id: seller.id,
+            display_name: seller.display_name,
+            avatar_url: getAvatarPublicUrl(
+              (seller as { avatar_storage_path?: string | null }).avatar_storage_path ??
+                null,
+            ),
+          }
+        : null;
+
+      const { data: starRows, error: starsErr } = await supabase
+        .from("seller_ratings")
+        .select("stars")
+        .eq("seller_id", sellerId);
+      if (starsErr) throw starsErr;
+      const starsList = (starRows ?? []) as { stars: number }[];
+      let seller_rating_summary: SellerRatingSummary | null = null;
+      if (starsList.length > 0) {
+        const sum = starsList.reduce((acc, r) => acc + Number(r.stars), 0);
+        seller_rating_summary = { avg: sum / starsList.length, count: starsList.length };
+      }
 
       const imgs = [
         ...((a as { auction_images?: { storage_path: string; sort_order: number }[] })
@@ -300,7 +359,8 @@ export function useAuctionDetail(id: string) {
       return {
         ...row,
         image_urls,
-        seller,
+        seller: sellerWithAvatar,
+        seller_rating_summary,
         category_names,
       };
     },
@@ -380,6 +440,65 @@ export function useCuratedCategories() {
   });
 }
 
+/**
+ * Distinct live + ended listing counts per curated category (listing matches if any
+ * `auction_categories` or legacy `category_id` falls in that category’s subtree).
+ */
+export function useExploreCategoryCounts(curated: CategoryRow[] | undefined) {
+  const key = (curated ?? []).map((c) => c.id).join(",");
+  return useQuery({
+    queryKey: ["categories", "explore-counts", key],
+    enabled: !!curated?.length,
+    queryFn: async () => {
+      const list = curated ?? [];
+      const { data: auctions, error: e1 } = await supabase
+        .from("auctions")
+        .select("id, category_id")
+        .in("status", ["active", "ended"]);
+      if (e1) throw e1;
+      const rows = (auctions ?? []) as { id: string; category_id: string | null }[];
+      const auctionToCats = new Map<string, Set<string>>();
+      for (const r of rows) {
+        const s = new Set<string>();
+        if (r.category_id) s.add(String(r.category_id));
+        auctionToCats.set(String(r.id), s);
+      }
+      const ids = rows.map((r) => String(r.id));
+      if (ids.length > 0) {
+        const { data: links, error: e2 } = await supabase
+          .from("auction_categories")
+          .select("auction_id, category_id")
+          .in("auction_id", ids);
+        if (e2) throw e2;
+        for (const row of links ?? []) {
+          const aid = String((row as { auction_id: string }).auction_id);
+          const cid = String((row as { category_id: string }).category_id);
+          if (!auctionToCats.has(aid)) auctionToCats.set(aid, new Set());
+          auctionToCats.get(aid)!.add(cid);
+        }
+      }
+
+      const counts: Record<string, number> = {};
+      for (const c of list) {
+        const subtree = new Set(collectSubtreeIds(list, c.id));
+        let n = 0;
+        for (const cats of auctionToCats.values()) {
+          let hit = false;
+          for (const cat of cats) {
+            if (subtree.has(cat)) {
+              hit = true;
+              break;
+            }
+          }
+          if (hit) n += 1;
+        }
+        counts[c.id] = n;
+      }
+      return counts;
+    },
+  });
+}
+
 export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
@@ -392,6 +511,54 @@ export function useCategories() {
         .order("name", { ascending: true });
       if (error) throw error;
       return (data ?? []) as CategoryRow[];
+    },
+  });
+}
+
+export type SellerPublicProfile = {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  seller_rating_summary: SellerRatingSummary | null;
+};
+
+/** Public storefront header: name, avatar URL, aggregate rating (RLS must allow read). */
+export function useSellerPublicProfile(sellerId: string) {
+  return useQuery({
+    queryKey: ["seller", "public", sellerId],
+    enabled: !!sellerId,
+    queryFn: async () => {
+      const { data: p, error } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_storage_path")
+        .eq("id", sellerId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!p) return null;
+
+      const { data: starRows, error: starsErr } = await supabase
+        .from("seller_ratings")
+        .select("stars")
+        .eq("seller_id", sellerId);
+      if (starsErr) throw starsErr;
+      const starsList = (starRows ?? []) as { stars: number }[];
+      let seller_rating_summary: SellerRatingSummary | null = null;
+      if (starsList.length > 0) {
+        const sum = starsList.reduce((acc, r) => acc + Number(r.stars), 0);
+        seller_rating_summary = {
+          avg: sum / starsList.length,
+          count: starsList.length,
+        };
+      }
+
+      return {
+        id: p.id,
+        display_name: p.display_name,
+        avatar_url: getAvatarPublicUrl(
+          (p as { avatar_storage_path?: string | null }).avatar_storage_path ?? null,
+        ),
+        seller_rating_summary,
+      } satisfies SellerPublicProfile;
     },
   });
 }
@@ -409,22 +576,135 @@ export function useAuctionBids(auctionId: string) {
       if (error) throw error;
       const list = bids ?? [];
       const ids = [...new Set(list.map((b) => b.bidder_id))];
-      let names: Record<string, string> = {};
+      let profById: Record<
+        string,
+        { name: string; avatar_url: string | null }
+      > = {};
       if (ids.length) {
         const { data: profs } = await supabase
           .from("profiles")
-          .select("id, display_name")
+          .select("id, display_name, avatar_storage_path")
           .in("id", ids);
-        names = Object.fromEntries(
-          (profs ?? []).map((p) => [p.id, p.display_name ?? "Bidder"]),
+        profById = Object.fromEntries(
+          (profs ?? []).map((p) => [
+            p.id,
+            {
+              name: p.display_name ?? "Bidder",
+              avatar_url: getAvatarPublicUrl(
+                (p as { avatar_storage_path?: string | null }).avatar_storage_path ??
+                  null,
+              ),
+            },
+          ]),
         );
       }
-      return list.map((b) => ({
-        id: b.id,
-        amount: Number(b.amount),
-        created_at: b.created_at,
-        bidder_display: names[b.bidder_id] ?? "Bidder",
-      }));
+      return list.map((b) => {
+        const p = profById[b.bidder_id];
+        return {
+          id: b.id,
+          amount: Number(b.amount),
+          created_at: b.created_at,
+          bidder_display: p?.name ?? "Bidder",
+          bidder_avatar_url: p?.avatar_url ?? null,
+        };
+      });
+    },
+  });
+}
+
+function mapAuctionEmbedRow(data: {
+  id: unknown;
+  title: unknown;
+  status: unknown;
+  ends_at: unknown;
+  current_highest_bid: unknown;
+  starting_price: unknown;
+  bid_count: unknown;
+  auction_images?: { storage_path: string; sort_order: number }[];
+}): AuctionCardAuction {
+  const imgs = [...(data.auction_images ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+  const first = imgs[0]?.storage_path ?? null;
+  return {
+    id: String(data.id),
+    title: String(data.title),
+    status: String(data.status),
+    ends_at: String(data.ends_at),
+    current_highest_bid:
+      data.current_highest_bid != null ? Number(data.current_highest_bid) : null,
+    starting_price: Number(data.starting_price),
+    bid_count: Number(data.bid_count ?? 0),
+    image_url: first ? storagePublicUrl("auction-images", first) : null,
+  };
+}
+
+/** Single listing for article embeds (respects auction RLS for readers). */
+export function useAuctionEmbedById(auctionId: string | null | undefined, options?: { enabled?: boolean }) {
+  return useQuery<AuctionCardAuction | null, Error>({
+    queryKey: ["auctions", "article-embed", auctionId],
+    enabled: Boolean(auctionId) && options?.enabled !== false,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("auctions")
+        .select(
+          `
+          id, title, status, ends_at, current_highest_bid, starting_price, bid_count,
+          auction_images ( storage_path, sort_order )
+        `,
+        )
+        .eq("id", String(auctionId))
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      return mapAuctionEmbedRow(data as Parameters<typeof mapAuctionEmbedRow>[0]);
+    },
+  });
+}
+
+export type AuctionArticleSearchHit = {
+  id: string;
+  title: string;
+  status: string;
+  image_url: string | null;
+};
+
+/** Admin: search listings by title to attach to a featured article block. */
+export function useAdminAuctionSearchForArticles(
+  search: string,
+  options?: { enabled?: boolean },
+) {
+  const q = search.trim();
+  return useQuery<AuctionArticleSearchHit[], Error>({
+    queryKey: ["admin", "featured-articles", "auction-search", q],
+    enabled: (options?.enabled !== false) && q.length >= 2,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("auctions")
+        .select(
+          `
+          id, title, status,
+          auction_images ( storage_path, sort_order )
+        `,
+        )
+        .ilike("title", `%${q}%`)
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{
+        id: string;
+        title: string;
+        status: string;
+        auction_images?: { storage_path: string; sort_order: number }[];
+      }>;
+      return rows.map((r) => {
+        const imgs = [...(r.auction_images ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+        const first = imgs[0]?.storage_path ?? null;
+        return {
+          id: r.id,
+          title: r.title,
+          status: r.status,
+          image_url: first ? storagePublicUrl("auction-images", first) : null,
+        };
+      });
     },
   });
 }

@@ -5,6 +5,8 @@ import { TextCaption } from "./TextCaption";
 type Props = ViewProps & {
   title: string;
   variant?: "neutral" | "accent" | "danger" | "warning";
+  /** Smaller pill for auction detail / dense rows. */
+  compact?: boolean;
 };
 
 const shell = {
@@ -14,7 +16,20 @@ const shell = {
   borderWidth: 1,
 };
 
-export function Badge({ title, variant = "neutral", style, ...rest }: Props) {
+const shellCompact = {
+  alignSelf: "flex-start" as const,
+  paddingHorizontal: 10,
+  paddingVertical: 4,
+  borderWidth: 1,
+};
+
+export function Badge({
+  title,
+  variant = "neutral",
+  compact,
+  style,
+  ...rest
+}: Props) {
   const palette =
     variant === "accent"
       ? {
@@ -37,7 +52,7 @@ export function Badge({ title, variant = "neutral", style, ...rest }: Props) {
   return (
     <View
       style={[
-        shell,
+        compact ? shellCompact : shell,
         {
           borderRadius: radii.pill,
           backgroundColor: palette.backgroundColor,
@@ -47,7 +62,14 @@ export function Badge({ title, variant = "neutral", style, ...rest }: Props) {
       ]}
       {...rest}
     >
-      <TextCaption style={{ color: palette.color, fontWeight: "600" }}>
+      <TextCaption
+        style={{
+          color: palette.color,
+          fontWeight: "400",
+          fontSize: compact ? 11 : undefined,
+          lineHeight: compact ? 14 : undefined,
+        }}
+      >
         {title}
       </TextCaption>
     </View>

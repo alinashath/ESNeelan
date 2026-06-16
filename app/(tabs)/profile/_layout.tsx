@@ -32,6 +32,15 @@ export default function ProfileTabStackLayout() {
           headerBackTitle: "Back",
         }}
       />
+      <Stack.Screen
+        name="bid-management"
+        options={{
+          headerShown: true,
+          title: "Bid management",
+          headerLeft: makeRootStackBackHeader("/(tabs)/profile"),
+          headerBackTitle: "Profile",
+        }}
+      />
     </Stack>
   );
 }

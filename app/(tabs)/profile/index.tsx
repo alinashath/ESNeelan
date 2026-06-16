@@ -282,6 +282,12 @@ export default function ProfileScreen() {
           onPress={() => router.push("/profile/seller-verification" as Href)}
         />
         <ProfileMenuRow
+          icon="pulse-outline"
+          title="Bid management"
+          subtitle="Your bids, wins, and listings you sell"
+          onPress={() => router.push("/profile/bid-management" as Href)}
+        />
+        <ProfileMenuRow
           icon="hammer-outline"
           title="My auctions"
           subtitle="Listings you are selling"

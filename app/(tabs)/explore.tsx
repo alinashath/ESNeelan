@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   useExploreCatalog,
   useActiveCategoryRoots,
@@ -22,12 +22,16 @@ import {
 } from "@/src/components/ui/ExploreFiltersModal";
 import { Screen } from "@/src/components/ui/Screen";
 import { SearchField } from "@/src/components/ui/SearchField";
-import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { AuctionCard } from "@/src/components/ui/AuctionCard";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
 import { accentWash, colors, radii, space } from "@/src/theme/tokens";
+
+function firstSearchParam(v: string | string[] | undefined): string | undefined {
+  if (v == null) return undefined;
+  return typeof v === "string" ? v : v[0];
+}
 
 export default function ExploreScreen() {
   const screenW = useScreenContentWidth();
@@ -43,6 +47,16 @@ export default function ExploreScreen() {
   const [draft, setDraft] = useState<ExploreFilterDraft>(exploreFiltersDefault);
 
   const { data: curated } = useCuratedCategories();
+  const params = useLocalSearchParams<{ category?: string | string[] }>();
+  const categoryFromRoute = firstSearchParam(params.category);
+
+  useEffect(() => {
+    if (!categoryFromRoute || !curated?.length) return;
+    if (!curated.some((c) => c.id === categoryFromRoute)) return;
+    setApplied((p) => ({ ...p, categoryId: categoryFromRoute }));
+    setDraft((p) => ({ ...p, categoryId: categoryFromRoute }));
+  }, [categoryFromRoute, curated]);
+
   const { data: activeRoots } = useActiveCategoryRoots(curated);
   const roots = activeRoots ?? [];
 
@@ -59,6 +73,12 @@ export default function ExploreScreen() {
 
   const { data: auctions, isLoading, isRefetching, refetch } = useExploreCatalog(catalogFilters);
   const rows = auctions ?? [];
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   const openFilters = () => {
     setDraft(applied);
@@ -89,17 +109,11 @@ export default function ExploreScreen() {
       <View
         style={{
           flexDirection: "row",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "flex-start",
           gap: space.md,
         }}
       >
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <TextTitle style={{ fontSize: 26, letterSpacing: -0.5 }}>Explore</TextTitle>
-          <TextBody style={{ marginTop: space.xs, color: colors.textMuted }}>
-            Live auctions first, then ended. Refine with filters.
-          </TextBody>
-        </View>
         <Pressable
           onPress={openFilters}
           accessibilityRole="button"
@@ -147,9 +161,6 @@ export default function ExploreScreen() {
           onChangeText={(t) => setApplied((prev) => ({ ...prev, search: t }))}
           accessibilityLabel="Search explore catalog by title"
         />
-        <TextCaption style={{ marginTop: space.sm, color: colors.textMuted }}>
-          Category, listing status, and bids — use Filters.
-        </TextCaption>
       </View>
     </View>
   );
@@ -222,6 +233,8 @@ export default function ExploreScreen() {
                 bid_count: item.bid_count,
                 image_url: item.image_url,
                 description: item.description,
+                item_condition_label: item.item_condition_label,
+                listing_detail_chip_labels: item.listing_detail_chip_labels,
               }}
               compact={multiCol}
               inGrid={multiCol}

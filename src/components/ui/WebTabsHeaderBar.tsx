@@ -8,7 +8,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useSegments, usePathname, type Href } from "expo-router";
 import { HeaderBrandMark } from "@/src/components/ui/HeaderLogoRow";
-import { colors, goldBorderSubtle, radii, space } from "@/src/theme/tokens";
+import { SearchField } from "@/src/components/ui/SearchField";
+import { useHomeSearchAutocompleteCandidates } from "@/src/lib/use-home-search-autocomplete";
+import { useHomeCatalogSearch } from "@/src/context/HomeCatalogSearchContext";
+import { useAuth } from "@/src/providers/AuthProvider";
+import { colors, radii, space } from "@/src/theme/tokens";
 
 type RouteLike = { key: string; name: string };
 
@@ -29,11 +33,19 @@ type TabBarProps = {
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   index: "home-outline",
   explore: "compass-outline",
+  artists: "color-palette-outline",
   create: "add-circle-outline",
-  "my-bids": "hammer-outline",
   notifications: "notifications-outline",
   profile: "person-outline",
 };
+
+/** Primary links in the top bar; alerts + account use the icon cluster. */
+const ROUTES_IN_HEADER_SCROLL = new Set([
+  "index",
+  "explore",
+  "artists",
+  "create",
+]);
 
 function hrefForRoute(name: string): Href {
   if (name === "index") return "/(tabs)";
@@ -51,7 +63,8 @@ function useActiveTabRouteName(): string {
 }
 
 /**
- * Web: single header row — brand left, primary nav links right (site-style).
+ * Web: marketing header — brand, primary tabs, home search (shared with catalog),
+ * Sign up + alerts + profile (Stitch top nav pattern).
  */
 export function WebTabsHeaderBar(
   props: TabBarProps & { unread: number } & Record<string, unknown>,
@@ -59,8 +72,13 @@ export function WebTabsHeaderBar(
   const { state, descriptors, insets, unread } = props;
   const router = useRouter();
   const activeName = useActiveTabRouteName();
+  const { search, setSearch } = useHomeCatalogSearch();
+  const searchAutocompleteCandidates = useHomeSearchAutocompleteCandidates();
+  const { session, loading: authLoading } = useAuth();
+  const signedIn = !!session;
+  const showSignUp = !authLoading && !session;
 
-  const routes = state.routes;
+  const routes = state.routes.filter((r) => ROUTES_IN_HEADER_SCROLL.has(r.name));
 
   return (
     <View
@@ -78,27 +96,24 @@ export function WebTabsHeaderBar(
         <View style={styles.brand}>
           <HeaderBrandMark />
         </View>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
           bounces={false}
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
+          style={styles.tabScroll}
+          contentContainerStyle={styles.tabScrollContent}
         >
           {routes.map((route) => {
             const { options } = descriptors[route.key]!;
             const label = options.title ?? route.name;
             const focused = route.name === activeName;
-            const tint = focused ? colors.accent : colors.textMuted;
+            const tint = focused ? colors.primary : colors.textSecondary;
             const iconName = TAB_ICONS[route.name] ?? "ellipse-outline";
             const rawBadge = options.tabBarBadge;
             const badge =
-              route.name === "notifications" && unread > 0
-                ? unread
-                : typeof rawBadge === "number" && rawBadge > 0
-                  ? rawBadge
-                  : null;
+              typeof rawBadge === "number" && rawBadge > 0 ? rawBadge : null;
 
             return (
               <Pressable
@@ -109,7 +124,7 @@ export function WebTabsHeaderBar(
                 onPress={() => router.navigate(hrefForRoute(route.name))}
                 style={({ pressed }) => [
                   styles.tab,
-                  focused && styles.tabFocused,
+                  focused ? styles.tabFocused : styles.tabIdle,
                   pressed && styles.tabPressed,
                 ]}
               >
@@ -132,6 +147,67 @@ export function WebTabsHeaderBar(
             );
           })}
         </ScrollView>
+
+        {activeName === "index" ? (
+          <View style={styles.searchWrap}>
+            <SearchField
+              placeholder="Search"
+              value={search}
+              onChangeText={setSearch}
+              suggestions={searchAutocompleteCandidates}
+              accessibilityLabel="Search auctions"
+            />
+          </View>
+        ) : (
+          <View style={styles.searchSpacer} />
+        )}
+
+        <View style={styles.actions}>
+          {showSignUp ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sign up"
+              onPress={() => router.push("/(auth)/login" as Href)}
+              style={({ pressed }) => [
+                styles.signUp,
+                pressed && { backgroundColor: colors.accentPressed, opacity: 0.95 },
+              ]}
+            >
+              <Text style={styles.signUpLabel}>Sign up</Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Notifications"
+            onPress={() => router.push("/(tabs)/notifications" as Href)}
+            style={({ pressed }) => [
+              styles.iconHit,
+              pressed && styles.tabPressed,
+            ]}
+          >
+            <View style={styles.iconBtn}>
+              <Ionicons name="notifications-outline" size={22} color={colors.textSecondary} />
+              {unread > 0 ? (
+                <View style={styles.headerBadge}>
+                  <Text style={styles.badgeText}>{unread > 99 ? "99+" : String(unread)}</Text>
+                </View>
+              ) : null}
+            </View>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Profile"
+            onPress={() => router.push("/(tabs)/profile" as Href)}
+            style={({ pressed }) => [
+              styles.iconHit,
+              pressed && styles.tabPressed,
+            ]}
+          >
+            <View style={styles.iconBtn}>
+              <Ionicons name="person-outline" size={22} color={colors.textSecondary} />
+            </View>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -143,40 +219,95 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: space.md,
-    minHeight: 40,
+    minHeight: 48,
   },
   brand: {
     flexShrink: 0,
   },
-  scroll: {
-    flexGrow: 1,
+  tabScroll: {
+    flexGrow: 0,
     flexShrink: 1,
+    maxWidth: 420,
+    minWidth: 0,
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
+  tabScrollContent: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    paddingRight: space.xs,
+  },
+  searchWrap: {
+    flex: 1,
+    minWidth: 120,
+    maxWidth: 480,
+    justifyContent: "center",
+    overflow: "visible",
+    zIndex: 1,
+  },
+  searchSpacer: {
+    flex: 1,
+    minWidth: space.sm,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: space.xs,
-    paddingLeft: space.sm,
+    flexShrink: 0,
+  },
+  signUp: {
+    backgroundColor: colors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: radii.pill,
+    marginRight: space.xs,
+  },
+  signUpLabel: {
+    color: colors.onAccent,
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.1,
+  },
+  iconHit: {
+    padding: space.xs,
+  },
+  iconBtn: {
+    position: "relative",
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.chipIdle,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: colors.danger,
+    alignItems: "center",
+    justifyContent: "center",
   },
   tab: {
-    borderRadius: radii.pill,
-    maxWidth: 200,
+    borderRadius: radii.none,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
   },
+  tabIdle: {},
   tabFocused: {
-    backgroundColor: colors.accentTint,
-    borderWidth: 1,
-    borderColor: goldBorderSubtle,
+    borderBottomColor: colors.primary,
   },
   tabPressed: {
     opacity: 0.85,
@@ -186,7 +317,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     paddingVertical: space.sm,
-    paddingHorizontal: space.md,
+    paddingHorizontal: space.sm,
   },
   iconWrap: {
     position: "relative",
@@ -196,9 +327,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
-    letterSpacing: 0.2,
+    letterSpacing: 0.05,
   },
   badge: {
     position: "absolute",

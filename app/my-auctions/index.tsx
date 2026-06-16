@@ -94,7 +94,7 @@ export default function MyAuctionsListScreen() {
             ["all", "ALL"],
             ["draft", "DRAFT"],
             ["pending_approval", "PENDING"],
-            ["active", "LIVE"],
+            ["active", "Live"],
             ["won", "WON / PAID"],
             ["other", "CLOSED"],
           ] as const

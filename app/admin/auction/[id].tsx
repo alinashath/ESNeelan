@@ -40,6 +40,7 @@ export default function AdminAuctionDetailScreen() {
   const r = row as Record<string, unknown>;
   const title = String(r.title ?? "");
   const status = String(r.status ?? "");
+  const endsAt = (r.ends_at as string | null | undefined) ?? undefined;
   const seller = r.seller as { display_name: string | null } | null;
   const bid = (r.current_highest_bid as number | null) ?? Number(r.starting_price);
   const winnerId = (r.winner_id as string | null) ?? null;
@@ -47,7 +48,9 @@ export default function AdminAuctionDetailScreen() {
   return (
     <Screen scroll>
       <TextTitle>{title}</TextTitle>
-      <TextCaption style={{ marginTop: space.sm }}>{auctionStatusLabel(status)}</TextCaption>
+      <TextCaption style={{ marginTop: space.sm }}>
+        {auctionStatusLabel(status, endsAt)}
+      </TextCaption>
       <TextCaption style={{ marginTop: space.xs }}>
         Seller: {seller?.display_name ?? String(r.seller_id ?? "").slice(0, 8)}
       </TextCaption>
@@ -62,9 +65,19 @@ export default function AdminAuctionDetailScreen() {
 
       <TextTitle style={{ marginTop: space.xl, fontSize: 18 }}>Recent bids</TextTitle>
       {(bids ?? []).slice(0, 12).map((b) => (
-        <TextBody key={b.id} style={{ marginTop: space.sm }}>
-          {b.bidder_display} · <TextBody style={{ fontWeight: "600" }}>{b.amount} MVR</TextBody>
-        </TextBody>
+        <View
+          key={b.id}
+          style={{
+            marginTop: space.sm,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <TextBody>{b.bidder_display} ·</TextBody>
+          <ValueCurrency amount={b.amount} size="compact" />
+        </View>
       ))}
 
       <ButtonPrimary

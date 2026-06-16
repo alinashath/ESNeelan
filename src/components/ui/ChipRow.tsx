@@ -5,18 +5,21 @@ import { space } from "@/src/theme/tokens";
 type Props = {
   children: React.ReactNode;
   style?: ViewStyle;
+  /** Tighter horizontal spacing between chips. */
+  dense?: boolean;
 };
 
-export function ChipRow({ children, style }: Props) {
+export function ChipRow({ children, style, dense }: Props) {
+  const gap = dense ? space.xs : space.sm;
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={[{ paddingVertical: space.xs }, style]}
+      contentContainerStyle={[{ paddingVertical: dense ? 2 : space.xs }, style]}
     >
       {Children.map(children, (child, i) => (
-        <View key={i} style={{ marginRight: space.sm }}>
+        <View key={i} style={{ marginRight: gap }}>
           {child}
         </View>
       ))}

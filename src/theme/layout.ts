@@ -4,7 +4,9 @@
  */
 export const layout = {
   /** Centered column cap for web / tablet landscape */
-  maxContentWidth: 1200,
+  maxContentWidth: 1600,
+  /** Long-form article column — comfortable measure on large screens */
+  articleReadingMaxWidth: 720,
   breakpoints: {
     /** Large phone / small tablet */
     md: 768,

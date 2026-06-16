@@ -1,6 +1,7 @@
+import { Fragment } from "react";
 import { View } from "react-native";
 import { TextCaption } from "./TextCaption";
-import { colors, radii, space } from "@/src/theme/tokens";
+import { colors, space } from "@/src/theme/tokens";
 
 type Props = {
   currentStep: number;
@@ -11,39 +12,52 @@ type Props = {
 export function StepIndicator({ currentStep, totalSteps, labels }: Props) {
   return (
     <View style={{ marginBottom: space.lg }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
         {Array.from({ length: totalSteps }, (_, i) => {
           const step = i + 1;
           const done = step < currentStep;
           const active = step === currentStep;
           return (
-            <View key={step} style={{ flex: 1, alignItems: "center" }}>
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
-                  borderWidth: 2,
-                  borderColor: done || active ? colors.accent : colors.border,
-                  backgroundColor: done
-                    ? colors.accent
-                    : active
-                      ? colors.accentTint
-                      : colors.background,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <TextCaption
+            <Fragment key={step}>
+              <View style={{ alignItems: "center" }}>
+                <View
                   style={{
-                    fontWeight: "600",
-                    color: done ? colors.onAccent : colors.text,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    borderWidth: 2,
+                    borderColor: done || active ? colors.accent : colors.border,
+                    backgroundColor: done
+                      ? colors.accent
+                      : active
+                        ? colors.accentTint
+                        : colors.background,
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {step}
-                </TextCaption>
+                  <TextCaption
+                    style={{
+                      fontWeight: "600",
+                      color: done ? colors.onAccent : colors.text,
+                    }}
+                  >
+                    {step}
+                  </TextCaption>
+                </View>
               </View>
-            </View>
+              {i < totalSteps - 1 ? (
+                <View
+                  style={{
+                    flex: 1,
+                    height: 2,
+                    marginHorizontal: space.xs,
+                    borderRadius: 1,
+                    backgroundColor: currentStep > step ? colors.accent : colors.border,
+                  }}
+                />
+              ) : null}
+            </Fragment>
           );
         })}
       </View>

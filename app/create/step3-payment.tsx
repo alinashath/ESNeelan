@@ -16,10 +16,7 @@ import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { colors, radii, space } from "@/src/theme/tokens";
 import { useState } from "react";
 import { useAppSettings } from "@/src/data/app-settings";
-
-function formatMvr(n: number): string {
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
-}
+import { formatMoneyAmount } from "@/src/lib/format-money";
 
 export default function CreateAuctionStep3Payment() {
   const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
@@ -156,8 +153,16 @@ export default function CreateAuctionStep3Payment() {
     <Screen scroll>
       <StepIndicator currentStep={3} totalSteps={3} labels={["Details", "Terms", "Fee"]} />
       <TextTitle style={{ marginBottom: space.sm }}>Featured listing fee</TextTitle>
+      <TextBody style={{ marginBottom: space.md, color: colors.textSecondary }}>
+        Step 3 of 3 — pay, upload proof, then submit. An admin verifies before your listing joins the queue.
+      </TextBody>
+      <View style={{ marginBottom: space.md, gap: space.sm }}>
+        <TextBody style={{ color: colors.text }}>1. Transfer MVR {formatMoneyAmount(feeAmt)} to the account below.</TextBody>
+        <TextBody style={{ color: colors.text }}>2. Save a screenshot or receipt image on your phone.</TextBody>
+        <TextBody style={{ color: colors.text }}>3. Upload it here and tap submit for approval.</TextBody>
+      </View>
       <InfoCallout
-        message={`Pay MVR ${formatMvr(feeAmt)} to ${acctName}. Account: ${acct}. Upload proof below, then submit for admin verification.`}
+        message={`Pay to ${acctName}. Account number: ${acct}. Use the reference style shown in your bank app if required, then upload proof below.`}
       />
 
       <Pressable

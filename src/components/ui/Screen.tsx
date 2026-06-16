@@ -91,7 +91,18 @@ export function Screen({
       edges={["top", "left", "right"]}
       {...rest}
     >
-      {columnShell(<View style={{ flex: 1, padding: space.lg }}>{children}</View>)}
+      {columnShell(
+        <View
+          style={{
+            flex: 1,
+            ...(noPadding
+              ? { paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 }
+              : { padding: space.lg }),
+          }}
+        >
+          {children}
+        </View>,
+      )}
     </SafeAreaView>
   );
 }

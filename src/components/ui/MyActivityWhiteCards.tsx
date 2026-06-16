@@ -1,13 +1,13 @@
+import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import { colors, fontMono, radii, shadows, space } from "@/src/theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors, fontMono, radii, space, shadows } from "@/src/theme/tokens";
+import { ButtonPrimary } from "./ButtonPrimary";
+import { ButtonSecondary } from "./ButtonSecondary";
 import { TextBody } from "./TextBody";
 import { TextCaption } from "./TextCaption";
 import { ValueCurrency } from "./ValueCurrency";
-import { ButtonPrimary } from "./ButtonPrimary";
-import { ButtonSecondary } from "./ButtonSecondary";
-import { isAuctionLiveForUi } from "@/src/lib/auction-live";
 
 export type ActivityTabKey = "active" | "won" | "listings";
 
@@ -19,7 +19,10 @@ function pad2(n: number) {
 
 /** Monospace countdown for activity cards (days + clock within day). */
 function formatActivityCountdown(endsAt: string): string {
-  const sec = Math.max(0, Math.floor((new Date(endsAt).getTime() - Date.now()) / 1000));
+  const sec = Math.max(
+    0,
+    Math.floor((new Date(endsAt).getTime() - Date.now()) / 1000),
+  );
   if (sec <= 0) return "00:00:00";
   const d = Math.floor(sec / 86400);
   const h = Math.floor((sec % 86400) / 3600);
@@ -64,7 +67,11 @@ export function ActivityUnderlineTabs({ tab, onChange }: TabsProps) {
             <Pressable
               key={it.key}
               onPress={() => onChange(it.key)}
-              style={{ flex: 1, paddingVertical: space.md, alignItems: "center" }}
+              style={{
+                flex: 1,
+                paddingVertical: space.md,
+                alignItems: "center",
+              }}
             >
               <Text
                 style={{
@@ -90,7 +97,9 @@ export function ActivityUnderlineTabs({ tab, onChange }: TabsProps) {
           );
         })}
       </View>
-      <View style={{ height: 1, backgroundColor: colors.border, marginTop: -1 }} />
+      <View
+        style={{ height: 1, backgroundColor: colors.border, marginTop: -1 }}
+      />
     </View>
   );
 }
@@ -124,7 +133,10 @@ export function MyActivityActiveBidCard({
   const soon = liveUi && isEndingSoon(endsAt);
 
   useEffect(() => {
-    const t = setInterval(() => setClock(formatActivityCountdown(endsAt)), 1000);
+    const t = setInterval(
+      () => setClock(formatActivityCountdown(endsAt)),
+      1000,
+    );
     return () => clearInterval(t);
   }, [endsAt]);
 
@@ -132,7 +144,11 @@ export function MyActivityActiveBidCard({
     <View style={{ ...cardOuter }}>
       <View style={{ height: IMG_H, backgroundColor: colors.surfaceMuted }}>
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
         ) : null}
         {liveUi ? (
           soon ? (
@@ -151,7 +167,14 @@ export function MyActivityActiveBidCard({
               }}
             >
               <Ionicons name="time-outline" size={14} color={colors.primary} />
-              <Text style={{ fontWeight: "900", fontSize: 11, color: colors.primary, letterSpacing: 0.5 }}>
+              <Text
+                style={{
+                  fontWeight: "900",
+                  fontSize: 11,
+                  color: colors.primary,
+                  letterSpacing: 0.5,
+                }}
+              >
                 ENDING SOON
               </Text>
             </View>
@@ -207,7 +230,14 @@ export function MyActivityActiveBidCard({
               borderColor: colors.border,
             }}
           >
-            <Text style={{ fontWeight: "900", fontSize: 11, color: colors.textSecondary, letterSpacing: 0.6 }}>
+            <Text
+              style={{
+                fontWeight: "900",
+                fontSize: 11,
+                color: colors.textSecondary,
+                letterSpacing: 0.6,
+              }}
+            >
               BIDDING CLOSED
             </Text>
           </View>
@@ -215,8 +245,17 @@ export function MyActivityActiveBidCard({
       </View>
 
       <View style={{ padding: space.lg }}>
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.sm }}>
-          <TextBody style={{ fontWeight: "600", fontSize: 17, flex: 1 }} numberOfLines={2}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            gap: space.sm,
+          }}
+        >
+          <TextBody
+            style={{ fontWeight: "600", fontSize: 17, flex: 1 }}
+            numberOfLines={2}
+          >
             {title}
           </TextBody>
           <View
@@ -236,13 +275,23 @@ export function MyActivityActiveBidCard({
               size={14}
               color={colors.primary}
             />
-            <Text style={{ fontWeight: "900", fontSize: 10, color: colors.primary, letterSpacing: 0.6 }}>
+            <Text
+              style={{
+                fontWeight: "900",
+                fontSize: 10,
+                color: colors.primary,
+                letterSpacing: 0.6,
+              }}
+            >
               {leading ? "LEADING" : "OUTBID"}
             </Text>
           </View>
         </View>
         {subtitle ? (
-          <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }} numberOfLines={2}>
+          <TextCaption
+            style={{ marginTop: space.xs, color: colors.textMuted }}
+            numberOfLines={2}
+          >
             {subtitle}
           </TextCaption>
         ) : null}
@@ -259,7 +308,9 @@ export function MyActivityActiveBidCard({
           }}
         >
           <View style={{ flex: 1, minWidth: 0 }}>
-            <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>Current Bid</TextCaption>
+            <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>
+              Current Bid
+            </TextCaption>
             <View style={{ marginTop: 4 }}>
               <ValueCurrency amount={currentBid} />
             </View>
@@ -269,18 +320,19 @@ export function MyActivityActiveBidCard({
               {leading ? "Bids" : "Your Bid"}
             </TextCaption>
             {leading ? (
-              <Text style={{ marginTop: 4, fontSize: 18, fontWeight: "600", color: colors.primary }}>
+              <Text
+                style={{
+                  marginTop: 4,
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: colors.primary,
+                }}
+              >
                 {bidCount}
               </Text>
             ) : (
               <View style={{ marginTop: 4 }}>
-                <Text style={{ fontSize: 18, fontWeight: "600", color: colors.danger }}>
-                  {new Intl.NumberFormat(undefined, {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 2,
-                  }).format(yourBid)}{" "}
-                  MVR
-                </Text>
+                <ValueCurrency amount={yourBid} size="compact" amountTone="danger" />
               </View>
             )}
           </View>
@@ -312,7 +364,8 @@ type ListingProps = {
 
 function listingStatusLabel(status: string, endsAt?: string | null): string {
   const s = status.toLowerCase();
-  if (s === "active") return isAuctionLiveForUi("active", endsAt) ? "LIVE" : "CLOSED";
+  if (s === "active")
+    return isAuctionLiveForUi("active", endsAt) ? "Live" : "Closed";
   if (s === "pending_approval") return "PENDING";
   if (s === "draft") return "DRAFT";
   return status.replace(/_/g, " ").toUpperCase();
@@ -336,7 +389,11 @@ export function MyActivityListingCard({
     <View style={{ ...cardOuter }}>
       <View style={{ height: IMG_H, backgroundColor: colors.surfaceMuted }}>
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
         ) : null}
         <View
           style={{
@@ -351,7 +408,14 @@ export function MyActivityListingCard({
             borderColor: colors.border,
           }}
         >
-          <Text style={{ fontWeight: "900", fontSize: 11, color: colors.primary, letterSpacing: 0.6 }}>
+          <Text
+            style={{
+              fontWeight: "900",
+              fontSize: 11,
+              color: colors.primary,
+              letterSpacing: 0.6,
+            }}
+          >
             {listingStatusLabel(status, endsAt)}
           </Text>
         </View>
@@ -362,7 +426,10 @@ export function MyActivityListingCard({
           {title}
         </TextBody>
         {subtitle ? (
-          <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }} numberOfLines={2}>
+          <TextCaption
+            style={{ marginTop: space.xs, color: colors.textMuted }}
+            numberOfLines={2}
+          >
             {subtitle}
           </TextCaption>
         ) : null}
@@ -379,14 +446,25 @@ export function MyActivityListingCard({
           }}
         >
           <View style={{ flex: 1, minWidth: 0 }}>
-            <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>Current Bid</TextCaption>
+            <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>
+              Current Bid
+            </TextCaption>
             <View style={{ marginTop: 4 }}>
               <ValueCurrency amount={currentBid} />
             </View>
           </View>
           <View style={{ flex: 1, minWidth: 0, alignItems: "flex-end" }}>
-            <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>Bids</TextCaption>
-            <Text style={{ marginTop: 4, fontSize: 18, fontWeight: "600", color: colors.primary }}>
+            <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>
+              Bids
+            </TextCaption>
+            <Text
+              style={{
+                marginTop: 4,
+                fontSize: 18,
+                fontWeight: "600",
+                color: colors.primary,
+              }}
+            >
               {bidCount}
             </Text>
           </View>
@@ -398,7 +476,11 @@ export function MyActivityListingCard({
           style={{ marginTop: space.lg, borderRadius: radii.sm }}
         />
         {showMarkPaid && onMarkPaid ? (
-          <ButtonSecondary title="Mark paid" onPress={onMarkPaid} style={{ marginTop: space.sm }} />
+          <ButtonSecondary
+            title="Mark paid"
+            onPress={onMarkPaid}
+            style={{ marginTop: space.sm }}
+          />
         ) : null}
       </View>
     </View>
@@ -414,21 +496,36 @@ type WonProps = {
   onOpen: () => void;
 };
 
-export function MyActivityWonCard({ imageUrl, title, status, amount, payment, onOpen }: WonProps) {
+export function MyActivityWonCard({
+  imageUrl,
+  title,
+  status,
+  amount,
+  payment,
+  onOpen,
+}: WonProps) {
   return (
     <View style={{ ...cardOuter }}>
       <View style={{ height: IMG_H, backgroundColor: colors.surfaceMuted }}>
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
         ) : null}
       </View>
       <View style={{ padding: space.lg }}>
         <TextBody style={{ fontWeight: "600", fontSize: 17 }} numberOfLines={2}>
           {title}
         </TextBody>
-        <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }}>{status}</TextCaption>
+        <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }}>
+          {status}
+        </TextCaption>
         <View style={{ marginTop: space.md }}>
-          <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>Winning bid</TextCaption>
+          <TextCaption style={{ fontWeight: "600", color: colors.textMuted }}>
+            Winning bid
+          </TextCaption>
           <ValueCurrency amount={amount} />
         </View>
         {payment ? (
@@ -442,14 +539,34 @@ export function MyActivityWonCard({ imageUrl, title, status, amount, payment, on
               borderColor: colors.border,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-              <Ionicons name="business-outline" size={20} color={colors.primary} />
-              <TextBody style={{ fontWeight: "600", flex: 1 }}>Pay the seller</TextBody>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: space.sm,
+              }}
+            >
+              <Ionicons
+                name="business-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <TextBody style={{ fontWeight: "600", flex: 1 }}>
+                Pay the seller
+              </TextBody>
             </View>
-            <TextBody style={{ marginTop: space.sm, color: colors.textSecondary }}>{payment}</TextBody>
+            <TextBody
+              style={{ marginTop: space.sm, color: colors.textSecondary }}
+            >
+              {payment}
+            </TextBody>
           </View>
         ) : null}
-        <ButtonPrimary title="Open lot" onPress={onOpen} style={{ marginTop: space.lg, borderRadius: radii.sm }} />
+        <ButtonPrimary
+          title="Open lot"
+          onPress={onOpen}
+          style={{ marginTop: space.lg, borderRadius: radii.sm }}
+        />
       </View>
     </View>
   );

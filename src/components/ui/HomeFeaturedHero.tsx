@@ -1,47 +1,100 @@
+import { useEffect, useState } from "react";
+import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import {
+  durationPhotoHoverMs,
+  easingPhotoHover,
+} from "@/src/lib/ui-motion";
+import {
+  colors,
+  fontFamilies,
+  radii,
+  space,
+} from "@/src/theme/tokens";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   ImageBackground,
+  Platform,
   Pressable,
-  View,
-  Text,
   StyleSheet,
+  Text,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { colors, fontFamilies, radii, space, typography } from "@/src/theme/tokens";
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import type { AuctionCardAuction } from "./AuctionCard";
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
-import { isAuctionLiveForUi } from "@/src/lib/auction-live";
 import { ValueCurrency } from "./ValueCurrency";
 
-/** Matches BIDMASTER_DESIGN hero (ES Neelan): dark at bottom, clear image toward top (no solid band, no global dim). */
+/** Hero scrim — legibility on photography (bottom-heavy). */
 const HERO_SCRIM_COLORS = [
-  "rgba(10,10,15,0.95)",
-  "rgba(10,10,15,0.35)",
-  "rgba(10,10,15,0)",
+  "rgba(0,0,0,0.78)",
+  "rgba(0,0,0,0.28)",
+  "rgba(0,0,0,0)",
 ] as const;
 
 const HERO_SCRIM_LOCATIONS = [0, 0.58, 1] as const;
+
+/** Stitch featured cards — portrait ~4:5 (width:height). */
+const FEATURED_ASPECT = 4 / 5;
+
+const PHOTO_HOVER_SCALE = 1.06;
 
 type Props = {
   auction: AuctionCardAuction;
   onPress: () => void;
   currency?: string;
-  /** When set (e.g. home carousel), overrides default full-bleed minus padding width. */
+  /** When set (e.g. home carousel / grid cell), sets card width. */
   cardWidth?: number;
+  /**
+   * Fill the parent width (e.g. CSS grid column). Prefer over `cardWidth` when the column
+   * is `minmax(0, 1fr)` so borders/hairlines do not wrap the row on web.
+   */
+  fillParent?: boolean;
+  /** First featured lot only — Stitch top-right countdown pill. */
+  showCountdown?: boolean;
+  /** Override media aspect (width ÷ height). Default portrait `4/5`; use e.g. `3/2` for compact single-column carousels. */
+  mediaAspectRatio?: number;
 };
 
-/** Featured lot — bottom→top scrim; accent ribbon; display title (Apple Clean). */
+/** Featured lot — full-bleed image, 32px corners, FEATURED top-left, countdown top-right, title + bid bottom. */
 export function HomeFeaturedHero({
   auction,
   onPress,
   currency = "MVR",
   cardWidth: cardWidthProp,
+  fillParent = false,
+  showCountdown = true,
+  mediaAspectRatio = FEATURED_ASPECT,
 }: Props) {
   const { width: winW } = useWindowDimensions();
   const pad = space.lg;
-  const cardW = cardWidthProp ?? winW - pad * 2;
+  const cardW = fillParent ? 0 : (cardWidthProp ?? winW - pad * 2);
   const bid = auction.current_highest_bid ?? auction.starting_price;
   const liveUi = isAuctionLiveForUi(auction.status, auction.ends_at);
+
+  const reducedMotion = useReducedMotion();
+  const [photoHovered, setPhotoHovered] = useState(false);
+  const photoScale = useSharedValue(1);
+
+  useEffect(() => {
+    if (Platform.OS !== "web" || reducedMotion) {
+      photoScale.value = 1;
+      return;
+    }
+    photoScale.value = withTiming(photoHovered ? PHOTO_HOVER_SCALE : 1, {
+      duration: durationPhotoHoverMs,
+      easing: easingPhotoHover,
+    });
+  }, [photoHovered, photoScale, reducedMotion]);
+
+  const photoAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: photoScale.value }],
+  }));
 
   const scrim = (
     <LinearGradient
@@ -53,110 +106,140 @@ export function HomeFeaturedHero({
     />
   );
 
-  const overlayContent = (
+  const media = (
     <>
       {scrim}
-      {liveUi ? (
+      {/* FEATURED — top-left (Stitch) */}
+      <View
+        style={{
+          position: "absolute",
+          top: space.xl,
+          left: space.xl,
+          backgroundColor: colors.accent,
+          paddingHorizontal: space.md,
+          paddingVertical: 6,
+          borderRadius: radii.pill,
+        }}
+      >
+        <Text
+          style={{
+            color: colors.onAccent,
+            fontWeight: "600",
+            fontSize: 10,
+            letterSpacing: 0.8,
+            fontFamily: fontFamilies.body,
+            textTransform: "uppercase",
+          }}
+        >
+          FEATURED
+        </Text>
+      </View>
+
+      {liveUi && showCountdown ? (
         <AuctionCountdownBadge
           endsAt={auction.ends_at}
           active
-          inset={space.md}
-          maxWidth={cardW * 0.52}
+          inset={space.xl}
+          maxWidth={fillParent ? "52%" : cardW * 0.52}
+          tone="heroDark"
+          style={{ borderRadius: radii.pill }}
         />
       ) : null}
 
       <View
         style={{
           position: "absolute",
-          left: space.lg,
-          right: space.lg,
-          bottom: space.lg,
+          left: space.xl,
+          right: space.xl,
+          bottom: space.xl,
         }}
       >
-        <View
-          style={{
-            alignSelf: "flex-start",
-            backgroundColor: colors.accent,
-            paddingHorizontal: space.md,
-            paddingVertical: space.sm,
-            borderRadius: radii.pill,
-            marginBottom: space.sm,
-          }}
-        >
-          <Text
-            style={{
-              color: colors.onAccent,
-              fontWeight: "600",
-              fontSize: 9,
-              letterSpacing: 2,
-              fontFamily: fontFamilies.bodySemiBold,
-            }}
-          >
-            FEATURED
-          </Text>
-        </View>
         <Text
           style={{
-            ...typography.display,
-            fontSize: 24,
-            lineHeight: 30,
+            fontSize: 22,
+            lineHeight: 28,
+            fontWeight: "400",
+            fontFamily: fontFamilies.headingSerif,
+            letterSpacing: Platform.OS === "web" ? -0.5 : -0.37,
             color: colors.ivory,
           }}
           numberOfLines={2}
         >
           {auction.title}
         </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: space.md, alignItems: "baseline" }}>
+        <View style={{ marginTop: space.md }}>
           <Text
             style={{
-              color: "rgba(245, 240, 232, 0.82)",
+              color: colors.ivoryMuted,
               fontSize: 10,
-              fontWeight: "600",
-              letterSpacing: 1.4,
-              fontFamily: fontFamilies.bodySemiBold,
+              fontWeight: "400",
+              letterSpacing: 0.6,
+              fontFamily: fontFamilies.body,
               textTransform: "uppercase",
+              marginBottom: space.xs,
             }}
           >
-            Current bid{" "}
+            Current bid
           </Text>
-          <ValueCurrency amount={bid} currency={currency} size="compact" />
+          <ValueCurrency
+            amount={bid}
+            currency={currency}
+            size="default"
+            layout="inline"
+            currencyColor={colors.ivoryMuted}
+            amountColor={colors.ivory}
+            amountFontWeight="600"
+          />
         </View>
       </View>
     </>
   );
 
   return (
-    <Pressable onPress={onPress} style={{ width: cardW, alignSelf: "center" }}>
-      {auction.image_url ? (
-        <ImageBackground
-          source={{ uri: auction.image_url }}
-          style={{
-            width: "100%",
-            height: 300,
-            borderRadius: radii.lg,
-            overflow: "hidden",
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-          resizeMode="cover"
-        >
-          {overlayContent}
-        </ImageBackground>
-      ) : (
-        <View
-          style={{
-            width: "100%",
-            height: 300,
-            borderRadius: radii.lg,
-            overflow: "hidden",
-            backgroundColor: colors.surfaceMuted,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
-          {overlayContent}
-        </View>
-      )}
+    <Pressable
+      onPress={onPress}
+      style={
+        fillParent
+          ? { width: "100%", maxWidth: "100%", alignSelf: "stretch" }
+          : { width: cardW, alignSelf: "center" }
+      }
+      onHoverIn={() => {
+        if (Platform.OS === "web") setPhotoHovered(true);
+      }}
+      onHoverOut={() => {
+        if (Platform.OS === "web") setPhotoHovered(false);
+      }}
+    >
+      <View
+        style={{
+          width: "100%",
+          aspectRatio: mediaAspectRatio,
+          borderRadius: radii.lg,
+          overflow: "hidden",
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
+          backgroundColor: colors.surfaceMuted,
+          ...(fillParent && Platform.OS === "web"
+            ? ({ boxSizing: "border-box" } as const)
+            : null),
+        }}
+      >
+        {auction.image_url ? (
+          <Animated.View style={[StyleSheet.absoluteFill, photoAnimStyle]}>
+            <ImageBackground
+              source={{ uri: auction.image_url }}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            >
+              {media}
+            </ImageBackground>
+          </Animated.View>
+        ) : (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surfaceMuted }]}>
+            {media}
+          </View>
+        )}
+      </View>
     </Pressable>
   );
 }

@@ -1,16 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Alert, ScrollView, View } from "react-native";
 import { router, useLocalSearchParams, type Href } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "@/src/lib/supabase";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
+import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { Checkbox } from "@/src/components/ui/Checkbox";
 import { StepIndicator } from "@/src/components/ui/StepIndicator";
-import { colors, space } from "@/src/theme/tokens";
+import { colors, radii, space } from "@/src/theme/tokens";
 import { useState } from "react";
 
 const TERMS_CLAUSES = [
@@ -108,10 +110,32 @@ export default function CreateAuctionStep2Terms() {
         totalSteps={totalSteps}
         labels={auction.bid_type === "featured" ? ["Details", "Terms", "Fee"] : ["Details", "Terms"]}
       />
-      <TextTitle style={{ marginBottom: space.sm }}>Terms & conditions</TextTitle>
-      <TextBody style={{ marginBottom: space.lg, color: colors.textSecondary }}>
-        Before your listing can be posted, you must read and accept the platform terms and conditions below.
+      <TextTitle style={{ marginBottom: space.sm }}>Platform terms</TextTitle>
+      <TextBody style={{ marginBottom: space.md, color: colors.textSecondary }}>
+        Step 2 of {totalSteps}: read Neelan’s seller rules, then confirm. This is separate from any terms you
+        added on your listing.
       </TextBody>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          gap: space.md,
+          padding: space.md,
+          marginBottom: space.lg,
+          backgroundColor: colors.surfaceMuted,
+          borderRadius: radii.lg,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}
+      >
+        <Ionicons name="document-text-outline" size={22} color={colors.primary} style={{ marginTop: 2 }} />
+        <View style={{ flex: 1 }}>
+          <TextCaption style={{ color: colors.textMuted }}>You are submitting</TextCaption>
+          <TextBody style={{ fontWeight: "600", marginTop: space.xs }}>
+            {auction.title?.trim() ? auction.title.trim() : "Untitled draft"}
+          </TextBody>
+        </View>
+      </View>
       <ScrollView style={{ maxHeight: 520, marginBottom: space.lg }} showsVerticalScrollIndicator showsHorizontalScrollIndicator={false}>
         {TERMS_CLAUSES.map((c, i) => (
           <TextBody key={i} style={{ marginBottom: space.md }}>
@@ -132,7 +156,7 @@ export default function CreateAuctionStep2Terms() {
           onPress={proceed}
         />
         <ButtonSecondary
-          title="Back to details"
+          title="Edit listing"
           onPress={() => router.replace(`/create/step1-details?id=${id}` as Href)}
         />
       </View>

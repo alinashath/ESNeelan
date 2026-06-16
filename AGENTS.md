@@ -4,13 +4,17 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 
 ## ES Neelan UI
 
-**Default app theme is light — Apple Clean** (`src/theme/tokens.ts`: `#F5F5F7` canvas, white cards, `#1D1D1F` ink, `#0071E3` primary).
+**Default theme** follows the **Stitch** ES Neelan home handoff (see `docs/design-stitch-home.md`) and `DESIGN-pinterest.md` for motion/spacing vocabulary where useful. Brand ink **`#b7001a`** (`colors.primary`), CTA / featured fill **`#e60023`** (`colors.accent`).
 
-Use **`BIDMASTER_DESIGN.md`** for brand, typography roles, spacing, radii, and patterns. Legacy HTML mock **`bidmaster_luxury_redesign.html`** is not the canonical palette; prefer tokens + design md.
+Use **`docs/design-stitch-home.md`** + **`DESIGN-pinterest.md`** for product chrome, marketing layout, and spacing/motion vocabulary. **`BIDMASTER_DESIGN.md`** and **`DESIGN-apple.md`** are historical references only.
 
-- **Tokens:** colors, type, radii, and spacing live in `src/theme/tokens.ts` (not Tailwind). Prefer `palette` / `accentBorderSubtle`; `goldBorderSubtle` is a deprecated alias (blue tint). Keep semantic `colors.*` stable.
-- **Typography:** **Inter** at Apple-like scale (display through label); **all prices** in Inter at **600 max** (semibold) — same family as UI.
-- **Principles:** Apple blue for primary actions; minimal shadow; thin `colors.border` dividers; sufficient contrast on `colors.background` / `colors.surfaceMuted`.
+- **Tokens:** `src/theme/tokens.ts` — Stitch palette, radii, surfaces; **Inter** for body/UI; **`headingSerif`** for display-level type.
+- **Typography:** **Inter** for body, captions, and controls; **`headingSerif`** (Georgia stack on web) for `typography.display` / `title` / `section` / `cardTitle` and featured lot titles — aligned with Stitch editorial.
+- **Principles:** one saturated red on light surfaces for primary CTAs and active nav emphasis; **minimal shadow** on lists; success `#2ECC8A` and danger `#D92D20` for auction semantics.
+
+### Stitch / Figma MCP
+
+When Stitch MCP is unavailable, implement from `docs/design-stitch-home.md`, exported HTML, and `DESIGN-pinterest.md`.
 
 ## Mobile UI / UX
 

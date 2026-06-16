@@ -20,6 +20,9 @@ Copy the **anon key** and **URL** from the CLI output into `.env`:
 ```bash
 cp .env.example .env
 # Edit .env — set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY
+# For production web: set EXPO_PUBLIC_SITE_URL to your public origin (no trailing slash) so
+# Open Graph tags, canonical URLs, and native share links use absolute URLs. Optional:
+# EXPO_PUBLIC_DEFAULT_OG_IMAGE_URL for a default 1200×630 social preview image.
 # Featured listing fee (amount + bank payee) is configured in **Admin → Platform settings** (`app_settings` via RPC `admin_update_app_settings`). Sellers see those values on the featured fee upload screens.
 ```
 
@@ -70,13 +73,13 @@ Edge function `promote-admin` promotes a user to `admin` when their verified pho
 
 ### Edge function secrets (reference)
 
-| Secret | Used by |
-|--------|---------|
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | `close-expired-auctions`, `process-notifications`, `promote-admin` |
-| `SUPABASE_ANON_KEY` | `promote-admin` (JWT verify) |
-| `ADMIN_PHONES` | `promote-admin` |
+| Secret                                                                                                                                                   | Used by                                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`                                                                                                              | `close-expired-auctions`, `process-notifications`, `promote-admin`                                         |
+| `SUPABASE_ANON_KEY`                                                                                                                                      | `promote-admin` (JWT verify)                                                                               |
+| `ADMIN_PHONES`                                                                                                                                           | `promote-admin`                                                                                            |
 | `MSG_OWL_OTP_KEY` / `MSGOWL_OTP_KEY` (preferred), or `MSGOWL_ACCESS_KEY` / `MSG_OWL_REST_KEY` / `MSG_OWL_KEY` + `MSGOWL_SENDER_ID` / `MSG_OWL_SENDER_ID` | `sms-hook` (OTP or REST); **`process-notifications`** uses the **REST** key + sender for transactional SMS |
-| `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, optional `NOTIFICATION_EMAIL_ENABLED=true` | `process-notifications` (email only when explicitly enabled) |
+| `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, optional `NOTIFICATION_EMAIL_ENABLED=true`                                                                        | `process-notifications` (email only when explicitly enabled)                                               |
 
 ## 2. Expo app
 
@@ -99,27 +102,27 @@ Run `npm run web` (or `npx expo start --web`). On large viewports, `Screen` cent
 
 ## Project layout
 
-| Path | Purpose |
-|------|---------|
-| `app/` | expo-router routes: tabs, auth, `auction/[id]`, `my-auctions/*`, `won/*`, `admin/*` |
-| `app/my-auctions/*` | Your listings: searchable list → detail → public auction |
-| `app/won/*` | Won lots: searchable list → detail |
-| `src/theme/tokens.ts` | Colors, spacing, radii, typography |
-| `src/theme/layout.ts` | Web max content width + responsive grid breakpoints |
-| `src/components/layout/content-width.tsx` | Context + `useScreenContentWidth()` for lists/carousels inside `Screen` |
-| `src/lib/web-tabs-layout.ts` | `useWebWideTabHeader()` — web ≥768px uses top logo+nav header |
-| `src/components/ui/` | Atomic UI (text, buttons, inputs, badges, cards, countdown, etc.) |
-| `src/lib/supabase.ts` | Supabase client + SecureStore session |
-| `src/data/` | TanStack Query hooks |
-| `supabase/migrations/` | Schema, RLS, RPCs, storage policies |
-| `supabase/functions/` | `sms-hook`, `promote-admin`, `process-notifications`, `close-expired-auctions` |
+| Path                                      | Purpose                                                                             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| `app/`                                    | expo-router routes: tabs, auth, `auction/[id]`, `my-auctions/*`, `won/*`, `admin/*` |
+| `app/my-auctions/*`                       | Your listings: searchable list → detail → public auction                            |
+| `app/won/*`                               | Won lots: searchable list → detail                                                  |
+| `src/theme/tokens.ts`                     | Colors, spacing, radii, typography                                                  |
+| `src/theme/layout.ts`                     | Web max content width + responsive grid breakpoints                                 |
+| `src/components/layout/content-width.tsx` | Context + `useScreenContentWidth()` for lists/carousels inside `Screen`             |
+| `src/lib/web-tabs-layout.ts`              | `useWebWideTabHeader()` — web ≥768px uses top logo+nav header                       |
+| `src/components/ui/`                      | Atomic UI (text, buttons, inputs, badges, cards, countdown, etc.)                   |
+| `src/lib/supabase.ts`                     | Supabase client + SecureStore session                                               |
+| `src/data/`                               | TanStack Query hooks                                                                |
+| `supabase/migrations/`                    | Schema, RLS, RPCs, storage policies                                                 |
+| `supabase/functions/`                     | `sms-hook`, `promote-admin`, `process-notifications`, `close-expired-auctions`      |
 
 ## Core flows
 
 1. **Login**: Phone OTP via Supabase (`signInWithOtp` / `verifyOtp`) + optional MsgOwl hook.
 2. **Create listing**: Non-admins need **seller verification** (apply from Profile → admin approves). Draft auction + images in Storage → `submit_auction_for_approval` RPC → `pending_approval`.
 3. **Admin**: Approve/reject listings; **seller applications**; **platform fee** (`app_settings`); **home featured** lots (multiple, optional `featured_sort_order`); suspend users.
-4. **Bidding**: Client calls `place_bid` RPC (validates increment, self-bid, window, suspension). Listing detail uses **Realtime** (`postgres_changes` on `auctions` + `bids`) so current bid updates without a full reload.
+4. **Bidding**: Client calls `place_bid` RPC (validates increment, self-bid, window, suspension). **Realtime** (`postgres_changes`): listing detail subscribes on `auctions` + `bids` for that lot; the app also subscribes on **`auctions` globally** (`useAuctionCatalogRealtimeSync` in `app/_layout.tsx`) and invalidates catalog queries so home / explore / storefront cards update when prices change.
 5. **Closing (scheduled)**: Edge **`close-expired-auctions`** must run on a **cron** (e.g. every 1–2 minutes). It calls SQL **`close_expired_auctions()`**, which moves past-`ends_at` **active** lots to **`ended`** (no bids) or **`awaiting_winner_consent`** (has bids), notifies the **high bidder** (`winner_consent_requested`) and the **seller** (`auction_pending_winner_consent` — awaiting winner consent; **do not** call the bidder until **`winner_consented`** / payment stage). Then **`process-notifications`** marks outbox rows processed and sends **SMS** (if MsgOwl REST is configured) and optionally **email** (if `NOTIFICATION_EMAIL_ENABLED=true`).
 
 ## Status model

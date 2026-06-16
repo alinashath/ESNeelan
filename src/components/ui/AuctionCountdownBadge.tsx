@@ -20,6 +20,11 @@ type Props = {
   maxWidth?: number | `${number}%`;
   /** &lt; 1h remaining — alert styling. */
   urgent?: boolean;
+  /**
+   * `chrome` — light panel on imagery (default).
+   * `heroDark` — Stitch featured strip: translucent black pill, white type (top-right on hero).
+   */
+  tone?: "chrome" | "heroDark";
 };
 
 function secondsLeft(endsAt: string) {
@@ -36,6 +41,7 @@ export function AuctionCountdownBadge({
   inset = DEFAULT_INSET,
   maxWidth = "92%",
   urgent = false,
+  tone = "chrome",
 }: Props) {
   const [sec, setSec] = useState(() => secondsLeft(endsAt));
 
@@ -49,8 +55,11 @@ export function AuctionCountdownBadge({
   if (!active) return null;
 
   const label = formatAuctionBadgeCountdown(sec);
-  const panelBg = "rgba(255,255,255,0.06)";
-  const numColor = urgent ? colors.danger : colors.text;
+  const dark = tone === "heroDark";
+  const panelBg = dark ? "rgba(0,0,0,0.32)" : "rgba(255,255,255,0.06)";
+  const borderCol = dark ? "rgba(255,255,255,0.14)" : colors.border;
+  const iconColor = dark ? colors.ivory : colors.textMuted;
+  const numColor = urgent ? colors.danger : dark ? colors.ivory : colors.text;
 
   return (
     <View
@@ -66,7 +75,7 @@ export function AuctionCountdownBadge({
           gap: 6,
           backgroundColor: panelBg,
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: borderCol,
           paddingVertical: BADGE_PAD_V,
           paddingHorizontal: BADGE_PAD_H,
           borderRadius: BADGE_RADIUS,
@@ -74,13 +83,13 @@ export function AuctionCountdownBadge({
         style,
       ]}
     >
-      <Ionicons name="stopwatch-outline" size={14} color={colors.textMuted} />
+      <Ionicons name="time-outline" size={14} color={iconColor} />
       <Text
         style={{
           color: numColor,
-          fontWeight: "600",
+          fontWeight: "400",
           fontSize: 12,
-          fontFamily: fontFamilies.bodySemiBold,
+          fontFamily: fontFamilies.body,
           letterSpacing: 0.3,
         }}
         numberOfLines={1}

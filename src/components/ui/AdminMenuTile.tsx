@@ -1,6 +1,6 @@
-import { Pressable, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { colors, radii, shadows, space } from "@/src/theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, View } from "react-native";
 import { TextBody } from "./TextBody";
 import { TextCaption } from "./TextCaption";
 
@@ -65,7 +65,10 @@ export function AdminMenuTile({
       >
         <Ionicons name={icon} size={26} color={toneIcon[tone]} />
       </View>
-      <TextBody style={{ fontWeight: "600", fontSize: 16, color: colors.text }} numberOfLines={2}>
+      <TextBody
+        style={{ fontWeight: "600", fontSize: 16, color: colors.text }}
+        numberOfLines={2}
+      >
         {title}
       </TextBody>
       {subtitle ? (

@@ -1,13 +1,15 @@
-import { View } from "react-native";
 import { space } from "@/src/theme/tokens";
-import { TextBody } from "./TextBody";
+import { View } from "react-native";
 import { TextCaption } from "./TextCaption";
+import { ValueCurrency } from "./ValueCurrency";
 
 export type BidRow = {
   id: string;
   amount: number;
   created_at: string;
   bidder_display?: string | null;
+  /** Public avatars bucket URL when the bidder has a profile photo. */
+  bidder_avatar_url?: string | null;
 };
 
 type Props = { bids: BidRow[] };
@@ -27,14 +29,10 @@ export function BidHistoryList({ bids }: Props) {
           }}
         >
           <View>
-            <TextBody style={{ fontWeight: "600" }}>
-              {new Intl.NumberFormat().format(b.amount)} MVR
-            </TextBody>
+            <ValueCurrency amount={b.amount} size="compact" />
             <TextCaption>{b.bidder_display ?? "Bidder"}</TextCaption>
           </View>
-          <TextCaption>
-            {new Date(b.created_at).toLocaleString()}
-          </TextCaption>
+          <TextCaption>{new Date(b.created_at).toLocaleString()}</TextCaption>
         </View>
       ))}
     </View>

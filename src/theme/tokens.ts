@@ -1,129 +1,171 @@
-import { TextStyle } from "react-native";
+import { Platform, TextStyle } from "react-native";
 
 /**
- * ES Neelan — **Apple Clean** light system (see `BIDMASTER_DESIGN.md`).
- * Primary accent: Apple blue; typography: Inter (SF Pro–like scale on native; load Inter on all platforms).
- * Semantic keys (`colors.primary`, `colors.background`, …) stay stable for app code.
- * **Typography:** maximum font weight **600** (semibold); do not use 700/bold.
+ * ES Neelan — tokens aligned with **Stitch** handoff (ES Neelan home, Plus Jakarta in export;
+ * app uses Inter for body/UI). Brand ink `primary` `#b7001a`, CTA fill `accent` `#e60023`.
+ * Headlines use `fontFamilies.headingSerif` (Georgia stack on web).
  */
 export const palette = {
-  /** Apple primary CTA */
-  primary: "#0071E3",
-  /** Hover / deeper blue */
-  primaryDeep: "#0066CC",
-  /** Near-black copy */
-  ink: "#1D1D1F",
-  neutral: "#FFFFFF",
-  /** Section / page wash */
-  canvas: "#F5F5F7",
-  surface: "#FFFFFF",
-  surfaceRaised: "#FFFFFF",
-  inkMuted: "rgba(29,29,31,0.62)",
-  inkFaint: "rgba(29,29,31,0.45)",
-  hairline: "#E5E7EB",
-
+  /** Nav active, prices, logo tile — `primary` in Stitch */
+  primary: "#b7001a",
+  /** Sign up, featured ribbon — `primary-container` */
+  primaryCta: "#e60023",
+  primaryPressed: "#cc001f",
+  primaryFocus: "#435ee5",
+  primaryOnDark: "#ffffff",
+  ink: "#000000",
+  inkSoft: "#211922",
+  body: "#33332e",
+  /** Main on-surface ink from Stitch */
+  onSurface: "#2a1615",
+  charcoal: "#262622",
+  inkMuted80: "#62625b",
+  inkMuted48: "#91918c",
+  /** Nav / secondary label */
+  secondary: "#5d5f5b",
+  hairline: "#dadad3",
+  dividerSoft: "#e5e5e0",
+  hairlineSoft: "#e5e5e0",
+  canvas: "#ffffff",
+  /** Page wash */
+  canvasParchment: "#fff8f7",
+  surfaceCard: "#f6f6f3",
+  /** Auction detail / Stitch — stat cards, seller pill */
+  surfaceSoft: "#fbfbf9",
+  /** Warm container — listing codes, legal callouts */
+  surfaceBlush: "#ffe9e7",
+  /** Verified seller badge (Stitch tertiary) */
+  tertiaryInk: "#005f90",
+  tertiaryBadgeBg: "rgba(0, 121, 182, 0.1)",
+  tertiaryBadgeBorder: "rgba(0, 95, 144, 0.2)",
+  secondaryFixed: "#e3e3de",
+  secondaryContainer: "#e0e0db",
+  /** Home stats bar — warm light grey (Stitch marketing strip) */
+  statsBarSurface: "#eae9e4",
+  surfacePearl: "#f6f6f3",
+  surfaceTile1: "#272729",
+  surfaceTile2: "#2A2A2C",
+  surfaceTile3: "#252527",
+  surfaceBlack: "#000000",
+  surfaceChipTranslucent: "#D2D2D7",
+  onPrimary: "#ffffff",
+  onDark: "#ffffff",
+  neutral: "#ffffff",
+  primaryDeep: "#cc001f",
+  surface: "#ffffff",
+  surfaceRaised: "#ffffff",
   successGreen: "#2ECC8A",
   alertRed: "#D92D20",
-
-  /** Hero / scrim: light text on photography */
-  ivory: "#FFFFFF",
+  ivory: "#ffffff",
   ivoryMuted: "rgba(255,255,255,0.88)",
-  obsidian: "#1D1D1F",
+  obsidian: "#000000",
 } as const;
 
-/** Focus / selected ring — Apple primary at low alpha */
-export const accentBorderSubtle = "rgba(0, 113, 227, 0.35)";
-export const accentBorderStrong = "rgba(0, 113, 227, 0.55)";
-export const accentWash = "rgba(0, 113, 227, 0.12)";
-export const accentWashDeep = "rgba(0, 113, 227, 0.18)";
+export const accentBorderSubtle = "rgba(183, 0, 26, 0.35)";
+export const accentBorderStrong = "rgba(67, 94, 229, 0.5)";
+export const accentWash = "rgba(230, 0, 35, 0.1)";
+export const accentWashDeep = "rgba(230, 0, 35, 0.16)";
 
-/** @deprecated Legacy name; same as `accentBorderSubtle` (blue, not gold). */
 export const goldBorderSubtle = accentBorderSubtle;
-/** @deprecated Legacy name; same as `accentBorderStrong`. */
 export const goldBorderStrong = accentBorderStrong;
-/** @deprecated Legacy name; same as `accentWash`. */
 export const goldWash = accentWash;
-/** @deprecated Legacy name; same as `accentWashDeep`. */
 export const goldWashDeep = accentWashDeep;
 
 export const colors = {
   primary: palette.primary,
-  background: palette.canvas,
-  surfaceMuted: palette.surface,
-  accent: palette.primary,
+  /** Filled CTA, featured badge, tab FAB fill */
+  accent: palette.primaryCta,
+  accentPressed: palette.primaryPressed,
+  background: palette.surfaceCard,
+  surfaceMuted: palette.hairlineSoft,
+  statsBarSurface: palette.statsBarSurface,
+  searchBarFill: palette.secondaryContainer,
+  /** Icon wells, Stitch `secondary-container` */
+  secondaryContainer: palette.secondaryContainer,
+  chipIdle: palette.secondaryFixed,
+  hairlineSoft: palette.hairlineSoft,
   accentTint: accentWash,
-  surfaceStats: palette.surfaceRaised,
+  surfaceStats: palette.surfaceCard,
   accentMuted: accentWash,
-  tertiaryMuted: "rgba(29,29,31,0.06)",
-  text: palette.ink,
-  textSecondary: palette.inkMuted,
-  textMuted: palette.inkFaint,
+  surfaceSoft: palette.surfaceSoft,
+  surfaceBlush: palette.surfaceBlush,
+  surfaceCard: palette.surfaceCard,
+  tertiaryMuted: "rgba(0, 0, 0, 0.04)",
+  text: palette.onSurface,
+  textSecondary: palette.secondary,
+  textMuted: palette.inkMuted48,
   border: palette.hairline,
   secondary: palette.successGreen,
   tertiary: palette.ink,
   danger: palette.alertRed,
   warning: palette.alertRed,
   white: palette.neutral,
-  onAccent: palette.neutral,
+  onAccent: palette.onPrimary,
   obsidian: palette.obsidian,
   ivory: palette.ivory,
-  /** Historical token; maps to primary blue for accent bars / rarity. */
-  gold: palette.primary,
+  ivoryMuted: palette.ivoryMuted,
+  gold: palette.primaryCta,
   success: palette.successGreen,
-  navBar: palette.surface,
+  linkOnDark: palette.primaryOnDark,
+  navBar: palette.canvas,
   chromeOnImage: "#FFFFFF",
+  verifiedBadgeText: palette.tertiaryInk,
+  verifiedBadgeBg: palette.tertiaryBadgeBg,
+  verifiedBadgeBorder: palette.tertiaryBadgeBorder,
 } as const;
 
 const accentRingShadow = {
-  shadowColor: palette.primary,
+  shadowColor: palette.primaryFocus,
   shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 0.25,
+  shadowOpacity: 0.28,
   shadowRadius: 0,
   elevation: 0,
 } as const;
 
 export const shadows = {
   card: {
-    shadowColor: "#1D1D1F",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  productImage: {
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
   tabFab: {
-    shadowColor: "#1D1D1F",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 12,
     elevation: 8,
   },
   accentRing: accentRingShadow,
-  /** @deprecated Legacy key; same as `accentRing`. */
   goldRing: accentRingShadow,
 } as const;
 
-/**
- * Literal **Apple Clean** spacing from the design spec (hero / marketing / web).
- * Prefer `space` for dense mobile screens; use this for section rhythm and docs parity.
- */
 export const appleSpacing = {
+  xxs: 4,
   xs: 8,
-  sm: 16,
-  md: 24,
-  lg: 44,
-  xl: 70,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+  section: 64,
   gutter: 24,
-  section: 70,
 } as const;
 
-/** Primary CTA padding (Apple `button-primary` spec). */
 export const buttonPrimaryPadding = {
-  paddingVertical: 11,
-  paddingHorizontal: 21,
+  paddingVertical: 10,
+  paddingHorizontal: 18,
   minHeight: 44,
 } as const;
 
-/** App layout spacing — mobile-friendly; not every screen uses Apple’s 44/70px steps. */
 export const space = {
   xs: 4,
   sm: 8,
@@ -131,26 +173,36 @@ export const space = {
   lg: 16,
   xl: 24,
   xxl: 32,
-  xxxl: 32,
+  xxxl: 40,
   sectionX: appleSpacing.gutter,
 } as const;
 
-/** Apple radii: sm 4, md 8, lg 16; controls use pill */
+/** Stitch: pin `rounded-xl` ≈ 12px, product cards 16px, hero cards 32px, pills full */
 export const radii = {
   none: 0,
-  xs: 4,
-  sm: 4,
-  md: 8,
-  lg: 16,
-  pill: 999,
+  xs: 8,
+  sm: 8,
+  md: 12,
+  xl: 16,
+  lg: 32,
+  pill: 9999,
 } as const;
+
+/** Stitch / editorial — display & product titles (Georgia on web; system serif on native). */
+const HEADING_SERIF: string =
+  Platform.OS === "web"
+    ? 'Georgia, "Times New Roman", Times, serif'
+    : Platform.OS === "ios"
+      ? "Georgia"
+      : "serif";
 
 export const fontFamilies = {
   displayRegular: "Inter_400Regular",
   displayMedium: "Inter_500Medium",
   displaySemiBold: "Inter_600SemiBold",
-  /** Strongest heading weight — semibold only (no bold/700 in the app). */
   displayBold: "Inter_600SemiBold",
+  /** Headlines, section titles, card titles — matches featured hero title. */
+  headingSerif: HEADING_SERIF,
   body: "Inter_400Regular",
   bodyMedium: "Inter_500Medium",
   bodySemiBold: "Inter_600SemiBold",
@@ -162,53 +214,58 @@ export const fontMono = fontFamilies.bodySemiBold;
 export const typography = {
   display: {
     fontSize: 34,
-    lineHeight: 40,
+    lineHeight: 38,
     fontWeight: "600" as TextStyle["fontWeight"],
-    color: colors.text,
-    letterSpacing: -0.2,
-    fontFamily: fontFamilies.displaySemiBold,
+    color: palette.ink,
+    letterSpacing: -1.0,
+    fontFamily: fontFamilies.headingSerif,
   },
   title: {
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: "600" as TextStyle["fontWeight"],
-    color: colors.text,
-    fontFamily: fontFamilies.displaySemiBold,
+    color: palette.ink,
+    letterSpacing: -0.8,
+    fontFamily: fontFamilies.headingSerif,
   },
   section: {
-    fontSize: 20,
+    fontSize: 22,
     lineHeight: 28,
     fontWeight: "600" as TextStyle["fontWeight"],
-    color: colors.text,
-    fontFamily: fontFamilies.bodySemiBold,
+    color: palette.ink,
+    letterSpacing: -1.2,
+    fontFamily: fontFamilies.headingSerif,
   },
   cardTitle: {
     fontSize: 17,
-    lineHeight: 24,
+    lineHeight: 22,
     fontWeight: "600" as TextStyle["fontWeight"],
-    color: colors.text,
-    fontFamily: fontFamilies.bodySemiBold,
+    color: palette.onSurface,
+    letterSpacing: -0.3,
+    fontFamily: fontFamilies.headingSerif,
   },
   body: {
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: "400" as TextStyle["fontWeight"],
-    color: colors.textSecondary,
+    color: palette.body,
+    letterSpacing: 0,
     fontFamily: fontFamilies.body,
   },
   caption: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: "400" as TextStyle["fontWeight"],
-    color: colors.textMuted,
+    color: palette.inkMuted48,
+    letterSpacing: 0,
     fontFamily: fontFamilies.body,
   },
   label: {
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: "500" as TextStyle["fontWeight"],
-    color: colors.primary,
-    letterSpacing: 0.24,
-    fontFamily: fontFamilies.bodyMedium,
+    fontWeight: "600" as TextStyle["fontWeight"],
+    color: palette.inkMuted80,
+    letterSpacing: 0.15,
+    fontFamily: fontFamilies.bodySemiBold,
   },
 } as const;

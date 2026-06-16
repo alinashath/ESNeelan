@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
-import { formatAuctionBadgeCountdown } from "@/src/lib/auction-countdown-format";
+import { formatAuctionCountdownDetailed, formatAuctionHeaderCountdown } from "@/src/lib/auction-countdown-format";
 import { TextBody } from "./TextBody";
 import { TextCaption } from "./TextCaption";
 
@@ -12,6 +12,12 @@ type Props = {
   urgentBelowSeconds?: number;
   /** Compact red timer + progress (auction detail). */
   variant?: "inline" | "detail";
+  /** Detail only: e.g. formatted end date under the timer. */
+  endDateLine?: string | null;
+  /** Detail only: hide bar when the parent renders a full-width progress row. */
+  showProgressBar?: boolean;
+  /** Detail only: use compact `1d 0h` / `HH:MM:SS` for stat card (reference layout). */
+  headerCompactTime?: boolean;
 };
 
 export function Countdown({
@@ -19,6 +25,9 @@ export function Countdown({
   startsAt,
   urgentBelowSeconds = 3600,
   variant = "inline",
+  endDateLine,
+  showProgressBar = true,
+  headerCompactTime = false,
 }: Props) {
   const [left, setLeft] = useState(() =>
     Math.max(0, new Date(endsAt).getTime() - Date.now()),
@@ -62,7 +71,7 @@ export function Countdown({
               color: colors.textMuted,
             }}
           >
-            ENDED
+            Closed
           </TextBody>
         ) : (
           <TextBody
@@ -74,14 +83,27 @@ export function Countdown({
               color: timerColor,
               letterSpacing: 0.4,
             }}
-            numberOfLines={1}
+            numberOfLines={headerCompactTime ? 1 : 3}
             adjustsFontSizeToFit
             minimumFontScale={0.65}
           >
-            {formatAuctionBadgeCountdown(totalSec)}
+            {headerCompactTime
+              ? formatAuctionHeaderCountdown(totalSec)
+              : formatAuctionCountdownDetailed(totalSec)}
           </TextBody>
         )}
-        {totalSec > 0 ? (
+        {endDateLine && totalSec > 0 ? (
+          <TextCaption
+            style={{
+              marginTop: space.xs,
+              fontWeight: "400",
+              color: colors.textSecondary,
+            }}
+          >
+            {endDateLine}
+          </TextCaption>
+        ) : null}
+        {totalSec > 0 && showProgressBar ? (
           <View
             style={{
               marginTop: space.sm,
@@ -105,7 +127,7 @@ export function Countdown({
     );
   }
 
-  const label = formatAuctionBadgeCountdown(totalSec);
+  const label = formatAuctionCountdownDetailed(totalSec);
 
   return (
     <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "baseline", flexWrap: "wrap" }}>
@@ -117,7 +139,7 @@ export function Countdown({
           fontFamily: fontFamilies.bodySemiBold,
         }}
       >
-        {totalSec <= 0 ? "ENDED" : "ENDS IN "}
+        {totalSec <= 0 ? "Closed" : "ENDS IN "}
       </TextBody>
       {totalSec > 0 ? (
         <TextBody

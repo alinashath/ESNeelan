@@ -16,10 +16,10 @@ export function CommunicationCodeCard({ bidNumber, communicationCode }: Props) {
       style={{
         marginTop: space.md,
         padding: space.lg,
-        borderRadius: radii.lg,
-        backgroundColor: colors.accentMuted,
+        borderRadius: radii.xl,
+        backgroundColor: colors.surfaceBlush,
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: "rgba(232, 188, 184, 0.35)",
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm, marginBottom: space.sm }}>
@@ -46,7 +46,7 @@ export function CommunicationCodeCard({ bidNumber, communicationCode }: Props) {
       ) : null}
       <View style={{ flexDirection: "row", gap: space.sm, marginTop: space.md, alignItems: "flex-start" }}>
         <Ionicons name="warning-outline" size={18} color={colors.tertiary} style={{ marginTop: 2 }} />
-        <TextCaption style={{ flex: 1, color: colors.textSecondary, fontWeight: "600" }}>
+        <TextCaption style={{ flex: 1, color: colors.text, fontStyle: "italic", fontWeight: "400" }}>
           Share this code only with the winning bidder after the platform flow allows it.
         </TextCaption>
       </View>

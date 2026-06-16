@@ -44,6 +44,7 @@ export default function AdminLayout() {
           headerLeft: makeRootStackBackHeader("/admin" as Href, colors.text),
         }}
       />
+      <Stack.Screen name="articles" options={{ headerShown: false, title: "Articles" }} />
       <Stack.Screen name="sellers" options={{ headerShown: false, title: "Sellers" }} />
       <Stack.Screen
         name="awaiting-payment"

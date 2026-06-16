@@ -1,12 +1,10 @@
-import { Pressable, View, type PressableProps } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { colors, shadows, space } from "@/src/theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, View, type PressableProps } from "react-native";
 
 type Props = Pick<PressableProps, "onPress" | "accessibilityState" | "testID">;
 
-/**
- * Center “Sell” tab — raised gold square with obsidian plus (ES Neelan luxury).
- */
+/** Center “Sell” tab — raised block with plus (`primary-container` fill in Stitch). */
 export function CreateTabBarButton({
   onPress,
   accessibilityState,
@@ -29,7 +27,7 @@ export function CreateTabBarButton({
           justifyContent: "center",
           opacity: pressed ? 0.9 : 1,
           borderWidth: 1,
-          borderColor: "rgba(10,10,15,0.35)",
+          borderColor: "rgba(183, 0, 26, 0.35)",
           ...shadows.tabFab,
         })}
       >

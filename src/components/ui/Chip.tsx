@@ -5,6 +5,8 @@ import { TextCaption } from "./TextCaption";
 type Props = PressableProps & {
   title: string;
   selected?: boolean;
+  /** Tighter pill for dense rows (e.g. home category strip). */
+  compact?: boolean;
   /**
    * `neon` — explore / filters (gold tint when selected).
    * `outlined` — home quick tags (border + gold when selected).
@@ -16,29 +18,30 @@ export function Chip({
   title,
   selected,
   appearance = "neon",
+  compact,
   style,
   ...rest
 }: Props) {
   const outlined = appearance === "outlined";
 
+  const padH = compact ? 16 : space.lg;
+  const padV = compact ? 8 : space.sm;
+
   const bg = outlined
     ? selected
-      ? colors.accentTint
-      : colors.surfaceMuted
+      ? colors.tertiary
+      : colors.chipIdle
     : selected
       ? colors.accentTint
       : colors.surfaceMuted;
 
   const border = outlined
-    ? {
-        borderWidth: 1,
-        borderColor: selected ? colors.accent : colors.border,
-      }
+    ? { borderWidth: 0 }
     : selected
       ? { borderWidth: 1, borderColor: goldBorderSubtle }
       : { borderWidth: 1, borderColor: colors.border };
 
-  const textColor = selected ? colors.accent : colors.text;
+  const textColor = outlined ? (selected ? colors.onAccent : colors.text) : selected ? colors.accent : colors.text;
 
   return (
     <Pressable
@@ -51,8 +54,8 @@ export function Chip({
           typeof style === "function" ? style(state) : style;
         return [
           {
-            paddingHorizontal: space.lg,
-            paddingVertical: space.sm,
+            paddingHorizontal: padH,
+            paddingVertical: padV,
             borderRadius: radii.pill,
             backgroundColor: bg,
             opacity: state.pressed ? 0.85 : 1,
@@ -62,7 +65,14 @@ export function Chip({
         ];
       }}
     >
-      <TextCaption style={{ color: textColor, fontWeight: "600" }}>
+      <TextCaption
+        style={{
+          color: textColor,
+          fontWeight: outlined ? (selected ? "600" : "500") : selected ? "600" : "400",
+          fontSize: compact ? 12 : undefined,
+          lineHeight: compact ? 15 : undefined,
+        }}
+      >
         {title}
       </TextCaption>
     </Pressable>

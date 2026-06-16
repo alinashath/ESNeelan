@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, space } from "@/src/theme/tokens";
+import { colors, fontFamilies, space } from "@/src/theme/tokens";
 import { ButtonIcon } from "./ButtonIcon";
 import { TextDisplay } from "./TextDisplay";
 
@@ -19,14 +19,23 @@ export function HeaderBrandMark({ wordmark = "ES Neelan" }: { wordmark?: string 
           width: 28,
           height: 28,
           borderRadius: 6,
-          backgroundColor: colors.accent,
+          backgroundColor: colors.primary,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
         <Ionicons name="hammer" size={16} color={colors.onAccent} />
       </View>
-      <TextDisplay style={{ letterSpacing: 1, fontSize: 18 }}>{wordmark}</TextDisplay>
+      <TextDisplay
+        style={{
+          letterSpacing: 0.5,
+          fontSize: 18,
+          fontWeight: "400",
+          fontFamily: fontFamilies.headingSerif,
+        }}
+      >
+        {wordmark}
+      </TextDisplay>
     </View>
   );
 }
