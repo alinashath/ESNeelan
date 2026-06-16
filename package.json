@@ -29,17 +29,24 @@
     "react-native-screens": "4.25.1",
     "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3"
+    "react-native-worklets": "0.8.3",
+    "serve": "^14.2.6"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "start": "expo start",
+    "start": "serve dist -l tcp://0.0.0.0:${PORT:-8080} --no-clipboard",
+    "dev": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build": "expo export --platform web",
+    "start:web": "npm start",
     "supabase:functions": "supabase functions deploy sms-hook && supabase functions deploy promote-admin && supabase functions deploy process-notifications && supabase functions deploy close-expired-auctions"
   },
   "private": true

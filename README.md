@@ -94,6 +94,17 @@ Open in Expo Go or run `npx expo run:ios` / `run:android`.
 
 Run `npm run web` (or `npx expo start --web`). On large viewports, `Screen` centers content up to **1200px** (`src/theme/layout.ts`); the home trending grid uses **2 / 3 / 4** columns from the measured column width (not the raw window width). **Tabs:** from **768px** width up, the site-style **top** bar shows the logo and text links (`WebTabsHeaderBar`); below that (small desktop window or phone browser), tabs move to the **bottom** with **icon-only** labels like the native app. Global HTML/CSS in `app/+html.tsx` sets viewport fit, horizontal overflow guard, and theme-color for mobile browsers.
 
+#### Host web on Railway
+
+This repo is set up for **static web** (`app.json` → `expo.web.output: "static"`): Railway runs **`npm run build`** (`expo export --platform web` → `dist/`), then **`npm run start:web`** serves the folder with [`serve`](https://github.com/vercel/serve) on `0.0.0.0:$PORT`. Deploy overrides are in **`railway.toml`**; Node **20** is pinned via **`.node-version`** and `package.json` → `engines.node`.
+
+1. In [Railway](https://railway.com), create a project → **Deploy from GitHub** (or the CLI) and select this repository.
+2. On the service → **Variables**, add at least the same **`EXPO_PUBLIC_*`** keys as `.env.example` (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and for production SEO/share links **`EXPO_PUBLIC_SITE_URL`** set to your Railway app URL, e.g. `https://your-app.up.railway.app`). Optionally `EXPO_PUBLIC_DEFAULT_OG_IMAGE_URL`, `EXPO_PUBLIC_FUNCTIONS_URL`.
+3. **Critical:** In Railway variable settings, mark those variables as **available at build time** (Expo inlines `EXPO_PUBLIC_*` during `expo export`). Redeploy after changing them.
+4. Deploy: Railway runs `npm install`, `npm run build`, then `npm run start:web`.
+
+Smoke-test locally: `npm run build` then `PORT=8080 npm run start:web` and open `http://localhost:8080`.
+
 ### Profile photos & Storage (important for real devices)
 
 - **Uploads** use `fetch(uri)` → `arrayBuffer()` (not `blob()`), which React Native requires.

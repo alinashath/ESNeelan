@@ -1,0 +1,11 @@
+# Railway config-as-code: https://docs.railway.com/guides/config-as-code
+#
+# When a Dockerfile is present, Railway builds with Docker; CMD serves ./dist.
+# Without Docker, Railpack picks package.json "start" first — it must serve ./dist,
+# not `expo start`, or you get Metro dev URLs like /.expo/static-tmp/_error.bundle.
+#
+# EXPO_PUBLIC_* must be available at image build time (Docker ARG / env) so export inlines them.
+
+[deploy]
+healthcheckPath = "/"
+restartPolicyType = "ON_FAILURE"
