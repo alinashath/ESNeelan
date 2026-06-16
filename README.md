@@ -85,10 +85,10 @@ Edge function `promote-admin` promotes a user to `admin` when their verified pho
 
 ```bash
 npm install
-npx expo start
+npm run dev
 ```
 
-Open in Expo Go or run `npx expo run:ios` / `run:android`.
+Open in Expo Go or run `npx expo run:ios` / `run:android`. Use **`npm run dev`** (or `npx expo start`) for the dev server — **`npm start` serves the production web build** from `./dist` (after `npm run build`), which is what Railway and `Dockerfile` use in production.
 
 ### Web (responsive)
 
@@ -96,14 +96,16 @@ Run `npm run web` (or `npx expo start --web`). On large viewports, `Screen` cent
 
 #### Host web on Railway
 
-This repo is set up for **static web** (`app.json` → `expo.web.output: "static"`): Railway runs **`npm run build`** (`expo export --platform web` → `dist/`), then **`npm run start:web`** serves the folder with [`serve`](https://github.com/vercel/serve) on `0.0.0.0:$PORT`. Deploy overrides are in **`railway.toml`**; Node **20** is pinned via **`.node-version`** and `package.json` → `engines.node`.
+Production web is a **static export** (`app.json` → `expo.web.output: "static"` → `dist/`). A root **`Dockerfile`** builds the site and runs [`serve`](https://github.com/vercel/serve) on `0.0.0.0:$PORT`. Railway auto-detects it (`Using detected Dockerfile!` in build logs).
 
-1. In [Railway](https://railway.com), create a project → **Deploy from GitHub** (or the CLI) and select this repository.
-2. On the service → **Variables**, add at least the same **`EXPO_PUBLIC_*`** keys as `.env.example` (`EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and for production SEO/share links **`EXPO_PUBLIC_SITE_URL`** set to your Railway app URL, e.g. `https://your-app.up.railway.app`). Optionally `EXPO_PUBLIC_DEFAULT_OG_IMAGE_URL`, `EXPO_PUBLIC_FUNCTIONS_URL`.
-3. **Critical:** In Railway variable settings, mark those variables as **available at build time** (Expo inlines `EXPO_PUBLIC_*` during `expo export`). Redeploy after changing them.
-4. Deploy: Railway runs `npm install`, `npm run build`, then `npm run start:web`.
+**Why this matters:** [Railpack](https://railpack.com/languages/node) picks **`package.json` → `start` first**. If `start` were `expo start`, the platform would run the **Metro dev server** in production. The browser then requests dev-only URLs such as `/.expo/static-tmp/_error.bundle?...&dev=true`, which do not exist on a static host (404 + non-JavaScript MIME type). **`start` must serve `./dist`**, not Expo dev.
 
-Smoke-test locally: `npm run build` then `PORT=8080 npm run start:web` and open `http://localhost:8080`.
+1. In [Railway](https://railway.com), deploy this repo. Ensure the service uses the root **`Dockerfile`** (default when the file exists).
+2. Under **Variables**, add the **`EXPO_PUBLIC_*`** keys from `.env.example` (at least `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`; for SEO/share links set **`EXPO_PUBLIC_SITE_URL`** to your public origin, e.g. `https://your-app.up.railway.app`). Optionally `EXPO_PUBLIC_DEFAULT_OG_IMAGE_URL`, `EXPO_PUBLIC_FUNCTIONS_URL`.
+3. **Critical:** Declare the same names in the Dockerfile as **`ARG`** (already done for the common keys) and mark those variables as **available at build time** in Railway so `expo export` can read them. Redeploy after changing them.
+4. Redeploy so a new image runs `npm run build` inside Docker, then `serve dist`.
+
+Smoke-test locally: `npm run build` then `PORT=8080 npm start` and open `http://localhost:8080`.
 
 ### Profile photos & Storage (important for real devices)
 
