@@ -15,6 +15,7 @@ import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { FeaturedArticleAuctionEmbed } from "@/src/components/ui/FeaturedArticleAuctionEmbed";
+import { FeaturedArticleCollectionEmbed } from "@/src/components/ui/FeaturedArticleCollectionEmbed";
 import { featuredArticleImagePublicUrl } from "@/src/lib/featured-article-images";
 import { colors, fontFamilies, radii, space, typography } from "@/src/theme/tokens";
 
@@ -237,6 +238,13 @@ function BlockRow({
             </TextCaption>
           ) : null}
         </View>
+      );
+    }
+    case "collection_embed": {
+      const cid = block.collection_id?.trim();
+      if (!cid) return null;
+      return (
+        <FeaturedArticleCollectionEmbed collectionId={cid} caption={block.label?.trim() ? block.label : null} />
       );
     }
     case "inline_action": {

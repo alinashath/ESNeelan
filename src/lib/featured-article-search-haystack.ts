@@ -37,6 +37,10 @@ export function buildFeaturedArticleSearchHaystack(input: {
         parts.push(b.label, b.href);
         if (b.auction_id) parts.push(String(b.auction_id));
         break;
+      case "collection_embed":
+        if (b.label) parts.push(b.label);
+        parts.push(b.collection_id);
+        break;
       default:
         break;
     }

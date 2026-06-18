@@ -6,10 +6,12 @@ import { AuctionCard, type AuctionCardAuction } from "@/src/components/ui/Auctio
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ValueCurrency } from "@/src/components/ui/ValueCurrency";
+import { useScreenContentWidth } from "@/src/components/layout/content-width";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import { articleExploreEmbedCardWidth } from "@/src/lib/explore-grid-column-width";
 import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
 
-export type ArticleAuctionDisplay = "row" | "card" | "large_card";
+export type ArticleAuctionDisplay = "row" | "card" | "large_card" | "explore";
 
 type Props = {
   auctionId: string;
@@ -20,6 +22,8 @@ type Props = {
 
 export function FeaturedArticleAuctionEmbed({ auctionId, display, caption }: Props) {
   const { data: auction, isLoading } = useAuctionEmbedById(auctionId);
+  const screenW = useScreenContentWidth();
+  const exploreCardW = articleExploreEmbedCardWidth(screenW);
 
   const go = () => {
     router.push(`/auction/${auctionId}` as Href);
@@ -72,6 +76,10 @@ export function FeaturedArticleAuctionEmbed({ auctionId, display, caption }: Pro
         <ArticleAuctionRow auction={auction} onPress={go} />
       ) : display === "large_card" ? (
         <AuctionCard auction={auction} onPress={go} inGrid />
+      ) : display === "explore" ? (
+        <View style={{ width: exploreCardW, maxWidth: "100%", alignSelf: "flex-start" }}>
+          <AuctionCard auction={auction} onPress={go} compact inGrid />
+        </View>
       ) : (
         <AuctionCard auction={auction} onPress={go} compact inGrid />
       )}

@@ -167,6 +167,25 @@ export function useAuctionCollectionIds(auctionId: string | undefined) {
   });
 }
 
+/** Admin: search public collections by name for featured-article embeds. */
+export function useAdminCollectionSearchForArticles(q: string, options?: { enabled?: boolean }) {
+  const safe = q.replace(/%/g, "").trim();
+  return useQuery({
+    queryKey: ["admin", "collection-search-articles", safe],
+    enabled: (options?.enabled ?? true) && safe.length >= 2,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seller_collections")
+        .select(collectionListSelect)
+        .ilike("name", `%${safe}%`)
+        .order("updated_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return (data ?? []).map((r) => mapCollectionRow(r as Record<string, unknown>));
+    },
+  });
+}
+
 export function useInvalidateSellerCollections() {
   const qc = useQueryClient();
   return {

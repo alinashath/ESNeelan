@@ -77,9 +77,6 @@ export function SearchableMultiCategoryPicker({
         </TextBody>
         <Ionicons name="search" size={20} color={colors.textMuted} />
       </Pressable>
-      <TextBody style={{ marginTop: space.xs, fontSize: 12, color: colors.textMuted }}>
-        Up to {MAX} categories · search by name or path
-      </TextBody>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: space.xl }}>

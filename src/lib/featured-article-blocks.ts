@@ -12,6 +12,7 @@ export const FEATURED_ARTICLE_BLOCK_TYPES = [
   "fact_card",
   "photo",
   "inline_action",
+  "collection_embed",
 ] as const;
 
 export type FeaturedArticleBlockType = (typeof FEATURED_ARTICLE_BLOCK_TYPES)[number];
@@ -39,7 +40,14 @@ export type FeaturedArticleBlock =
       /** When set, embed this listing in the article (searchable in admin). */
       auction_id?: string | null;
       /** Visual treatment for the embedded auction. */
-      auction_display?: "row" | "card" | "large_card";
+      auction_display?: "row" | "card" | "large_card" | "explore";
+    }
+  | {
+      type: "collection_embed";
+      /** Optional eyebrow above the module (admin). */
+      label?: string;
+      /** Public seller collection id (`/collection/[id]`). */
+      collection_id: string;
     };
 
 export function emptyBlockForType(type: FeaturedArticleBlockType): FeaturedArticleBlock {
@@ -66,6 +74,8 @@ export function emptyBlockForType(type: FeaturedArticleBlockType): FeaturedArtic
         auction_id: null,
         auction_display: undefined,
       };
+    case "collection_embed":
+      return { type: "collection_embed", label: "", collection_id: "" };
     default: {
       const _x: never = type;
       return _x;
@@ -146,7 +156,10 @@ export function parseFeaturedArticleBlocks(raw: unknown): FeaturedArticleBlock[]
         const auction_id = auctionIdRaw.length ? auctionIdRaw : null;
         const displayRaw = asString(item.auction_display);
         const auction_display =
-          displayRaw === "row" || displayRaw === "card" || displayRaw === "large_card"
+          displayRaw === "row" ||
+          displayRaw === "card" ||
+          displayRaw === "large_card" ||
+          displayRaw === "explore"
             ? displayRaw
             : ("card" as const);
         out.push({
@@ -157,6 +170,14 @@ export function parseFeaturedArticleBlocks(raw: unknown): FeaturedArticleBlock[]
             (auction_id ? `/auction/${auction_id}` : "/"),
           auction_id,
           auction_display: auction_id ? auction_display : undefined,
+        });
+        break;
+      }
+      case "collection_embed": {
+        out.push({
+          type: "collection_embed",
+          label: asString(item.label) || undefined,
+          collection_id: asString(item.collection_id),
         });
         break;
       }

@@ -31,6 +31,10 @@ import { Chip } from "@/src/components/ui/Chip";
 import { ChipRow } from "@/src/components/ui/ChipRow";
 import { useAdminFeaturedArticle } from "@/src/data/featured-articles";
 import { useAdminAuctionSearchForArticles, useAuctionEmbedById } from "@/src/data/auctions";
+import {
+  useAdminCollectionSearchForArticles,
+  useSellerCollectionDetail,
+} from "@/src/data/seller-collections";
 import type { ArticleAuctionDisplay } from "@/src/components/ui/FeaturedArticleAuctionEmbed";
 import { FeaturedArticlePhotoEditor } from "@/src/components/ui/FeaturedArticlePhotoEditor";
 import { useAuth } from "@/src/providers/AuthProvider";
@@ -50,6 +54,7 @@ const ADD_TYPES: { id: FeaturedArticleBlockType; label: string }[] = [
   { id: "fact_card", label: "Fact card" },
   { id: "photo", label: "Photo" },
   { id: "inline_action", label: "Action" },
+  { id: "collection_embed", label: "Collection" },
 ];
 
 function inputStyle(multiline?: boolean) {
@@ -396,9 +401,10 @@ export default function AdminFeaturedArticleEditorScreen() {
 
         <TextLabel style={{ marginTop: space.xl }}>CONTENT BLOCKS</TextLabel>
         <TextBody style={{ marginTop: space.xs, marginBottom: space.md, color: colors.textSecondary }}>
-          Add headings, body copy, quotes, Q&A, photos, a tap-to-call row, fact cards, and action blocks
-          (link button or embedded auction). Use paths like{" "}
-          <Text style={{ fontFamily: fontFamilies.bodySemiBold }}>/auction/…</Text> for in-app links.
+          Add headings, body copy, quotes, Q&A, photos, a tap-to-call row, fact cards, action blocks
+          (link button or embedded auction), and collection modules (gallery preview + link to the full
+          collection). Use paths like <Text style={{ fontFamily: fontFamilies.bodySemiBold }}>/auction/…</Text>{" "}
+          for in-app links.
         </TextBody>
 
         {blocks.map((block, index) => (
@@ -482,6 +488,7 @@ type InlineActionBlock = Extract<FeaturedArticleBlock, { type: "inline_action" }
 const DISPLAY_OPTIONS: { id: ArticleAuctionDisplay; label: string }[] = [
   { id: "row", label: "Row" },
   { id: "card", label: "Card" },
+  { id: "explore", label: "Explore" },
   { id: "large_card", label: "Large card" },
 ];
 
@@ -702,10 +709,169 @@ function InlineActionBlockEditor({
             ))}
           </ChipRow>
           <TextCaption style={{ marginTop: space.xs, color: colors.textSecondary }}>
-            Row — compact horizontal strip. Card — standard listing card. Large card — taller hero-style card.
+            Row — compact horizontal strip. Card — full-width compact card. Explore — same column width as
+            the Explore grid. Large card — taller hero-style card.
           </TextCaption>
         </View>
       )}
+    </View>
+  );
+}
+
+type CollectionEmbedBlock = Extract<FeaturedArticleBlock, { type: "collection_embed" }>;
+
+function CollectionEmbedBlockEditor({
+  block,
+  onChange,
+}: {
+  block: CollectionEmbedBlock;
+  onChange: (b: CollectionEmbedBlock) => void;
+}) {
+  const { profile } = useAuth();
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const canSearch = profile?.role === "admin";
+  const { data: hits = [], isFetching } = useAdminCollectionSearchForArticles(debouncedSearch, {
+    enabled: canSearch && debouncedSearch.length >= 2,
+  });
+
+  const attachedId = block.collection_id?.trim() ?? "";
+  const { data: attached } = useSellerCollectionDetail(attachedId || undefined);
+
+  function pickCollection(id: string) {
+    onChange({ ...block, collection_id: id });
+    setSearchInput("");
+  }
+
+  function clearCollection() {
+    onChange({ ...block, collection_id: "" });
+  }
+
+  return (
+    <View>
+      <TextLabel>OPTIONAL LABEL ABOVE MODULE</TextLabel>
+      <TextInput
+        value={block.label ?? ""}
+        onChangeText={(label) => onChange({ ...block, label })}
+        placeholder="e.g. Curated picks"
+        placeholderTextColor={colors.textMuted}
+        style={inputStyle()}
+      />
+
+      <TextLabel style={{ marginTop: space.lg }}>COLLECTION ID (OPTIONAL)</TextLabel>
+      <TextCaption style={{ marginTop: space.xs, marginBottom: space.sm, color: colors.textSecondary }}>
+        Paste a collection UUID if you already have it, or search by name below.
+      </TextCaption>
+      <TextInput
+        value={block.collection_id}
+        onChangeText={(collection_id) => onChange({ ...block, collection_id })}
+        autoCapitalize="none"
+        autoCorrect={false}
+        placeholder="uuid…"
+        placeholderTextColor={colors.textMuted}
+        style={inputStyle()}
+      />
+
+      <TextLabel style={{ marginTop: space.lg }}>SEARCH COLLECTIONS BY NAME</TextLabel>
+      <TextCaption style={{ marginTop: space.xs, marginBottom: space.sm, color: colors.textSecondary }}>
+        Type at least 2 characters, then tap a result to attach it.
+      </TextCaption>
+      <TextInput
+        value={searchInput}
+        onChangeText={setSearchInput}
+        autoCorrect={false}
+        placeholder="Search by collection name…"
+        placeholderTextColor={colors.textMuted}
+        style={inputStyle()}
+      />
+      {isFetching ? (
+        <View style={{ marginTop: space.sm, flexDirection: "row", alignItems: "center", gap: space.sm }}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <TextCaption>Searching…</TextCaption>
+        </View>
+      ) : null}
+
+      {debouncedSearch.length >= 2 && hits.length ? (
+        <ScrollView
+          style={{ marginTop: space.sm, maxHeight: 220, borderWidth: 1, borderColor: colors.border, borderRadius: radii.md }}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled
+        >
+          {hits.map((h) => (
+            <Pressable
+              key={h.id}
+              onPress={() => pickCollection(h.id)}
+              style={({ pressed }) => ({
+                flexDirection: "row",
+                alignItems: "center",
+                gap: space.sm,
+                padding: space.md,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: radii.sm,
+                  overflow: "hidden",
+                  backgroundColor: colors.surfaceMuted,
+                }}
+              >
+                {h.cover_url ? (
+                  <Image source={{ uri: h.cover_url }} style={{ width: "100%", height: "100%" }} />
+                ) : null}
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <TextBody numberOfLines={2} style={{ fontWeight: "600" }}>
+                  {h.name}
+                </TextBody>
+                <TextCaption style={{ marginTop: 2, color: colors.textMuted }} numberOfLines={1}>
+                  {h.id}
+                </TextCaption>
+              </View>
+              <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : debouncedSearch.length >= 2 && !isFetching ? (
+        <TextCaption style={{ marginTop: space.sm, color: colors.textMuted }}>No matches.</TextCaption>
+      ) : null}
+
+      {attachedId ? (
+        <View style={{ marginTop: space.lg }}>
+          <TextLabel>ATTACHED COLLECTION</TextLabel>
+          <View
+            style={{
+              marginTop: space.sm,
+              padding: space.md,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surfaceSoft,
+            }}
+          >
+            <TextBody style={{ fontWeight: "600" }} numberOfLines={2}>
+              {attached?.name ?? attachedId}
+            </TextBody>
+            <TextCaption style={{ marginTop: 4, color: colors.textMuted }}>{attachedId}</TextCaption>
+            {attached?.items?.length != null ? (
+              <TextCaption style={{ marginTop: space.xs, color: colors.textSecondary }}>
+                {attached.items.length} listing{attached.items.length === 1 ? "" : "s"}
+              </TextCaption>
+            ) : null}
+            <ButtonSecondary title="Clear collection" onPress={clearCollection} style={{ marginTop: space.md, alignSelf: "flex-start" }} />
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -861,6 +1027,8 @@ function BlockFields({
       return <FeaturedArticlePhotoEditor articleId={articleId} block={block} onChange={onChange} />;
     case "inline_action":
       return <InlineActionBlockEditor block={block} onChange={onChange} />;
+    case "collection_embed":
+      return <CollectionEmbedBlockEditor block={block} onChange={onChange} />;
     default:
       return null;
   }

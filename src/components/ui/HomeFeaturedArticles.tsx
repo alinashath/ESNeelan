@@ -70,7 +70,7 @@ export function HomeFeaturedArticles() {
               color: colors.primary,
             }}
           >
-            All stories
+            ALL STORIES
           </Text>
           <Ionicons name="chevron-forward" size={18} color={colors.primary} />
         </Pressable>

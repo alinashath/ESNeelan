@@ -237,14 +237,11 @@ export default function ArtistsScreen() {
       >
         <View style={{ paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.sm }}>
           <TextSectionTitle>Artists</TextSectionTitle>
-          <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }}>
-            Features and interviews — newest first.
-          </TextCaption>
         </View>
 
         <View style={{ paddingHorizontal: space.lg, marginBottom: space.md }}>
           <SearchField
-            placeholder="Search titles, excerpts, and story text…"
+            placeholder="Search"
             value={search}
             onChangeText={setSearch}
             showIdleSuggestions={false}

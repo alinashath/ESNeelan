@@ -75,10 +75,6 @@ export function ListingStructuredFields({ template, value, onChange }: Props) {
   return (
     <View style={{ marginBottom: space.md }}>
       <TextLabel style={{ marginBottom: space.sm }}>Item details (structured)</TextLabel>
-      <TextCaption style={{ marginBottom: space.md, color: colors.textSecondary }}>
-        Pick tags and numbers that match your item. Fields shown depend on the categories you
-        selected.
-      </TextCaption>
 
       {template.showDimensions ? (
         <View style={{ marginBottom: space.sm }}>

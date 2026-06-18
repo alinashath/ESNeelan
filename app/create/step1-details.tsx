@@ -106,9 +106,9 @@ export default function CreateAuctionStep1Details() {
   const subStepHints = useMemo(
     () =>
       [
-        "Clear photos build trust. Add several shots, and remove any mistake with the X on a thumbnail.",
-        "A specific title and the right categories help people find your listing.",
-        "Optional: where pickup or handoff usually happens, item-specific sale terms, and how delivery can work.",
+        "",
+        "",
+        "",
         "Choose a starting price, bid steps, and keep the auction open at least 24 hours.",
         "Standard listings are free to submit. Featured spots include a bank fee on the next screen.",
       ] as const,
@@ -448,36 +448,12 @@ export default function CreateAuctionStep1Details() {
   return (
     <Screen scroll>
       <StepIndicator currentStep={1} totalSteps={3} labels={["Details", "Terms", "Fee"]} />
-      <TextCaption style={{ marginBottom: space.sm, color: colors.textMuted }}>
-        Step 1 of 3 · save your draft, then agree to platform terms
-        {bidType === "featured" ? " and pay the featured fee" : ""}.
-      </TextCaption>
       <WizardSegmentedProgress currentIndex={subStep} labels={CREATE_SUBSTEP_LABELS} />
       <TextTitle style={{ marginBottom: space.xs }}>{subStepTitles[subStep]}</TextTitle>
-      <TextBody style={{ marginBottom: space.lg, color: colors.textSecondary }}>
-        {subStepHints[subStep]}
-      </TextBody>
-      {session && profile?.display_name ? (
-        <View
-          style={{
-            alignSelf: "flex-start",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: space.sm,
-            backgroundColor: colors.tertiaryMuted,
-            paddingHorizontal: space.md,
-            paddingVertical: space.sm,
-            borderRadius: radii.pill,
-            marginBottom: space.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
-          <Ionicons name="person-circle-outline" size={20} color={colors.primary} />
-          <TextCaption style={{ fontWeight: "600", color: colors.primary }}>
-            Seller · {profile.display_name}
-          </TextCaption>
-        </View>
+      {subStepHints[subStep] ? (
+        <TextBody style={{ marginBottom: space.lg, color: colors.textSecondary }}>
+          {subStepHints[subStep]}
+        </TextBody>
       ) : null}
       {session && !canList ? (
         <InfoCallout message="Seller verification required. Open Profile, tap Apply to sell, then wait for admin approval before you can submit listings." />
@@ -503,13 +479,11 @@ export default function CreateAuctionStep1Details() {
           <Pressable onPress={pickPhotos} style={{ alignItems: "center", paddingVertical: space.md }}>
             <Ionicons name="camera-outline" size={36} color={colors.textMuted} />
             <TextBody style={{ fontWeight: "600", marginTop: space.sm }}>Add photos</TextBody>
-            <TextCaption style={{ marginTop: space.xs, textAlign: "center" }}>
-              Tap here to pick from your library. Tap the X on a thumbnail to remove a photo you added by
-              mistake.
-              {existingImages.length > 0
-                ? ` (${existingImages.length} already saved on this draft.)`
-                : ""}
-            </TextCaption>
+            {existingImages.length > 0 ? (
+              <TextCaption style={{ marginTop: space.xs, textAlign: "center", color: colors.textMuted }}>
+                {existingImages.length} already saved on this draft.
+              </TextCaption>
+            ) : null}
           </Pressable>
           {existingImages.length > 0 || photos.length > 0 ? (
             <ScrollView
@@ -611,9 +585,6 @@ export default function CreateAuctionStep1Details() {
           )}
 
           <TextLabel style={{ marginBottom: space.sm }}>Condition</TextLabel>
-          <TextCaption style={{ marginBottom: space.sm, color: colors.textSecondary }}>
-            How close to new is the physical item?
-          </TextCaption>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm, marginBottom: space.lg }}>
             {ITEM_CONDITION_OPTIONS.map((opt) => (
               <Chip
@@ -646,9 +617,6 @@ export default function CreateAuctionStep1Details() {
         <View style={{ marginBottom: space.lg }}>
           <TextField label="Location" value={location} onChangeText={setLocation} placeholder="Island, area, or pickup note" />
           <TextLabel style={{ marginBottom: space.sm, marginTop: space.md }}>Delivery options</TextLabel>
-          <TextCaption style={{ marginBottom: space.sm, color: colors.textSecondary }}>
-            Select every method you can offer. These labels are fixed for clarity across listings.
-          </TextCaption>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm, marginBottom: space.lg }}>
             {DELIVERY_OPTIONS.map((opt) => (
               <Chip
