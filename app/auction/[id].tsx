@@ -518,6 +518,21 @@ export default function AuctionDetailScreen() {
     };
   }, [row, curatedCategories]);
 
+  const reducedMotion = useReducedMotion();
+  const detailsSheetEntering = useMemo(
+    () =>
+      reducedMotion
+        ? FadeIn.duration(140)
+        : FadeInDown.duration(420)
+            .delay(70)
+            .springify()
+            .damping(22)
+            .stiffness(280),
+    [reducedMotion],
+  );
+  const { width: winW } = useWindowDimensions();
+  const isWide = winW >= layout.breakpoints.md;
+
   const seoEl = (() => {
     if (Platform.OS !== "web" || !id) return null;
     if (isPending) return <AuctionSeoHead phase="loading" auctionId={id} />;
@@ -632,22 +647,6 @@ export default function AuctionDetailScreen() {
 
   const isSeller = session?.user.id === sellerId;
   const isWinner = !!session?.user.id && winnerId === session.user.id;
-
-  const reducedMotion = useReducedMotion();
-  const detailsSheetEntering = useMemo(
-    () =>
-      reducedMotion
-        ? FadeIn.duration(140)
-        : FadeInDown.duration(420)
-            .delay(70)
-            .springify()
-            .damping(22)
-            .stiffness(280),
-    [reducedMotion],
-  );
-
-  const { width: winW } = useWindowDimensions();
-  const isWide = winW >= layout.breakpoints.md;
 
   return (
     <>

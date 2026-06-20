@@ -6,37 +6,52 @@ import { toE164Maldives } from "@/src/lib/phone";
 import { authErrorMessage } from "@/src/lib/auth-errors";
 import { OtpBoxInput } from "@/src/components/ui/OtpBoxInput";
 import { Screen } from "@/src/components/ui/Screen";
+import { TextField } from "@/src/components/ui/TextField";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
-import { space } from "@/src/theme/tokens";
+import { colors, space } from "@/src/theme/tokens";
 
-export default function LoginScreen() {
+export default function SignupScreen() {
+  const [name, setName] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   async function sendOtp() {
-    setError(null);
-    const e164 = toE164Maldives(phoneDigits);
-    if (!e164) {
-      setError("Enter your 7-digit Maldivian mobile number.");
+    setNameError(null);
+    setPhoneError(null);
+
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setNameError("Your name is required to sign up.");
       return;
     }
+
+    const e164 = toE164Maldives(phoneDigits);
+    if (!e164) {
+      setPhoneError("Enter your 7-digit Maldivian mobile number.");
+      return;
+    }
+
     setLoading(true);
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         phone: e164,
-        options: { shouldCreateUser: false },
+        options: {
+          shouldCreateUser: true,
+          data: { display_name: trimmedName },
+        },
       });
       if (otpError) throw otpError;
       router.push({
         pathname: "/(auth)/verify",
-        params: { phone: e164, mode: "login" },
+        params: { phone: e164, mode: "signup" },
       });
     } catch (e: unknown) {
-      setError(authErrorMessage(e, "send_otp_login"));
+      setPhoneError(authErrorMessage(e, "send_otp_signup"));
     } finally {
       setLoading(false);
     }
@@ -44,10 +59,26 @@ export default function LoginScreen() {
 
   return (
     <Screen scroll>
-      <TextTitle style={{ marginBottom: space.sm }}>Log in</TextTitle>
+      <TextTitle style={{ marginBottom: space.sm }}>Sign up</TextTitle>
       <TextBody style={{ marginBottom: space.xl }}>
-        Enter your mobile number and we will text you a one-time code.
+        Create your account with your name and Maldivian mobile number.
       </TextBody>
+      <TextField
+        label="FULL NAME"
+        placeholder="Your name"
+        value={name}
+        onChangeText={(next) => {
+          setName(next);
+          if (nameError) setNameError(null);
+        }}
+        autoCapitalize="words"
+        autoComplete="name"
+      />
+      {nameError ? (
+        <TextCaption style={{ marginTop: -space.md, marginBottom: space.lg, color: colors.danger }}>
+          {nameError}
+        </TextCaption>
+      ) : null}
       <OtpBoxInput
         label="MOBILE NUMBER"
         prefix="+960"
@@ -55,18 +86,17 @@ export default function LoginScreen() {
         value={phoneDigits}
         onChange={(next) => {
           setPhoneDigits(next);
-          if (error) setError(null);
+          if (phoneError) setPhoneError(null);
         }}
-        error={error}
-        autoFocus
+        error={phoneError}
       />
       <ButtonPrimary title="Send code" loading={loading} onPress={sendOtp} />
       <View style={{ marginTop: space.xl, gap: space.md }}>
         <TextCaption>
-          New to ES Neelan?{" "}
-          <Link href={"/(auth)/signup" as Href} asChild>
+          Already have an account?{" "}
+          <Link href={"/(auth)/login" as Href} asChild>
             <Pressable accessibilityRole="link">
-              <TextCaption style={{ textDecorationLine: "underline" }}>Create an account</TextCaption>
+              <TextCaption style={{ textDecorationLine: "underline" }}>Log in</TextCaption>
             </Pressable>
           </Link>
         </TextCaption>

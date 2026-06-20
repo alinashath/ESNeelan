@@ -81,6 +81,11 @@ export default function ProfileScreen() {
           onPress={() => router.push("/(auth)/login")}
           style={{ marginTop: space.lg }}
         />
+        <ButtonSecondary
+          title="Sign up"
+          onPress={() => router.push("/(auth)/signup" as Href)}
+          style={{ marginTop: space.md }}
+        />
       </Screen>
     );
   }
