@@ -41,7 +41,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "serve dist -l tcp://0.0.0.0:${PORT:-8080} --no-clipboard",
+    "start": "node scripts/web-server.mjs",
     "dev": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",

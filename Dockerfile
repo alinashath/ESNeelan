@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Production web: static Expo export + `serve`.
+# Production web: static Expo export + bot-aware SPA server (`scripts/web-server.mjs`).
 # Railway uses this Dockerfile when present (see https://docs.railway.com/deploy/dockerfiles).
 # Map the same EXPO_PUBLIC_* service variables as Docker build arguments so `expo export` inlines them.
 
@@ -30,9 +30,8 @@ FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN npm install -g serve@14
-
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts/web-server.mjs ./scripts/web-server.mjs
 
 EXPOSE 8080
-CMD ["sh", "-c", "serve dist -l tcp://0.0.0.0:${PORT:-8080} --no-clipboard"]
+CMD ["node", "scripts/web-server.mjs"]

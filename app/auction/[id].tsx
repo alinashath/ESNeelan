@@ -640,7 +640,7 @@ export default function AuctionDetailScreen() {
     (a.current_highest_bid as number | null) ?? Number(a.starting_price);
   const liveUi = isAuctionLiveForUi(status, endsAt);
   const listingShareUrl = buildAuctionPublicUrl(id);
-  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ES Neelan\n${listingShareUrl}`;
+  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ES Neelan`;
 
   const sellerPhoneDisplay = formatMaldivesPhoneDisplay(sellerPhone);
   const winnerContactDisplay = formatMaldivesPhoneDisplay(winnerContactPhone);

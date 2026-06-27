@@ -94,7 +94,8 @@ export function AuctionSeoHead(props: Props) {
   const bodyBits = [plainTextSnippet(description, 280), subtitle].filter(Boolean);
   const desc =
     bodyBits.length > 0 ? plainTextSnippet(bodyBits.join(" — "), 300) : DEFAULT_DESC;
-  const ogImage = imageUrl?.trim() || null;
+  const defaultOg = process.env.EXPO_PUBLIC_DEFAULT_OG_IMAGE_URL?.trim() ?? "";
+  const ogImage = imageUrl?.trim() || defaultOg || null;
 
   return (
     <Head>

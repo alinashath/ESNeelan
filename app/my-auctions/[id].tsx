@@ -285,7 +285,7 @@ export default function MyAuctionDetailScreen() {
   const canEditListing = status === "draft" || status === "pending_approval";
   const hideHeroActions = canEditListing;
   const listingShareUrl = buildAuctionPublicUrl(id);
-  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ES Neelan\n${listingShareUrl}`;
+  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ES Neelan`;
 
   async function openFeaturedFeeScreen() {
     const needRequest =

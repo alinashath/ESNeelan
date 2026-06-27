@@ -1,15 +1,14 @@
 import { TextCaption } from "@/src/components/ui/TextCaption";
+import { shareListing } from "@/src/lib/share-listing";
 import { colors, radii, shadows, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Alert,
   FlatList,
   Image,
   Modal,
   Platform,
   Pressable,
-  Share,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -20,7 +19,7 @@ type Props = {
   shareTitle?: string;
   /** Absolute listing URL (web + native share). */
   shareUrl?: string;
-  /** Plain text body; if omitted, falls back to title + URL. */
+  /** Plain text body without the URL; if omitted, falls back to title. */
   shareMessage?: string;
   showLiveBadge?: boolean;
   /** `active` in DB but `ends_at` has passed — show muted “Closed” (not LIVE). */
@@ -82,39 +81,8 @@ export function AuctionDetailHeroGallery({
   );
 
   const onShare = useCallback(async () => {
-    const text =
-      shareMessage ??
-      (shareUrl ? `${shareTitle}\n${shareUrl}` : shareTitle);
-    try {
-      if (Platform.OS === "web") {
-        const nav = typeof navigator !== "undefined" ? navigator : undefined;
-        if (nav?.share && shareUrl) {
-          try {
-            await nav.share({ title: shareTitle, text, url: shareUrl });
-            return;
-          } catch (e) {
-            if ((e as { name?: string })?.name === "AbortError") return;
-          }
-        }
-        if (shareUrl && nav?.clipboard?.writeText) {
-          await nav.clipboard.writeText(shareUrl);
-          Alert.alert("Copied", "Listing link copied to clipboard.");
-          return;
-        }
-        Alert.alert("Share", text);
-        return;
-      }
-
-      await Share.share(
-        shareUrl
-          ? Platform.OS === "ios"
-            ? { title: shareTitle, message: text, url: shareUrl }
-            : { title: shareTitle, message: text }
-          : { title: shareTitle, message: text },
-      );
-    } catch {
-      Alert.alert("Share", "Could not open the share sheet.");
-    }
+    const message = shareMessage ?? shareTitle;
+    await shareListing({ title: shareTitle, message, url: shareUrl ?? "" });
   }, [shareMessage, shareTitle, shareUrl]);
 
   if (!imageUrls.length) {
