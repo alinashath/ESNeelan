@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Alert, Platform, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { sharePublicLink } from "@/src/lib/share-listing";
 import { colors, radii, space } from "@/src/theme/tokens";
 
 type Props = {
@@ -11,30 +12,17 @@ type Props = {
   variant?: "inline" | "header";
 };
 
+function buildShareMessage(title: string, excerpt?: string): string {
+  return excerpt?.trim() ? `${title}\n\n${excerpt.trim()}` : title;
+}
+
 async function runShare(title: string, url: string, excerpt?: string) {
-  const text = excerpt?.trim() ? `${title}\n\n${excerpt.trim()}\n\n${url}` : `${title}\n\n${url}`;
-  try {
-    if (Platform.OS === "web") {
-      if (typeof navigator !== "undefined" && navigator.share) {
-        await navigator.share({ title, text: excerpt?.trim() ?? title, url });
-        return;
-      }
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        Alert.alert("Copied", "Article link copied to clipboard.");
-        return;
-      }
-      window.prompt("Copy this link:", url);
-      return;
-    }
-    await Share.share(
-      { title, message: text, url },
-      { subject: title, dialogTitle: title },
-    );
-  } catch (e) {
-    if ((e as { name?: string })?.name === "AbortError") return;
-    Alert.alert("Share", "Could not open the share sheet. Try again.");
-  }
+  await sharePublicLink({
+    title,
+    message: buildShareMessage(title, excerpt),
+    url,
+    copiedMessage: "Story link copied to clipboard.",
+  });
 }
 
 async function copyLink(url: string) {
@@ -42,13 +30,13 @@ async function copyLink(url: string) {
     if (Platform.OS === "web") {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        Alert.alert("Copied", "Article link copied to clipboard.");
+        Alert.alert("Copied", "Story link copied to clipboard.");
         return;
       }
       window.prompt("Copy this link:", url);
       return;
     }
-    await Share.share({ message: url, url });
+    await Share.share({ message: url });
   } catch {
     Alert.alert("Copy link", "Could not copy the link.");
   }
@@ -62,7 +50,7 @@ export function ArticleShareActions({ title, url, excerpt, variant = "inline" }:
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Share article"
+        accessibilityLabel="Share story"
         onPress={onShare}
         style={({ pressed }) => [styles.headerHit, pressed && { opacity: 0.75 }]}
       >
@@ -75,7 +63,7 @@ export function ArticleShareActions({ title, url, excerpt, variant = "inline" }:
     <View style={styles.row}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Share article"
+        accessibilityLabel="Share story"
         onPress={onShare}
         style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
       >
@@ -85,7 +73,7 @@ export function ArticleShareActions({ title, url, excerpt, variant = "inline" }:
       {Platform.OS === "web" ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Copy article link"
+          accessibilityLabel="Copy story link"
           onPress={onCopy}
           style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
         >

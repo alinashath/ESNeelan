@@ -1,8 +1,9 @@
-import { View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Image, View } from "react-native";
 import { colors, fontFamilies, space } from "@/src/theme/tokens";
 import { ButtonIcon } from "./ButtonIcon";
 import { TextDisplay } from "./TextDisplay";
+
+const brandIcon = require("../../../assets/images/brand-icon.png");
 
 type Props = {
   onBellPress?: () => void;
@@ -14,18 +15,12 @@ type Props = {
 export function HeaderBrandMark({ wordmark = "ES Neelan" }: { wordmark?: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-      <View
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 6,
-          backgroundColor: colors.primary,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Ionicons name="hammer" size={16} color={colors.onAccent} />
-      </View>
+      <Image
+        source={brandIcon}
+        style={{ width: 28, height: 28 }}
+        resizeMode="contain"
+        accessibilityIgnoresInvertColors
+      />
       <TextDisplay
         style={{
           letterSpacing: 0.5,

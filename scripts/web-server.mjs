@@ -21,6 +21,10 @@ const BOT_UA =
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const SLUG_RE = /^[\w-]{1,200}$/;
+
+const FEATURED_ARTICLE_IMAGES_BUCKET = "featured-article-images";
+
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
@@ -67,14 +71,38 @@ function storagePublicUrl(bucket, storagePath) {
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
 }
 
-async function fetchAuctionForOg(id) {
+function resolveArticleCoverUrl(storagePath, externalUrl) {
+  const sp = storagePath?.trim();
+  if (sp) return storagePublicUrl(FEATURED_ARTICLE_IMAGES_BUCKET, sp);
+  const ext = externalUrl?.trim();
+  return ext || "";
+}
+
+function optimizeArticleCoverImageUrl(url, maxWidth) {
+  const raw = url?.trim();
+  if (!raw) return "";
+  try {
+    if (raw.includes("images.unsplash.com")) {
+      const u = new URL(raw);
+      u.searchParams.set("w", String(Math.min(maxWidth, 1920)));
+      u.searchParams.set("q", "82");
+      u.searchParams.set("auto", "format");
+      u.searchParams.set("fit", "crop");
+      return u.toString();
+    }
+  } catch {
+    /* ignore */
+  }
+  return raw;
+}
+
+async function supabaseRestGet(table, filters, select) {
   if (!SUPABASE_URL || !SUPABASE_ANON) return null;
-  const url = new URL(`${SUPABASE_URL}/rest/v1/auctions`);
-  url.searchParams.set("id", `eq.${id}`);
-  url.searchParams.set(
-    "select",
-    "title,description,current_highest_bid,starting_price,bid_count,auction_images(storage_path,sort_order)",
-  );
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  for (const [key, value] of Object.entries(filters)) {
+    url.searchParams.set(key, value);
+  }
+  url.searchParams.set("select", select);
   const res = await fetch(url, {
     headers: {
       apikey: SUPABASE_ANON,
@@ -86,7 +114,60 @@ async function fetchAuctionForOg(id) {
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 }
 
-function buildOgHtml(auction, canonicalUrl) {
+async function fetchAuctionForOg(id) {
+  return supabaseRestGet(
+    "auctions",
+    { id: `eq.${id}` },
+    "title,description,current_highest_bid,starting_price,bid_count,auction_images(storage_path,sort_order)",
+  );
+}
+
+async function fetchArticleForOg(slug) {
+  return supabaseRestGet(
+    "featured_articles",
+    { slug: `eq.${slug}` },
+    "title,excerpt,cover_image_url,cover_image_storage_path,published_at,updated_at",
+  );
+}
+
+function buildOgPageHtml({
+  pageTitle,
+  title,
+  desc,
+  canonicalUrl,
+  ogImage,
+  ogType,
+  publishedAt,
+  updatedAt,
+  linkLabel,
+}) {
+  const card = ogImage ? "summary_large_image" : "summary";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>${escapeHtml(pageTitle)}</title>
+  <meta name="description" content="${escapeHtml(desc)}"/>
+  <meta property="og:site_name" content="ES Neelan"/>
+  <meta property="og:type" content="${escapeHtml(ogType)}"/>
+  <meta property="og:title" content="${escapeHtml(pageTitle)}"/>
+  <meta property="og:description" content="${escapeHtml(desc)}"/>
+  <meta property="og:url" content="${escapeHtml(canonicalUrl)}"/>
+  ${publishedAt ? `<meta property="article:published_time" content="${escapeHtml(publishedAt)}"/>` : ""}
+  ${updatedAt ? `<meta property="article:modified_time" content="${escapeHtml(updatedAt)}"/>` : ""}
+  ${ogImage ? `<meta property="og:image" content="${escapeHtml(ogImage)}"/>` : ""}
+  ${ogImage ? `<meta property="og:image:alt" content="${escapeHtml(title)}"/>` : ""}
+  <meta name="twitter:card" content="${card}"/>
+  <meta name="twitter:title" content="${escapeHtml(pageTitle)}"/>
+  <meta name="twitter:description" content="${escapeHtml(desc)}"/>
+  ${ogImage ? `<meta name="twitter:image" content="${escapeHtml(ogImage)}"/>` : ""}
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(canonicalUrl)}"/>
+</head>
+<body><p><a href="${escapeHtml(canonicalUrl)}">${escapeHtml(linkLabel)}</a></p></body>
+</html>`;
+}
+
+function buildAuctionOgHtml(auction, canonicalUrl) {
   const title = auction.title || "Auction";
   const pageTitle = `${title} | ES Neelan`;
   const currentBid = auction.current_highest_bid ?? auction.starting_price ?? 0;
@@ -103,29 +184,44 @@ function buildOgHtml(auction, canonicalUrl) {
   );
   const firstPath = imgs[0]?.storage_path;
   const ogImage = (firstPath ? storagePublicUrl("auction-images", firstPath) : "") || DEFAULT_OG_IMAGE;
-  const card = ogImage ? "summary_large_image" : "summary";
 
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <title>${escapeHtml(pageTitle)}</title>
-  <meta name="description" content="${escapeHtml(desc)}"/>
-  <meta property="og:site_name" content="ES Neelan"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:title" content="${escapeHtml(pageTitle)}"/>
-  <meta property="og:description" content="${escapeHtml(desc)}"/>
-  <meta property="og:url" content="${escapeHtml(canonicalUrl)}"/>
-  ${ogImage ? `<meta property="og:image" content="${escapeHtml(ogImage)}"/>` : ""}
-  ${ogImage ? `<meta property="og:image:alt" content="${escapeHtml(title)}"/>` : ""}
-  <meta name="twitter:card" content="${card}"/>
-  <meta name="twitter:title" content="${escapeHtml(pageTitle)}"/>
-  <meta name="twitter:description" content="${escapeHtml(desc)}"/>
-  ${ogImage ? `<meta name="twitter:image" content="${escapeHtml(ogImage)}"/>` : ""}
-  <meta http-equiv="refresh" content="0;url=${escapeHtml(canonicalUrl)}"/>
-</head>
-<body><p><a href="${escapeHtml(canonicalUrl)}">View auction on ES Neelan</a></p></body>
-</html>`;
+  return buildOgPageHtml({
+    pageTitle,
+    title,
+    desc,
+    canonicalUrl,
+    ogImage,
+    ogType: "website",
+    publishedAt: null,
+    updatedAt: null,
+    linkLabel: "View auction on ES Neelan",
+  });
+}
+
+function buildArticleOgHtml(article, canonicalUrl) {
+  const title = article.title || "Story";
+  const pageTitle = `${title} | ES Neelan`;
+  const desc = article.excerpt?.trim()
+    ? plainTextSnippet(article.excerpt, 300)
+    : plainTextSnippet(`${title} — ES Neelan`, 300);
+  const coverRaw = resolveArticleCoverUrl(
+    article.cover_image_storage_path,
+    article.cover_image_url,
+  );
+  const ogImage =
+    optimizeArticleCoverImageUrl(coverRaw, 1200) || DEFAULT_OG_IMAGE || "";
+
+  return buildOgPageHtml({
+    pageTitle,
+    title,
+    desc,
+    canonicalUrl,
+    ogImage,
+    ogType: "article",
+    publishedAt: article.published_at || null,
+    updatedAt: article.updated_at || null,
+    linkLabel: "Read story on ES Neelan",
+  });
 }
 
 function resolveStaticPath(urlPath) {
@@ -170,7 +266,27 @@ const server = http.createServer(async (req, res) => {
           : `/auction/${encodeURIComponent(id)}`;
         if (auction) {
           res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-          res.end(buildOgHtml(auction, canonical));
+          res.end(buildAuctionOgHtml(auction, canonical));
+          return;
+        }
+      } catch {
+        /* fall through to SPA */
+      }
+    }
+  }
+
+  const articleMatch = urlPath.match(/^\/article\/([^/]+)$/);
+  if (articleMatch && BOT_UA.test(ua)) {
+    const slug = decodeURIComponent(articleMatch[1]);
+    if (SLUG_RE.test(slug)) {
+      try {
+        const article = await fetchArticleForOg(slug);
+        const canonical = SITE_URL
+          ? `${SITE_URL}/article/${encodeURIComponent(slug)}`
+          : `/article/${encodeURIComponent(slug)}`;
+        if (article) {
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(buildArticleOgHtml(article, canonical));
           return;
         }
       } catch {

@@ -96,7 +96,7 @@ Run `npm run web` (or `npx expo start --web`). On large viewports, `Screen` cent
 
 #### Host web on Railway
 
-Production web is a **static export** (`app.json` → `expo.web.output: "static"` → `dist/`). A root **`Dockerfile`** builds the site and runs **`scripts/web-server.mjs`** on `0.0.0.0:$PORT` (static files + SPA fallback for `/auction/{id}` + Open Graph HTML for social crawlers). Railway auto-detects it (`Using detected Dockerfile!` in build logs).
+Production web is a **static export** (`app.json` → `expo.web.output: "static"` → `dist/`). A root **`Dockerfile`** builds the site and runs **`scripts/web-server.mjs`** on `0.0.0.0:$PORT` (static files + SPA fallback for `/auction/{id}` and `/article/{slug}` + Open Graph HTML for social crawlers). Railway auto-detects it (`Using detected Dockerfile!` in build logs).
 
 **Why this matters:** [Railpack](https://railpack.com/languages/node) picks **`package.json` → `start` first**. If `start` were `expo start`, the platform would run the **Metro dev server** in production. The browser then requests dev-only URLs such as `/.expo/static-tmp/_error.bundle?...&dev=true`, which do not exist on a static host (404 + non-JavaScript MIME type). **`start` must serve `./dist`**, not Expo dev.
 
@@ -113,14 +113,21 @@ PORT=8080 npm start
 
 - Open `http://localhost:8080` — home loads.
 - Open `http://localhost:8080/auction/<active-listing-uuid>` in a fresh tab — listing loads (no server 404).
+- Open `http://localhost:8080/article/<story-slug>` in a fresh tab — story loads (no server 404).
 - Share from web — message has title/bid info once; URL is not duplicated in the text.
-- OG preview (replace `<id>` with a real listing UUID):
+- OG preview for auctions (replace `<id>` with a real listing UUID):
 
 ```bash
 curl -s -A "facebookexternalhit/1.1" "http://localhost:8080/auction/<id>" | grep 'og:title'
 ```
 
-Should return the listing title, not the generic site title.
+- OG preview for stories (replace `<slug>` with a published story slug):
+
+```bash
+curl -s -A "facebookexternalhit/1.1" "http://localhost:8080/article/<slug>" | grep 'og:title'
+```
+
+Should return the listing/story title, not the generic site title.
 
 ### Profile photos & Storage (important for real devices)
 

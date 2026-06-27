@@ -7,12 +7,13 @@ type ShareListingOptions = {
   url: string;
 };
 
-/** Share a listing link without duplicating the URL in the message body. */
-export async function shareListing({
+/** Share a public link without duplicating the URL in the message body. */
+export async function sharePublicLink({
   title,
   message,
   url,
-}: ShareListingOptions): Promise<void> {
+  copiedMessage = "Link copied to clipboard.",
+}: ShareListingOptions & { copiedMessage?: string }): Promise<void> {
   try {
     if (Platform.OS === "web") {
       const nav = typeof navigator !== "undefined" ? navigator : undefined;
@@ -26,7 +27,7 @@ export async function shareListing({
       }
       if (url && nav?.clipboard?.writeText) {
         await nav.clipboard.writeText(url);
-        Alert.alert("Copied", "Listing link copied to clipboard.");
+        Alert.alert("Copied", copiedMessage);
         return;
       }
       Alert.alert("Share", url ? `${message}\n${url}` : message);
@@ -43,4 +44,12 @@ export async function shareListing({
   } catch {
     Alert.alert("Share", "Could not open the share sheet.");
   }
+}
+
+/** Share a listing link without duplicating the URL in the message body. */
+export async function shareListing(options: ShareListingOptions): Promise<void> {
+  await sharePublicLink({
+    ...options,
+    copiedMessage: "Listing link copied to clipboard.",
+  });
 }

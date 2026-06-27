@@ -103,7 +103,7 @@ function TabsLayoutInner() {
       <Tabs.Screen
         name="artists"
         options={{
-          title: "Artists",
+          title: "Stories",
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="color-palette-outline"
