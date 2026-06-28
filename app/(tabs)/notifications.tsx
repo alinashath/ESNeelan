@@ -6,6 +6,7 @@ import { useMyNotifications, markNotificationRead } from "@/src/data/notificatio
 import { NotificationCard, type NotificationRow } from "@/src/components/ui/NotificationCard";
 import { formatNotificationAlertBody, notificationTypeTitle } from "@/src/lib/notification-display";
 import { Screen } from "@/src/components/ui/Screen";
+import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
@@ -18,15 +19,20 @@ export default function NotificationsTabScreen() {
 
   if (!session) {
     return (
-      <Screen scroll>
+      <>
+        <SiteSeoHead {...resolveTabRouteSeo("/notifications")} />
+        <Screen scroll>
         <TextTitle>Alerts</TextTitle>
         <ButtonPrimary title="Log in" onPress={() => router.push("/(auth)/login")} />
       </Screen>
+      </>
     );
   }
 
   return (
-    <Screen scroll={false}>
+    <>
+      <SiteSeoHead {...resolveTabRouteSeo("/notifications")} />
+      <Screen scroll={false}>
       <FlatList
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -67,5 +73,6 @@ export default function NotificationsTabScreen() {
         )}
       />
     </Screen>
+    </>
   );
 }

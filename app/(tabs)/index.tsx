@@ -2,6 +2,7 @@ import { useScreenContentWidth } from "@/src/components/layout/content-width";
 import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
 import { AuctionCard } from "@/src/components/ui/AuctionCard";
 import { HeaderLogoRow } from "@/src/components/ui/HeaderLogoRow";
+import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { HomeFeaturedArticles } from "@/src/components/ui/HomeFeaturedArticles";
 import { HomeFeaturedCarousel } from "@/src/components/ui/HomeFeaturedCarousel";
 import { HomeMarketingFooter } from "@/src/components/ui/HomeMarketingFooter";
@@ -189,7 +190,9 @@ export default function HomeScreen() {
   );
 
   return (
-    <Screen scroll={false}>
+    <>
+      <SiteSeoHead {...resolveTabRouteSeo("/")} />
+      <Screen scroll={false}>
       <FlatList
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -227,5 +230,6 @@ export default function HomeScreen() {
         )}
       />
     </Screen>
+    </>
   );
 }

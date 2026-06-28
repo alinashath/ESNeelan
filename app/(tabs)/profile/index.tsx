@@ -2,6 +2,7 @@ import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { ProfileMenuRow } from "@/src/components/ui/ProfileMenuRow";
 import { Screen } from "@/src/components/ui/Screen";
+import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextLabel } from "@/src/components/ui/TextLabel";
@@ -71,7 +72,9 @@ export default function ProfileScreen() {
 
   if (!session) {
     return (
-      <Screen scroll>
+      <>
+        <SiteSeoHead {...resolveTabRouteSeo("/profile")} />
+        <Screen scroll>
         <TextTitle>Profile</TextTitle>
         <TextBody style={{ marginTop: space.lg }}>
           Sign in with your Maldivian mobile to manage your account.
@@ -87,11 +90,14 @@ export default function ProfileScreen() {
           style={{ marginTop: space.md }}
         />
       </Screen>
+      </>
     );
   }
 
   return (
-    <Screen scroll>
+    <>
+      <SiteSeoHead {...resolveTabRouteSeo("/profile")} />
+      <Screen scroll>
       <TextTitle>Profile</TextTitle>
       <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }}>
         Account, listings, and preferences
@@ -324,5 +330,6 @@ export default function ProfileScreen() {
         style={{ marginTop: space.xl }}
       />
     </Screen>
+    </>
   );
 }

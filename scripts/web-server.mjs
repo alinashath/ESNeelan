@@ -149,6 +149,9 @@ function buildOgPageHtml({
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <link rel="icon" href="/favicon.ico" sizes="any"/>
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
   <title>${escapeHtml(pageTitle)}</title>
   <meta name="description" content="${escapeHtml(desc)}"/>
   <meta property="og:site_name" content="${escapeHtml(APP_DISPLAY_NAME)}"/>

@@ -17,6 +17,7 @@ import {
 } from "@/src/data/featured-articles";
 import { featuredArticleMatchesSearch } from "@/src/lib/featured-article-search-haystack";
 import { Screen } from "@/src/components/ui/Screen";
+import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { SearchField } from "@/src/components/ui/SearchField";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
 import { TextBody } from "@/src/components/ui/TextBody";
@@ -188,19 +189,26 @@ export default function ArtistsScreen() {
     }, [refetch]),
   );
 
+  const pageSeo = <SiteSeoHead {...resolveTabRouteSeo("/artists")} />;
+
   if (isLoading && list.length === 0) {
     return (
-      <Screen>
+      <>
+        {pageSeo}
+        <Screen>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: space.xxl }}>
           <ActivityIndicator color={colors.accent} accessibilityLabel="Loading stories" />
         </View>
       </Screen>
+      </>
     );
   }
 
   if (!list.length) {
     return (
-      <Screen scroll>
+      <>
+        {pageSeo}
+        <Screen scroll>
         <View style={{ maxWidth: layout.articleReadingMaxWidth, alignSelf: "center", width: "100%" }}>
           <TextSectionTitle style={{ marginBottom: space.md }}>Stories</TextSectionTitle>
           <ListEmptyState
@@ -210,11 +218,14 @@ export default function ArtistsScreen() {
           />
         </View>
       </Screen>
+      </>
     );
   }
 
   return (
-    <Screen
+    <>
+      {pageSeo}
+      <Screen
       scroll
       noPadding
       scrollProps={{
@@ -427,5 +438,6 @@ export default function ArtistsScreen() {
         ) : null}
       </View>
     </Screen>
+    </>
   );
 }

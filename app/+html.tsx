@@ -48,12 +48,25 @@ export default function Root({ children }: { children: ReactNode }) {
         />
         <meta name="theme-color" content={palette.canvasParchment} />
         {siteWideOpenGraphTags()}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
 
         <ScrollViewStyleReset />
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  for (const node of document.querySelectorAll("title")) {
+    if (!node.textContent || !node.textContent.trim()) node.remove();
+  }
+})();`,
+          }}
+        />
 
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>

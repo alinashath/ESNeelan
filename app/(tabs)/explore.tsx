@@ -21,6 +21,7 @@ import {
   type ExploreFilterDraft,
 } from "@/src/components/ui/ExploreFiltersModal";
 import { Screen } from "@/src/components/ui/Screen";
+import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { SearchField } from "@/src/components/ui/SearchField";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
@@ -191,7 +192,9 @@ export default function ExploreScreen() {
     ) : null;
 
   return (
-    <Screen scroll={false}>
+    <>
+      <SiteSeoHead {...resolveTabRouteSeo("/explore")} />
+      <Screen scroll={false}>
       <ExploreFiltersModal
         visible={filtersOpen}
         onClose={() => setFiltersOpen(false)}
@@ -244,5 +247,6 @@ export default function ExploreScreen() {
         )}
       />
     </Screen>
+    </>
   );
 }
