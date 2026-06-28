@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
+import { Link, router, type Href } from "expo-router";
 import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { supabase } from "@/src/lib/supabase";
 import { toE164Maldives } from "@/src/lib/phone";
