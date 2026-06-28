@@ -1,4 +1,4 @@
-import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import { isAuctionLiveForUi, isAuctionSoldForUi } from "@/src/lib/auction-live";
 import {
     durationPhotoHoverMs,
     durationPressInMs,
@@ -31,6 +31,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
+import { AuctionSoldBookmark } from "./AuctionSoldBookmark";
 import { TextCaption } from "./TextCaption";
 import { ValueCurrency } from "./ValueCurrency";
 
@@ -70,9 +71,10 @@ const PHOTO_HOVER_SCALE = 1.06;
 export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
   const bid = auction.current_highest_bid ?? auction.starting_price;
   const liveUi = isAuctionLiveForUi(auction.status, auction.ends_at);
+  const soldUi = isAuctionSoldForUi(auction.status);
   const urgent = liveUi && endingSoon(auction.ends_at);
   const showClosedOnImage =
-    String(auction.status).trim().toLowerCase() === "active" && !liveUi;
+    !soldUi && String(auction.status).trim().toLowerCase() === "active" && !liveUi;
   const imgH = compact ? 160 : 200;
   const padH = compact ? space.sm : space.xxxl;
   const padTop = compact ? space.sm : space.lg;
@@ -118,7 +120,7 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
 
   const showCountdownOnCard = liveUi && !compact;
 
-  const priceRowLabel = showClosedOnImage ? "Sold" : "Current bid";
+  const priceRowLabel = soldUi ? null : showClosedOnImage ? "Sold" : "Current bid";
 
   const livePill = liveUi ? (
     <View
@@ -144,6 +146,8 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
         {urgent ? "ENDING SOON" : "LIVE"}
       </Text>
     </View>
+  ) : soldUi ? (
+    <AuctionSoldBookmark />
   ) : showClosedOnImage ? (
     <View
       style={{
@@ -266,18 +270,20 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
             {auction.title}
           </Text>
 
-          <TextCaption
-            style={{
-              marginTop: space.xs,
-              fontSize: 12,
-              fontWeight: "400",
-              letterSpacing: 0.2,
-              color: colors.textMuted,
-              fontFamily: fontFamilies.body,
-            }}
-          >
-            {priceRowLabel}
-          </TextCaption>
+          {soldUi ? null : priceRowLabel ? (
+            <TextCaption
+              style={{
+                marginTop: space.xs,
+                fontSize: 12,
+                fontWeight: "400",
+                letterSpacing: 0.2,
+                color: colors.textMuted,
+                fontFamily: fontFamilies.body,
+              }}
+            >
+              {priceRowLabel}
+            </TextCaption>
+          ) : null}
 
           <View
             style={{

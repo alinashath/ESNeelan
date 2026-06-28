@@ -1,14 +1,13 @@
 import { Platform, TextStyle } from "react-native";
 
 /**
- * ES Neelan — tokens aligned with **Stitch** handoff (ES Neelan home, Plus Jakarta in export;
- * app uses Inter for body/UI). Brand ink `primary` `#b7001a`, CTA fill `accent` `#e60023`.
+ * AUC — brand red `#e60023` for primary ink, CTAs, and logo tile.
  * Headlines use `fontFamilies.headingSerif` (Georgia stack on web).
  */
 export const palette = {
-  /** Nav active, prices, logo tile — `primary` in Stitch */
-  primary: "#b7001a",
-  /** Sign up, featured ribbon — `primary-container` */
+  /** Brand red — nav active, prices, links, logo */
+  primary: "#e60023",
+  /** Filled CTA, featured ribbon */
   primaryCta: "#e60023",
   primaryPressed: "#cc001f",
   primaryFocus: "#435ee5",
@@ -61,7 +60,7 @@ export const palette = {
   obsidian: "#000000",
 } as const;
 
-export const accentBorderSubtle = "rgba(183, 0, 26, 0.35)";
+export const accentBorderSubtle = "rgba(230, 0, 35, 0.35)";
 export const accentBorderStrong = "rgba(67, 94, 229, 0.5)";
 export const accentWash = "rgba(230, 0, 35, 0.1)";
 export const accentWashDeep = "rgba(230, 0, 35, 0.16)";

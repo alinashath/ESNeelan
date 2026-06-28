@@ -192,7 +192,7 @@ export default function ArtistsScreen() {
     return (
       <Screen>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: space.xxl }}>
-          <ActivityIndicator color={colors.accent} accessibilityLabel="Loading artists stories" />
+          <ActivityIndicator color={colors.accent} accessibilityLabel="Loading stories" />
         </View>
       </Screen>
     );
@@ -202,7 +202,7 @@ export default function ArtistsScreen() {
     return (
       <Screen scroll>
         <View style={{ maxWidth: layout.articleReadingMaxWidth, alignSelf: "center", width: "100%" }}>
-          <TextSectionTitle style={{ marginBottom: space.md }}>Artists</TextSectionTitle>
+          <TextSectionTitle style={{ marginBottom: space.md }}>Stories</TextSectionTitle>
           <ListEmptyState
             icon="color-palette-outline"
             title="No stories yet"
@@ -236,7 +236,7 @@ export default function ArtistsScreen() {
         }}
       >
         <View style={{ paddingHorizontal: space.lg, paddingTop: space.md, paddingBottom: space.sm }}>
-          <TextSectionTitle>Artists</TextSectionTitle>
+          <TextSectionTitle>Stories</TextSectionTitle>
         </View>
 
         <View style={{ paddingHorizontal: space.lg, marginBottom: space.md }}>

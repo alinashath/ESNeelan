@@ -28,6 +28,7 @@ import { deliveryOptionLabel } from "@/src/lib/listing-delivery-options";
 import { itemConditionLabel } from "@/src/lib/listing-item-condition";
 import { listingAttributeChips } from "@/src/lib/listing-attributes-display";
 import { parseListingAttributesJson } from "@/src/lib/listing-attribute-templates";
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { buildAuctionPublicUrl } from "@/src/lib/site-url";
 import { layout } from "@/src/theme/layout";
 import {
@@ -285,7 +286,7 @@ export default function MyAuctionDetailScreen() {
   const canEditListing = status === "draft" || status === "pending_approval";
   const hideHeroActions = canEditListing;
   const listingShareUrl = buildAuctionPublicUrl(id);
-  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ES Neelan`;
+  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
 
   async function openFeaturedFeeScreen() {
     const needRequest =
@@ -338,7 +339,7 @@ export default function MyAuctionDetailScreen() {
         >
           <AuctionDetailHeroGallery
             imageUrls={imageUrls}
-            shareTitle={`${title} — ES Neelan`}
+            shareTitle={`${title} — ${APP_DISPLAY_NAME}`}
             shareUrl={hideHeroActions ? undefined : listingShareUrl}
             shareMessage={hideHeroActions ? undefined : listingShareMessage}
             showLiveBadge={liveUi}

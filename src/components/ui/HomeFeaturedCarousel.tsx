@@ -56,15 +56,14 @@ function featuredCardWidthForViewport(
   return { cardW: cw, step: cw + g };
 }
 
-/** Stitch-style columns: 3-up desktop, 2-up tablet, 1-up = horizontal peek carousel. */
-function featuredColumnCount(viewportW: number): number {
-  if (viewportW >= layout.breakpoints.lg) return 3;
-  if (viewportW >= layout.breakpoints.md) return 2;
-  return 1;
+/** Wide web/tablet: one row — never 2-col wrap (3 lots stay on one line at md widths). */
+function featuredColumnCount(viewportW: number, itemCount: number): number {
+  if (viewportW < layout.breakpoints.md || itemCount <= 1) return 1;
+  return itemCount;
 }
 
 /**
- * Featured strip — wide web/tablet: equal-height row grid with gaps (Stitch).
+ * Featured strip — wide web/tablet: equal-width single-row grid.
  * Narrow / native: horizontal snap carousel with peek.
  */
 export function HomeFeaturedCarousel({ auctions, toCardAuction, currency = "MVR" }: Props) {
@@ -73,7 +72,10 @@ export function HomeFeaturedCarousel({ auctions, toCardAuction, currency = "MVR"
   const [page, setPage] = useState(0);
 
   const viewportW = useMemo(() => Math.max(0, listInnerW), [listInnerW]);
-  const cols = useMemo(() => featuredColumnCount(viewportW), [viewportW]);
+  const cols = useMemo(
+    () => featuredColumnCount(viewportW, auctions.length),
+    [viewportW, auctions.length],
+  );
   const isNarrowFeatured = viewportW < NARROW_FEATURED_MAX_W;
 
   const { cardW, step } = useMemo(() => {

@@ -1,11 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/src/lib/supabase";
-import { storagePublicUrl } from "@/src/lib/storage-url";
-import { getAvatarPublicUrl } from "@/src/lib/avatar";
+import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
 import type { CategoryRow } from "@/src/data/category-utils";
 import { collectSubtreeIds } from "@/src/data/category-utils";
+import {
+  CATALOG_ENDED_STATUSES,
+  CATALOG_LISTING_STATUSES,
+  compareCatalogListings,
+} from "@/src/lib/auction-catalog";
 import { buildAuctionListPresentation } from "@/src/lib/auction-list-presentation";
-import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
+import { getAvatarPublicUrl } from "@/src/lib/avatar";
+import { storagePublicUrl } from "@/src/lib/storage-url";
+import { supabase } from "@/src/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
 
 export type { CategoryRow };
 
@@ -42,7 +47,7 @@ export function useActiveAuctions(filters?: {
   curatedCategories?: CategoryRow[];
 }) {
   return useQuery({
-    queryKey: ["auctions", "active", filters],
+    queryKey: ["auctions", "catalog", filters],
     queryFn: async () => {
       let auctionIds: string[] | null = null;
       if (filters?.categoryId) {
@@ -72,9 +77,7 @@ export function useActiveAuctions(filters?: {
           auction_images ( storage_path, sort_order )
         `,
         )
-        .eq("status", "active")
-        .order("is_featured", { ascending: false })
-        .order("featured_sort_order", { ascending: true, nullsFirst: false })
+        .in("status", [...CATALOG_LISTING_STATUSES])
         .order("created_at", { ascending: false });
 
       if (auctionIds) {
@@ -99,7 +102,7 @@ export function useActiveAuctions(filters?: {
           auction_images?: { storage_path: string; sort_order: number }[];
         }
       >;
-      return rows.map((r) => {
+      const mapped = rows.map((r) => {
         const imgs = [...(r.auction_images ?? [])].sort(
           (a, b) => a.sort_order - b.sort_order,
         );
@@ -131,6 +134,7 @@ export function useActiveAuctions(filters?: {
           ...pres,
         };
       });
+      return [...mapped].sort(compareCatalogListings);
     },
   });
 }
@@ -149,22 +153,7 @@ export type ExploreCatalogFilters = {
   sellerId?: string;
 };
 
-function compareExploreRows(
-  a: { status: string; bid_count: number; is_featured: boolean; ends_at: string },
-  b: { status: string; bid_count: number; is_featured: boolean; ends_at: string },
-): number {
-  const statusRank = (s: string) => (s === "active" ? 0 : s === "ended" ? 1 : 2);
-  const s = statusRank(a.status) - statusRank(b.status);
-  if (s !== 0) return s;
-  if (Boolean(b.is_featured) !== Boolean(a.is_featured)) {
-    return a.is_featured ? -1 : 1;
-  }
-  const bids = (b.bid_count ?? 0) - (a.bid_count ?? 0);
-  if (bids !== 0) return bids;
-  return new Date(a.ends_at).getTime() - new Date(b.ends_at).getTime();
-}
-
-/** Explore catalog: live + ended (default), filters, and sort — active first, then by bids & featured. */
+/** Explore catalog: live + sold/ended; live ranks first, then featured & bid activity. */
 export function useExploreCatalog(filters?: ExploreCatalogFilters) {
   const scope = filters?.listingScope ?? "all";
   const hasBids = filters?.hasBids ?? "any";
@@ -205,9 +194,9 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
       if (scope === "active") {
         q = q.eq("status", "active");
       } else if (scope === "ended") {
-        q = q.eq("status", "ended");
+        q = q.in("status", [...CATALOG_ENDED_STATUSES]);
       } else {
-        q = q.in("status", ["active", "ended"]);
+        q = q.in("status", [...CATALOG_LISTING_STATUSES]);
       }
 
       if (filters?.sellerId) {
@@ -269,7 +258,7 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
         };
       });
 
-      return [...mapped].sort(compareExploreRows);
+      return [...mapped].sort(compareCatalogListings);
     },
   });
 }
@@ -367,18 +356,18 @@ export function useAuctionDetail(id: string) {
   });
 }
 
-/** Curated root categories that currently have at least one active listing (in subtree). */
+/** Curated root categories that currently have at least one catalog listing (in subtree). */
 export function useActiveCategoryRoots(curated: CategoryRow[] | undefined) {
   const key = (curated ?? []).map((c) => c.id).join(",");
   return useQuery({
-    queryKey: ["category-roots-active", key],
+    queryKey: ["category-roots-catalog", key],
     enabled: !!curated?.length,
     queryFn: async () => {
       const list = curated ?? [];
       const { data: active, error: e1 } = await supabase
         .from("auctions")
         .select("id, category_id")
-        .eq("status", "active");
+        .in("status", [...CATALOG_LISTING_STATUSES]);
       if (e1) throw e1;
       const auctionIds = (active ?? []).map((r) => r.id);
       if (auctionIds.length === 0) {
@@ -441,8 +430,8 @@ export function useCuratedCategories() {
 }
 
 /**
- * Distinct live + ended listing counts per curated category (listing matches if any
- * `auction_categories` or legacy `category_id` falls in that category’s subtree).
+ * Distinct catalog listing counts per curated category (live + sold/ended;
+ * listing matches if any `auction_categories` or legacy `category_id` falls in subtree).
  */
 export function useExploreCategoryCounts(curated: CategoryRow[] | undefined) {
   const key = (curated ?? []).map((c) => c.id).join(",");
@@ -454,7 +443,7 @@ export function useExploreCategoryCounts(curated: CategoryRow[] | undefined) {
       const { data: auctions, error: e1 } = await supabase
         .from("auctions")
         .select("id, category_id")
-        .in("status", ["active", "ended"]);
+        .in("status", [...CATALOG_LISTING_STATUSES]);
       if (e1) throw e1;
       const rows = (auctions ?? []) as { id: string; category_id: string | null }[];
       const auctionToCats = new Map<string, Set<string>>();

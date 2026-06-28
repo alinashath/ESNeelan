@@ -35,7 +35,7 @@ async function sendMsgOwlRestSms(
     "MSG_OWL_REST_KEY",
     "MSG_OWL_KEY",
   );
-  const senderId = firstEnv("MSGOWL_SENDER_ID", "MSG_OWL_SENDER_ID") ?? "ES Neelan";
+  const senderId = firstEnv("MSGOWL_SENDER_ID", "MSG_OWL_SENDER_ID") ?? "AUC";
   if (!restKey) {
     return { ok: false, detail: "no_msgowl_rest_key" };
   }
@@ -87,26 +87,26 @@ function buildSmsBody(type: string, payload: Record<string, unknown>): string | 
   if (!SMS_ALERT_TYPES.has(type)) return null;
 
   const title = str(payload.title);
-  const shortTitle = title && title.length > 40 ? `${title.slice(0, 37)}…` : (title ?? "ES Neelan");
+  const shortTitle = title && title.length > 40 ? `${title.slice(0, 37)}…` : (title ?? "AUC");
 
   switch (type) {
     case "listing_approved_with_codes": {
       const bn = str(payload.bid_number);
       const cc = str(payload.communication_code);
-      if (!bn || !cc) return `ES Neelan: "${shortTitle}" is live. Open the app for codes.`;
-      return `ES Neelan: "${shortTitle}" is LIVE. Bid ${bn}. Code ${cc}. Open the app — keep the code for the winning bidder only.`;
+      if (!bn || !cc) return `AUC: "${shortTitle}" is live. Open the app for codes.`;
+      return `AUC: "${shortTitle}" is LIVE. Bid ${bn}. Code ${cc}. Open the app — keep the code for the winning bidder only.`;
     }
     case "winner_consent_requested": {
       const bn = str(payload.bid_number);
       const pos = num(payload.position) ?? 1;
       const p = pos > 1 ? ` Pos ${pos}.` : " ";
-      return `ES Neelan: You won "${shortTitle}".${p}${bn ? ` ${bn}.` : ""} Open the app — consent required.`;
+      return `AUC: You won "${shortTitle}".${p}${bn ? ` ${bn}.` : ""} Open the app — consent required.`;
     }
     case "winner_consented": {
-      return `ES Neelan: "${shortTitle}" — winner consented. Open the app for their phone & closure.`;
+      return `AUC: "${shortTitle}" — winner consented. Open the app for their phone & closure.`;
     }
     case "auction_pending_winner_consent": {
-      return `ES Neelan: "${shortTitle}" closed. Wait for winner consent before contact. Open the app.`;
+      return `AUC: "${shortTitle}" closed. Wait for winner consent before contact. Open the app.`;
     }
     default:
       return null;
@@ -139,7 +139,7 @@ function formatMaldivesPhoneDisplay(phone: string | null | undefined): string {
 
 function platformMarketplaceDisclaimer(): string[] {
   return [
-    "Neelan is a platform that connects buyers and sellers. Neelan is not responsible for any payment, delivery, or transaction related issues.",
+    "AUC is a platform that connects buyers and sellers. AUC is not responsible for any payment, delivery, or transaction related issues.",
     "All payment and delivery arrangements are to be agreed directly between the buyer and the seller on mutually acceptable terms.",
     "Please clarify details regarding payment, delivery, return policies, and any other pre-sale or after-sale arrangements before making payment.",
   ];
@@ -241,7 +241,7 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
       const item = title ?? "your item";
       if (bn && cc) return joinParas(sellerListingLiveParagraphs(item, bn, cc));
       return joinParas([
-        "Your listing is live on ES Neelan.",
+        "Your listing is live on AUC.",
         ...(bn ? [`Bid number: ${bn}`] : []),
         ...(cc ? [`Communication code: ${cc}`] : []),
         "Open the app to view your listing.",
@@ -268,7 +268,7 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
       }
       return joinParas([
         "You have a winning bid pending consent.",
-        "Open the ES Neelan app to review the full notice and give consent.",
+        "Open the AUC app to review the full notice and give consent.",
       ]);
     }
     case "winner_consented": {
@@ -290,7 +290,7 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
       }
       return joinParas([
         "The winner has given consent.",
-        "Open the ES Neelan app to contact them and continue closure.",
+        "Open the AUC app to contact them and continue closure.",
       ]);
     }
     case "auction_pending_winner_consent": {
@@ -309,7 +309,7 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
       return joinParas([
         "Bidding has closed on your listing.",
         "A high bidder must complete platform consent before you can contact them.",
-        "Open the ES Neelan app for details.",
+        "Open the AUC app for details.",
       ]);
     }
     case "auction_winner": {
@@ -321,7 +321,7 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
     case "please_leave_feedback": {
       return joinParas([
         title ? `Lot: ${title}` : "Your purchase",
-        "Please leave feedback for the seller in the ES Neelan app.",
+        "Please leave feedback for the seller in the AUC app.",
       ]);
     }
     case "listing_rejected": {
@@ -331,7 +331,7 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
     case "auction_ended": {
       return joinParas([
         title ? `Lot: ${title}` : "An auction you bid on",
-        "Bidding has ended — open the ES Neelan app to see the result.",
+        "Bidding has ended — open the AUC app to see the result.",
       ]);
     }
     case "marked_paid": {
@@ -375,37 +375,37 @@ function truthyEnv(name: string): boolean {
 function subjectForType(type: string): string {
   switch (type) {
     case "bid_placed":
-      return "ES Neelan: Bid placed";
+      return "AUC: Bid placed";
     case "outbid":
-      return "ES Neelan: You were outbid";
+      return "AUC: You were outbid";
     case "listing_approved_with_codes":
-      return "ES Neelan: Your bid is live — codes inside";
+      return "AUC: Your bid is live — codes inside";
     case "winner_consent_requested":
-      return "ES Neelan: You won — action needed";
+      return "AUC: You won — action needed";
     case "winner_consented":
-      return "ES Neelan: Winner confirmed";
+      return "AUC: Winner confirmed";
     case "please_leave_feedback":
-      return "ES Neelan: How was your experience?";
+      return "AUC: How was your experience?";
     case "payment_proof_received":
-      return "ES Neelan: Payment proof received";
+      return "AUC: Payment proof received";
     case "won_auction":
-      return "ES Neelan: You won an auction";
+      return "AUC: You won an auction";
     case "auction_pending_winner_consent":
-      return "ES Neelan: Bidding closed — winner must consent";
+      return "AUC: Bidding closed — winner must consent";
     case "auction_ended":
-      return "ES Neelan: Auction ended";
+      return "AUC: Auction ended";
     case "listing_approved":
-      return "ES Neelan: Listing approved";
+      return "AUC: Listing approved";
     case "listing_rejected":
-      return "ES Neelan: Listing rejected";
+      return "AUC: Listing rejected";
     case "featured_listing_fee_verified":
-      return "ES Neelan: Featured listing fee verified";
+      return "AUC: Featured listing fee verified";
     case "featured_fee_request_rejected":
-      return "ES Neelan: Featured fee request declined";
+      return "AUC: Featured fee request declined";
     case "marked_paid":
-      return "ES Neelan: Seller marked payment received";
+      return "AUC: Seller marked payment received";
     default:
-      return "ES Neelan notification";
+      return "AUC notification";
   }
 }
 

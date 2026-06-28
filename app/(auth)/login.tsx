@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, View } from "react-native";
-import { Link, router, type Href } from "expo-router";
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { supabase } from "@/src/lib/supabase";
 import { toE164Maldives } from "@/src/lib/phone";
 import { authErrorMessage } from "@/src/lib/auth-errors";
@@ -63,7 +63,7 @@ export default function LoginScreen() {
       <ButtonPrimary title="Send code" loading={loading} onPress={sendOtp} />
       <View style={{ marginTop: space.xl, gap: space.md }}>
         <TextCaption>
-          New to ES Neelan?{" "}
+          New to {APP_DISPLAY_NAME}?{" "}
           <Link href={"/(auth)/signup" as Href} asChild>
             <Pressable accessibilityRole="link">
               <TextCaption style={{ textDecorationLine: "underline" }}>Create an account</TextCaption>

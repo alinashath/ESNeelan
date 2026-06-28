@@ -5,6 +5,7 @@ import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import {
   useNotificationPreferences,
   type NotificationPrefs,
@@ -101,7 +102,7 @@ export default function NotificationSettingsScreen() {
         />
         <Row
           title="Tips & updates"
-          description="Occasional product news from ES Neelan (no spam)."
+          description={`Occasional product news from ${APP_DISPLAY_NAME} (no spam).`}
           value={draft.marketingEmail}
           onValueChange={(v) => update({ marketingEmail: v })}
         />

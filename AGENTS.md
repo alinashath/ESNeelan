@@ -4,7 +4,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 
 ## ES Neelan UI
 
-**Default theme** follows the **Stitch** ES Neelan home handoff (see `docs/design-stitch-home.md`) and `DESIGN-pinterest.md` for motion/spacing vocabulary where useful. Brand ink **`#b7001a`** (`colors.primary`), CTA / featured fill **`#e60023`** (`colors.accent`).
+**Default theme** follows the **Stitch** ES Neelan home handoff (see `docs/design-stitch-home.md`) and `DESIGN-pinterest.md` for motion/spacing vocabulary where useful. Brand red **`#e60023`** (`colors.primary` / `colors.accent`). Logo mark: `assets/images/brand-icon.png`.
 
 Use **`docs/design-stitch-home.md`** + **`DESIGN-pinterest.md`** for product chrome, marketing layout, and spacing/motion vocabulary. **`BIDMASTER_DESIGN.md`** and **`DESIGN-apple.md`** are historical references only.
 

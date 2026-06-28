@@ -1,20 +1,20 @@
-import { Modal, Pressable, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import type {
-  ExploreHasBidsFilter,
-  ExploreListingScope,
-} from "@/src/data/auctions";
-import type { CategoryRow } from "@/src/data/category-utils";
-import { SearchField } from "@/src/components/ui/SearchField";
-import { Chip } from "@/src/components/ui/Chip";
-import { ChipRow } from "@/src/components/ui/ChipRow";
-import { TextTitle } from "@/src/components/ui/TextTitle";
-import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
-import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
+import { Chip } from "@/src/components/ui/Chip";
+import { ChipRow } from "@/src/components/ui/ChipRow";
+import { SearchField } from "@/src/components/ui/SearchField";
+import { TextCaption } from "@/src/components/ui/TextCaption";
+import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
+import { TextTitle } from "@/src/components/ui/TextTitle";
+import type {
+    ExploreHasBidsFilter,
+    ExploreListingScope,
+} from "@/src/data/auctions";
+import type { CategoryRow } from "@/src/data/category-utils";
 import { colors, space } from "@/src/theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
+import { Modal, Pressable, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export type ExploreFilterDraft = {
   search: string;

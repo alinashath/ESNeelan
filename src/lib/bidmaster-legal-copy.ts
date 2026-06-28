@@ -1,3 +1,5 @@
+import { APP_DISPLAY_NAME } from "./brand";
+
 /**
  * Canonical legal / operational copy for bid lifecycle (seller go-live, winner consent,
  * seller payment stage, cascade winners). Used on the auction screen and notification summaries.
@@ -21,7 +23,7 @@ export function formatMaldivesPhoneDisplay(phone: string | null | undefined): st
 
 export function platformMarketplaceDisclaimer(): string[] {
   return [
-    "Neelan is a platform that connects buyers and sellers. Neelan is not responsible for any payment, delivery, or transaction related issues.",
+    `${APP_DISPLAY_NAME} is a platform that connects buyers and sellers. ${APP_DISPLAY_NAME} is not responsible for any payment, delivery, or transaction related issues.`,
     "All payment and delivery arrangements are to be agreed directly between the buyer and the seller on mutually acceptable terms.",
     "Please clarify details regarding payment, delivery, return policies, and any other pre-sale or after-sale arrangements before making payment.",
   ];

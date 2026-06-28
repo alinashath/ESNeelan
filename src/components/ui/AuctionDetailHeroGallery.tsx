@@ -1,5 +1,6 @@
-import { TextCaption } from "@/src/components/ui/TextCaption";
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { shareListing } from "@/src/lib/share-listing";
+import { TextCaption } from "@/src/components/ui/TextCaption";
 import { colors, radii, shadows, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -40,7 +41,7 @@ const OVERLAY_BTN = {
 
 export function AuctionDetailHeroGallery({
   imageUrls,
-  shareTitle = "Auction on ES Neelan",
+  shareTitle = `Auction on ${APP_DISPLAY_NAME}`,
   shareUrl,
   shareMessage,
   showLiveBadge,

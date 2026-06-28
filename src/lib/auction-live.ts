@@ -13,6 +13,12 @@ export function isAuctionLiveForUi(status: string, endsAt: string | null | undef
   return isBiddingWindowStillOpen(endsAt);
 }
 
+/** Sold / settled lots — still shown in discovery until newer live listings outrank them. */
+export function isAuctionSoldForUi(status: string | null | undefined): boolean {
+  const s = String(status ?? "").trim().toLowerCase();
+  return s === "completed" || s === "paid" || s === "won";
+}
+
 /** Status line on auction detail / lists — respects `ends_at` for `active`. */
 export function auctionDetailStatusText(status: string, endsAt: string | null | undefined): string {
   return auctionStatusLabel(status, endsAt);

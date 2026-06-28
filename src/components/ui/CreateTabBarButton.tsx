@@ -1,4 +1,4 @@
-import { colors, shadows, space } from "@/src/theme/tokens";
+import { accentBorderSubtle, colors, shadows, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View, type PressableProps } from "react-native";
 
@@ -27,7 +27,7 @@ export function CreateTabBarButton({
           justifyContent: "center",
           opacity: pressed ? 0.9 : 1,
           borderWidth: 1,
-          borderColor: "rgba(183, 0, 26, 0.35)",
+          borderColor: accentBorderSubtle,
           ...shadows.tabFab,
         })}
       >

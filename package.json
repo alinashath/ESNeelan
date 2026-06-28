@@ -48,7 +48,10 @@
     "web": "expo start --web",
     "build": "expo export --platform web",
     "start:web": "npm start",
-    "supabase:functions": "supabase functions deploy sms-hook && supabase functions deploy promote-admin && supabase functions deploy process-notifications && supabase functions deploy close-expired-auctions"
+    "supabase:functions": "supabase functions deploy sms-hook && supabase functions deploy promote-admin && supabase functions deploy process-notifications && supabase functions deploy close-expired-auctions",
+    "seed:auctions-sold": "node scripts/seed-active-auctions-sold.mjs",
+    "seed:auctions-sold:sql": "supabase db execute --linked --file supabase/scripts/seed-active-auctions-sold.sql",
+    "restore:listings": "supabase db execute --linked --file supabase/scripts/restore-listings-active.sql"
   },
   "private": true
 }

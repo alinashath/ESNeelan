@@ -35,6 +35,7 @@ import { parseListingAttributesJson } from "@/src/lib/listing-attribute-template
 import { deliveryOptionLabel } from "@/src/lib/listing-delivery-options";
 import { itemConditionLabel } from "@/src/lib/listing-item-condition";
 import { LISTING_PAYMENT_AND_FULFILMENT_DISCLAIMER } from "@/src/lib/listing-payment-disclaimer";
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { buildAuctionPublicUrl } from "@/src/lib/site-url";
 import { supabase } from "@/src/lib/supabase";
 import { useAuth } from "@/src/providers/AuthProvider";
@@ -640,7 +641,7 @@ export default function AuctionDetailScreen() {
     (a.current_highest_bid as number | null) ?? Number(a.starting_price);
   const liveUi = isAuctionLiveForUi(status, endsAt);
   const listingShareUrl = buildAuctionPublicUrl(id);
-  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ES Neelan`;
+  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
 
   const sellerPhoneDisplay = formatMaldivesPhoneDisplay(sellerPhone);
   const winnerContactDisplay = formatMaldivesPhoneDisplay(winnerContactPhone);
@@ -679,7 +680,7 @@ export default function AuctionDetailScreen() {
         >
           <AuctionDetailHeroGallery
             imageUrls={imageUrls}
-            shareTitle={`${title} — ES Neelan`}
+            shareTitle={`${title} — ${APP_DISPLAY_NAME}`}
             shareUrl={listingShareUrl}
             shareMessage={listingShareMessage}
             showLiveBadge={liveUi}
@@ -1236,7 +1237,7 @@ export default function AuctionDetailScreen() {
         <View style={{ marginTop: space.xxl }}>
           <TextTitle>Payment instructions</TextTitle>
           <TextCaption style={{ marginTop: space.sm, color: colors.textSecondary }}>
-            ES Neelan does not process this payment. Settle directly with the seller using the
+            {APP_DISPLAY_NAME} does not process this payment. Settle directly with the seller using the
             details below.
           </TextCaption>
           <TextBody style={{ marginTop: space.sm }}>{payment}</TextBody>

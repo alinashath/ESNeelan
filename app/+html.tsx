@@ -1,10 +1,10 @@
+import { APP_DEFAULT_DESCRIPTION, APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { ScrollViewStyleReset } from "expo-router/html";
 import type { ReactNode } from "react";
 import { palette } from "@/src/theme/tokens";
 
-const SITE_NAME = "ES Neelan";
-const DEFAULT_DESCRIPTION =
-  "Browse live auctions, place bids, and discover sellers on ES Neelan — the Maldives auction marketplace.";
+const SITE_NAME = APP_DISPLAY_NAME;
+const DEFAULT_DESCRIPTION = APP_DEFAULT_DESCRIPTION;
 
 function siteWideOpenGraphTags() {
   const siteUrl = process.env.EXPO_PUBLIC_SITE_URL?.trim().replace(/\/$/, "") ?? "";

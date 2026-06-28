@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { router, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useAdminQueueCounts } from "@/src/data/user-auctions";
 import { Screen } from "@/src/components/ui/Screen";
@@ -38,7 +39,7 @@ export default function AdminHome() {
           <Ionicons name="shield-checkmark" size={26} color={colors.onAccent} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <TextTitle style={{ fontSize: 24, letterSpacing: -0.5 }}>ES Neelan Admin</TextTitle>
+          <TextTitle style={{ fontSize: 24, letterSpacing: -0.5 }}>{APP_DISPLAY_NAME} Admin</TextTitle>
           <TextCaption style={{ marginTop: 4, color: colors.textMuted }}>
             Operations console — separate from the shopper app
           </TextCaption>

@@ -38,9 +38,9 @@ export function auctionStatusLabel(
     case "won":
       return "Payment stage";
     case "paid":
-      return "Completed";
+      return "Sold";
     case "completed":
-      return "Completed";
+      return "Sold";
     case "cancelled":
       return "Cancelled";
     case "ended":

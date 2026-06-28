@@ -91,6 +91,7 @@ function TabsLayoutInner() {
         name="explore"
         options={{
           title: "Explore",
+          ...(isWeb && wideWebHeader ? {} : { href: null }),
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="compass-outline"
@@ -151,6 +152,7 @@ function TabsLayoutInner() {
         name="notifications"
         options={{
           title: "Alerts",
+          ...(isWeb && wideWebHeader ? {} : { href: null }),
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="notifications-outline"

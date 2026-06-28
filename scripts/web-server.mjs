@@ -10,6 +10,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
 const PORT = Number(process.env.PORT) || 8080;
 
+const APP_DISPLAY_NAME = "AUC";
+const APP_DEFAULT_DESCRIPTION =
+  "Browse live auctions, place bids, and discover sellers on AUC — the Maldives auction marketplace.";
 const SUPABASE_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "");
 const SUPABASE_ANON = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "";
 const SITE_URL = (process.env.EXPO_PUBLIC_SITE_URL || "").replace(/\/$/, "");
@@ -148,7 +151,7 @@ function buildOgPageHtml({
   <meta charset="utf-8"/>
   <title>${escapeHtml(pageTitle)}</title>
   <meta name="description" content="${escapeHtml(desc)}"/>
-  <meta property="og:site_name" content="ES Neelan"/>
+  <meta property="og:site_name" content="${escapeHtml(APP_DISPLAY_NAME)}"/>
   <meta property="og:type" content="${escapeHtml(ogType)}"/>
   <meta property="og:title" content="${escapeHtml(pageTitle)}"/>
   <meta property="og:description" content="${escapeHtml(desc)}"/>
@@ -169,7 +172,7 @@ function buildOgPageHtml({
 
 function buildAuctionOgHtml(auction, canonicalUrl) {
   const title = auction.title || "Auction";
-  const pageTitle = `${title} | ES Neelan`;
+  const pageTitle = `${title} | ${APP_DISPLAY_NAME}`;
   const currentBid = auction.current_highest_bid ?? auction.starting_price ?? 0;
   const bidCount = auction.bid_count ?? 0;
   const subtitle = `Current bid MVR ${formatMoneyAmount(currentBid)} · ${bidCount} ${bidCount === 1 ? "bid" : "bids"}`;
@@ -177,7 +180,7 @@ function buildAuctionOgHtml(auction, canonicalUrl) {
   const desc =
     descBits.length > 0
       ? plainTextSnippet(descBits.join(" — "), 300)
-      : "Browse live auctions on ES Neelan — the Maldives auction marketplace.";
+      : APP_DEFAULT_DESCRIPTION;
 
   const imgs = [...(auction.auction_images || [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
@@ -194,16 +197,16 @@ function buildAuctionOgHtml(auction, canonicalUrl) {
     ogType: "website",
     publishedAt: null,
     updatedAt: null,
-    linkLabel: "View auction on ES Neelan",
+    linkLabel: `View auction on ${APP_DISPLAY_NAME}`,
   });
 }
 
 function buildArticleOgHtml(article, canonicalUrl) {
   const title = article.title || "Story";
-  const pageTitle = `${title} | ES Neelan`;
+  const pageTitle = `${title} | ${APP_DISPLAY_NAME}`;
   const desc = article.excerpt?.trim()
     ? plainTextSnippet(article.excerpt, 300)
-    : plainTextSnippet(`${title} — ES Neelan`, 300);
+    : plainTextSnippet(`${title} — ${APP_DISPLAY_NAME}`, 300);
   const coverRaw = resolveArticleCoverUrl(
     article.cover_image_storage_path,
     article.cover_image_url,
@@ -220,7 +223,7 @@ function buildArticleOgHtml(article, canonicalUrl) {
     ogType: "article",
     publishedAt: article.published_at || null,
     updatedAt: article.updated_at || null,
-    linkLabel: "Read story on ES Neelan",
+    linkLabel: `Read story on ${APP_DISPLAY_NAME}`,
   });
 }
 
@@ -317,5 +320,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`ES Neelan web server listening on 0.0.0.0:${PORT}`);
+  console.log(`${APP_DISPLAY_NAME} web server listening on 0.0.0.0:${PORT}`);
 });

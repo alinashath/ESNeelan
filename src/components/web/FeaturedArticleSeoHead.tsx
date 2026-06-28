@@ -1,12 +1,12 @@
+import { APP_DEFAULT_DESCRIPTION, APP_DISPLAY_NAME } from "@/src/lib/brand";
 import Head from "expo-router/head";
 import { Platform } from "react-native";
 import { buildFeaturedArticlePublicUrl, getPublicSiteOrigin } from "@/src/lib/site-url";
 import { plainTextSnippet } from "@/src/lib/plain-text-snippet";
 import { optimizeArticleCoverImageUrl } from "@/src/lib/article-cover-image-url";
 
-const SITE_NAME = "ES Neelan";
-const DEFAULT_DESC =
-  "Browse live auctions, place bids, and discover sellers on ES Neelan — the Maldives auction marketplace.";
+const SITE_NAME = APP_DISPLAY_NAME;
+const DEFAULT_DESC = APP_DEFAULT_DESCRIPTION;
 
 type Props =
   | { phase: "loading" | "error" | "missing"; slug: string }

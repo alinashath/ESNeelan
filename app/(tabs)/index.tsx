@@ -1,32 +1,32 @@
-import { useMemo, useCallback } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Text,
-  View,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
+import { useScreenContentWidth } from "@/src/components/layout/content-width";
+import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
+import { AuctionCard } from "@/src/components/ui/AuctionCard";
+import { HeaderLogoRow } from "@/src/components/ui/HeaderLogoRow";
+import { HomeFeaturedArticles } from "@/src/components/ui/HomeFeaturedArticles";
+import { HomeFeaturedCarousel } from "@/src/components/ui/HomeFeaturedCarousel";
+import { HomeMarketingFooter } from "@/src/components/ui/HomeMarketingFooter";
+import { HomeTopSellers } from "@/src/components/ui/HomeTopSellers";
+import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
+import { Screen } from "@/src/components/ui/Screen";
+import { SearchField } from "@/src/components/ui/SearchField";
+import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
+import { useHomeCatalogSearch } from "@/src/context/HomeCatalogSearchContext";
 import { useActiveAuctions, useCuratedCategories } from "@/src/data/auctions";
 import { useHomeSearchAutocompleteCandidates } from "@/src/lib/use-home-search-autocomplete";
-import { Screen } from "@/src/components/ui/Screen";
-import { HeaderLogoRow } from "@/src/components/ui/HeaderLogoRow";
-import { SearchField } from "@/src/components/ui/SearchField";
-import { HomeFeaturedCarousel } from "@/src/components/ui/HomeFeaturedCarousel";
-import { HomeTopSellers } from "@/src/components/ui/HomeTopSellers";
-import { AuctionCard } from "@/src/components/ui/AuctionCard";
-import { HomeMarketingFooter } from "@/src/components/ui/HomeMarketingFooter";
-import { HomeFeaturedArticles } from "@/src/components/ui/HomeFeaturedArticles";
-import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
-import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
-import { useScreenContentWidth } from "@/src/components/layout/content-width";
-import { getTrendingGridColumns } from "@/src/theme/layout";
 import { useWebWideTabHeader } from "@/src/lib/web-tabs-layout";
-import { useHomeCatalogSearch } from "@/src/context/HomeCatalogSearchContext";
+import { getTrendingGridColumns } from "@/src/theme/layout";
 import { appleSpacing, colors, fontFamilies, space } from "@/src/theme/tokens";
-import type { AuctionCardAuction } from "@/src/components/ui/AuctionCard";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    Text,
+    View,
+} from "react-native";
 
 function toCardAuction(
   item: AuctionCardAuction & {

@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
         }),
       });
     } else {
-      const body = `Your ES Neelan code is ${otp}`;
+      const body = `Your AUC code is ${otp}`;
       res = await fetch("https://rest.msgowl.com/messages", {
         method: "POST",
         headers: {

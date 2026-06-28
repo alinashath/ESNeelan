@@ -8,7 +8,7 @@ export type NotificationPrefs = {
   auctionEnding: boolean;
   /** When someone outbids you */
   outbidAlerts: boolean;
-  /** Product tips and ES Neelan updates */
+  /** Product tips and AUC updates */
   marketingEmail: boolean;
 };
 

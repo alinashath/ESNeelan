@@ -50,7 +50,7 @@ export function HomeFeaturedArticles() {
           gap: space.md,
         }}
       >
-        <TextSectionTitle>Artists</TextSectionTitle>
+        <TextSectionTitle>Stories</TextSectionTitle>
         <Pressable
           onPress={() => router.push("/(tabs)/artists" as Href)}
           accessibilityRole="button"

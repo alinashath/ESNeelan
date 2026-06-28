@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import { isAuctionLiveForUi, isAuctionSoldForUi } from "@/src/lib/auction-live";
 import {
   durationPhotoHoverMs,
   easingPhotoHover,
@@ -28,6 +28,7 @@ import Animated, {
 } from "react-native-reanimated";
 import type { AuctionCardAuction } from "./AuctionCard";
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
+import { AuctionSoldBookmark } from "./AuctionSoldBookmark";
 import { ValueCurrency } from "./ValueCurrency";
 
 /** Hero scrim — legibility on photography (bottom-heavy). */
@@ -61,7 +62,7 @@ type Props = {
   mediaAspectRatio?: number;
 };
 
-/** Featured lot — full-bleed image, 32px corners, FEATURED top-left, countdown top-right, title + bid bottom. */
+/** Featured lot — full-bleed image, countdown or sold bookmark top-right, title + bid bottom. */
 export function HomeFeaturedHero({
   auction,
   onPress,
@@ -76,6 +77,7 @@ export function HomeFeaturedHero({
   const cardW = fillParent ? 0 : (cardWidthProp ?? winW - pad * 2);
   const bid = auction.current_highest_bid ?? auction.starting_price;
   const liveUi = isAuctionLiveForUi(auction.status, auction.ends_at);
+  const soldUi = isAuctionSoldForUi(auction.status);
 
   const reducedMotion = useReducedMotion();
   const [photoHovered, setPhotoHovered] = useState(false);
@@ -109,31 +111,6 @@ export function HomeFeaturedHero({
   const media = (
     <>
       {scrim}
-      {/* FEATURED — top-left (Stitch) */}
-      <View
-        style={{
-          position: "absolute",
-          top: space.xl,
-          left: space.xl,
-          backgroundColor: colors.accent,
-          paddingHorizontal: space.md,
-          paddingVertical: 6,
-          borderRadius: radii.pill,
-        }}
-      >
-        <Text
-          style={{
-            color: colors.onAccent,
-            fontWeight: "600",
-            fontSize: 10,
-            letterSpacing: 0.8,
-            fontFamily: fontFamilies.body,
-            textTransform: "uppercase",
-          }}
-        >
-          FEATURED
-        </Text>
-      </View>
 
       {liveUi && showCountdown ? (
         <AuctionCountdownBadge
@@ -144,6 +121,8 @@ export function HomeFeaturedHero({
           tone="heroDark"
           style={{ borderRadius: radii.pill }}
         />
+      ) : soldUi ? (
+        <AuctionSoldBookmark size="hero" />
       ) : null}
 
       <View
@@ -168,19 +147,21 @@ export function HomeFeaturedHero({
           {auction.title}
         </Text>
         <View style={{ marginTop: space.md }}>
-          <Text
-            style={{
-              color: colors.ivoryMuted,
-              fontSize: 10,
-              fontWeight: "400",
-              letterSpacing: 0.6,
-              fontFamily: fontFamilies.body,
-              textTransform: "uppercase",
-              marginBottom: space.xs,
-            }}
-          >
-            Current bid
-          </Text>
+          {!soldUi ? (
+            <Text
+              style={{
+                color: colors.ivoryMuted,
+                fontSize: 10,
+                fontWeight: "400",
+                letterSpacing: 0.6,
+                fontFamily: fontFamilies.body,
+                textTransform: "uppercase",
+                marginBottom: space.xs,
+              }}
+            >
+              Current bid
+            </Text>
+          ) : null}
           <ValueCurrency
             amount={bid}
             currency={currency}

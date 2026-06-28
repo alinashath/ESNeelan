@@ -1,3 +1,4 @@
+import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, ScrollView, View } from "react-native";
 import { router, useLocalSearchParams, type Href } from "expo-router";
@@ -16,8 +17,8 @@ import { colors, radii, space } from "@/src/theme/tokens";
 import { useState } from "react";
 
 const TERMS_CLAUSES = [
-  "Neelan only acts as a platform connecting buyers and sellers.",
-  "Neelan is not responsible for payment, delivery, returns, or transaction disputes.",
+  `${APP_DISPLAY_NAME} only acts as a platform connecting buyers and sellers.`,
+  `${APP_DISPLAY_NAME} is not responsible for payment, delivery, returns, or transaction disputes.`,
   "The seller is responsible for ensuring that the product matches the description provided.",
   "All payment and delivery instructions shared with the winning bidder must include the official bid communication code.",
   "Once a bid goes live the seller cannot cancel the bid. However, the seller may cancel the bid if payment is not received on time, or if both parties cannot agree on the terms of the transaction.",
@@ -112,7 +113,7 @@ export default function CreateAuctionStep2Terms() {
       />
       <TextTitle style={{ marginBottom: space.sm }}>Platform terms</TextTitle>
       <TextBody style={{ marginBottom: space.md, color: colors.textSecondary }}>
-        Step 2 of {totalSteps}: read Neelan’s seller rules, then confirm. This is separate from any terms you
+        Step 2 of {totalSteps}: read {APP_DISPLAY_NAME}’s seller rules, then confirm. This is separate from any terms you
         added on your listing.
       </TextBody>
       <View
