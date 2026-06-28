@@ -46,8 +46,8 @@ export default function ProfileScreen() {
   const sellerStatus = profile?.seller_verification_status ?? "none";
 
   const avatarUri = useMemo(
-    () => getAvatarPublicUrl(profile?.avatar_storage_path),
-    [profile?.avatar_storage_path],
+    () => getAvatarPublicUrl(profile?.avatar_storage_path, profile?.updated_at),
+    [profile?.avatar_storage_path, profile?.updated_at],
   );
 
   const sellerCopy = useCallback(() => {
@@ -145,6 +145,7 @@ export default function ProfileScreen() {
         >
           {avatarUri ? (
             <Image
+              key={`${profile?.avatar_storage_path ?? "none"}-${profile?.updated_at ?? "none"}`}
               source={{ uri: avatarUri }}
               style={{ width: 72, height: 72 }}
             />

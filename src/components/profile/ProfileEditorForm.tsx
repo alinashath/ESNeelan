@@ -9,6 +9,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "@/src/lib/supabase";
 import { getAvatarPublicUrl } from "@/src/lib/avatar";
+import { removeUserAvatar, uploadUserAvatar } from "@/src/lib/avatar-upload";
 import { useAuth, type ProfileAccountType } from "@/src/providers/AuthProvider";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
@@ -24,7 +25,7 @@ function normalizeAccountType(v: string | null | undefined): ProfileAccountType 
 
 /** Full profile + avatar editor — use on `(tabs)/profile/edit` only. */
 export function ProfileEditorForm() {
-  const { session, profile, refreshProfile } = useAuth();
+  const { session, profile, refreshProfile, mergeProfile } = useAuth();
   const [name, setName] = useState("");
   const [accountType, setAccountType] = useState<ProfileAccountType>("individual");
   const [contactEmail, setContactEmail] = useState("");
@@ -35,6 +36,7 @@ export function ProfileEditorForm() {
   const [postalCode, setPostalCode] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [previewAvatarUri, setPreviewAvatarUri] = useState<string | null>(null);
 
   const syncFromProfile = useCallback(() => {
     if (!profile) return;
@@ -53,9 +55,10 @@ export function ProfileEditorForm() {
   }, [syncFromProfile]);
 
   const avatarUri = useMemo(
-    () => getAvatarPublicUrl(profile?.avatar_storage_path),
-    [profile?.avatar_storage_path],
+    () => getAvatarPublicUrl(profile?.avatar_storage_path, profile?.updated_at),
+    [profile?.avatar_storage_path, profile?.updated_at],
   );
+  const displayAvatarUri = previewAvatarUri ?? avatarUri;
 
   async function pickAvatar() {
     if (!session) return;
@@ -72,39 +75,32 @@ export function ProfileEditorForm() {
     });
     if (picked.canceled || !picked.assets?.[0]) return;
     const asset = picked.assets[0];
+    setPreviewAvatarUri(asset.uri);
     setUploadingAvatar(true);
     try {
-      const extFromMime =
-        asset.mimeType === "image/png"
-          ? "png"
-          : asset.mimeType === "image/webp"
-            ? "webp"
-            : "jpg";
-      const path = `${session.user.id}/avatar.${extFromMime}`;
-      const mime = asset.mimeType ?? "image/jpeg";
-
-      const res = await fetch(asset.uri);
-      if (!res.ok) {
-        Alert.alert("Upload", `Could not read the image (${res.status}).`);
+      const result = await uploadUserAvatar(
+        session.user.id,
+        asset.uri,
+        asset.mimeType ?? null,
+        profile?.avatar_storage_path,
+      );
+      if (!result.ok) {
+        Alert.alert("Upload", result.error);
+        setPreviewAvatarUri(null);
         return;
       }
-      const body = new Uint8Array(await res.arrayBuffer());
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, body, { upsert: true, contentType: mime });
-      if (upErr) {
-        Alert.alert("Upload", upErr.message);
-        return;
-      }
-      const { error: dbErr } = await supabase
-        .from("profiles")
-        .update({ avatar_storage_path: path })
-        .eq("id", session.user.id);
-      if (dbErr) {
-        Alert.alert("Profile", dbErr.message);
-        return;
-      }
-      await refreshProfile();
+      mergeProfile({
+        avatar_storage_path: result.path,
+        updated_at: result.updatedAt,
+      });
+      setPreviewAvatarUri(null);
+      void refreshProfile();
+    } catch (e) {
+      setPreviewAvatarUri(null);
+      Alert.alert(
+        "Upload",
+        e instanceof Error ? e.message : "Could not update your profile photo.",
+      );
     } finally {
       setUploadingAvatar(false);
     }
@@ -112,15 +108,16 @@ export function ProfileEditorForm() {
 
   async function removeAvatar() {
     if (!session || !profile?.avatar_storage_path) return;
+    setPreviewAvatarUri(null);
     setUploadingAvatar(true);
     try {
-      await supabase.storage.from("avatars").remove([profile.avatar_storage_path]);
-      const { error } = await supabase
-        .from("profiles")
-        .update({ avatar_storage_path: null })
-        .eq("id", session.user.id);
-      if (error) Alert.alert("Profile", error.message);
-      else await refreshProfile();
+      const result = await removeUserAvatar(session.user.id, profile.avatar_storage_path);
+      if (!result.ok) {
+        Alert.alert("Profile", result.error);
+        return;
+      }
+      mergeProfile({ avatar_storage_path: null, updated_at: result.updatedAt });
+      void refreshProfile();
     } finally {
       setUploadingAvatar(false);
     }
@@ -187,13 +184,13 @@ export function ProfileEditorForm() {
         >
           {uploadingAvatar ? (
             <ActivityIndicator />
-          ) : avatarUri ? (
+          ) : displayAvatarUri ? (
             <Image
-              key={profile?.avatar_storage_path ?? "none"}
-              source={{ uri: avatarUri }}
+              key={`${profile?.avatar_storage_path ?? "none"}-${profile?.updated_at ?? "none"}-${previewAvatarUri ?? ""}`}
+              source={{ uri: displayAvatarUri }}
               style={{ width: 96, height: 96 }}
               onError={(e) =>
-                console.warn("avatar image failed to load", avatarUri, e.nativeEvent.error)
+                console.warn("avatar image failed to load", displayAvatarUri, e.nativeEvent.error)
               }
             />
           ) : (

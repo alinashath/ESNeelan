@@ -26,6 +26,7 @@ export type Profile = {
   role: UserRole;
   suspended_at: string | null;
   avatar_storage_path: string | null;
+  updated_at: string;
   account_type: ProfileAccountType;
   contact_email: string | null;
   location_text: string | null;
@@ -47,6 +48,7 @@ type AuthCtx = {
   profile: Profile | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  mergeProfile: (patch: Partial<Profile>) => void;
   signOut: () => Promise<void>;
 };
 
@@ -62,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "id, phone, display_name, role, suspended_at, avatar_storage_path, account_type, contact_email, location_text, address_line1, address_line2, city, postal_code, seller_verification_status, seller_verification_note, seller_applied_at, seller_decided_at, seller_verification_id_document_path, seller_verification_business_reg_path",
+        "id, phone, display_name, role, suspended_at, avatar_storage_path, updated_at, account_type, contact_email, location_text, address_line1, address_line2, city, postal_code, seller_verification_status, seller_verification_note, seller_applied_at, seller_decided_at, seller_verification_id_document_path, seller_verification_business_reg_path",
       )
       .eq("id", uid)
       .maybeSingle();
@@ -124,6 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (session?.user) await loadProfile(session.user.id);
   }, [loadProfile, session?.user]);
 
+  const mergeProfile = useCallback((patch: Partial<Profile>) => {
+    setProfile((current) => (current ? { ...current, ...patch } : current));
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -136,9 +142,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile,
       loading,
       refreshProfile,
+      mergeProfile,
       signOut,
     }),
-    [session, profile, loading, refreshProfile, signOut],
+    [session, profile, loading, refreshProfile, mergeProfile, signOut],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
