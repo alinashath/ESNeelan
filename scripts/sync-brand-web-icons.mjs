@@ -4,8 +4,8 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
@@ -22,8 +22,8 @@ fs.mkdirSync(publicDir, { recursive: true });
 const faviconPng = path.join(publicDir, "favicon.png");
 const appleTouch = path.join(publicDir, "apple-touch-icon.png");
 
-execSync(`sips -z 48 48 "${brandIcon}" --out "${faviconPng}"`, { stdio: "inherit" });
-execSync(`sips -z 180 180 "${brandIcon}" --out "${appleTouch}"`, { stdio: "inherit" });
+await sharp(brandIcon).resize(48, 48).png().toFile(faviconPng);
+await sharp(brandIcon).resize(180, 180).png().toFile(appleTouch);
 
 // Keep assets/images/favicon.png aligned for app.json web.favicon → favicon.ico generation.
 const appFavicon = path.join(root, "assets/images/favicon.png");

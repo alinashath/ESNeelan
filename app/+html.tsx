@@ -1,4 +1,4 @@
-import { APP_DEFAULT_DESCRIPTION, APP_DISPLAY_NAME } from "@/src/lib/brand";
+import { APP_DEFAULT_DESCRIPTION, APP_DISPLAY_NAME, HOME_PAGE_TITLE } from "@/src/lib/brand";
 import { ScrollViewStyleReset } from "expo-router/html";
 import type { ReactNode } from "react";
 import { palette } from "@/src/theme/tokens";
@@ -14,13 +14,13 @@ function siteWideOpenGraphTags() {
 
   return (
     <>
-      <title>{`${SITE_NAME} — Auctions & sellers`}</title>
+      <title>{HOME_PAGE_TITLE}</title>
       <meta name="description" content={DEFAULT_DESCRIPTION} />
       {canonical ? <link rel="canonical" href={canonical} /> : null}
 
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:type" content="website" />
-      <meta property="og:title" content={`${SITE_NAME} — Auctions & sellers`} />
+      <meta property="og:title" content={HOME_PAGE_TITLE} />
       <meta property="og:description" content={DEFAULT_DESCRIPTION} />
       {canonical ? <meta property="og:url" content={canonical} /> : null}
       {ogImage ? <meta property="og:image" content={ogImage} /> : null}
@@ -29,7 +29,7 @@ function siteWideOpenGraphTags() {
       ) : null}
 
       <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
-      <meta name="twitter:title" content={`${SITE_NAME} — Auctions & sellers`} />
+      <meta name="twitter:title" content={HOME_PAGE_TITLE} />
       <meta name="twitter:description" content={DEFAULT_DESCRIPTION} />
       {ogImage ? <meta name="twitter:image" content={ogImage} /> : null}
     </>

@@ -1,4 +1,4 @@
-import { APP_DEFAULT_DESCRIPTION, APP_DISPLAY_NAME } from "@/src/lib/brand";
+import { APP_DEFAULT_DESCRIPTION, APP_DISPLAY_NAME, HOME_PAGE_TITLE } from "@/src/lib/brand";
 import { getPublicSiteOrigin } from "@/src/lib/site-url";
 import Head from "expo-router/head";
 import { Platform } from "react-native";
@@ -51,7 +51,7 @@ export function SiteSeoHead({
   );
 }
 
-const HOME_TITLE = `${APP_DISPLAY_NAME} — Auctions & sellers`;
+const HOME_TITLE = HOME_PAGE_TITLE;
 
 const TAB_PAGE_TITLES: Record<string, string> = {
   "/": HOME_TITLE,
