@@ -6,6 +6,7 @@ import { useAuctionCatalogRealtimeSync } from "@/src/lib/use-auction-catalog-rea
 import { AuthProvider } from "@/src/providers/AuthProvider";
 import { BidmasterFontsProvider } from "@/src/providers/BidmasterFontsProvider";
 import { makeRootStackBackHeader } from "@/src/components/ui/RootStackBackButton";
+import { AppErrorBoundary } from "@/src/components/ui/AppErrorBoundary";
 import { colors } from "@/src/theme/tokens";
 
 const queryClient = createAppQueryClient();
@@ -15,7 +16,7 @@ function AuctionCatalogRealtimeSync() {
   return null;
 }
 
-export { ErrorBoundary } from "expo-router";
+export const ErrorBoundary = AppErrorBoundary;
 
 export const unstable_settings = {
   initialRouteName: "index",
