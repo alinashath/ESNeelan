@@ -15,6 +15,7 @@ import { Badge } from "@/src/components/ui/Badge";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { CommunicationCodeCard } from "@/src/components/ui/CommunicationCodeCard";
+import { SellerPostClosePanel } from "@/src/components/seller/SellerPostClosePanel";
 import { Countdown } from "@/src/components/ui/Countdown";
 import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { Screen } from "@/src/components/ui/Screen";
@@ -254,6 +255,8 @@ export default function MyAuctionDetailScreen() {
   const bidCount = Number(r.bid_count ?? 0);
   const bidNumber = (r.bid_number as string | null) ?? null;
   const commCode = (r.communication_code as string | null) ?? null;
+  const winnerContactPhone = (r.winner_contact_phone as string | null) ?? null;
+  const winnerPosition = Number(r.winner_position ?? 1);
   const bidType = String(r.bid_type ?? "standard");
   const feePending = Boolean(r.featured_listing_fee_pending);
   const listingFeePaid = Boolean(r.listing_fee_paid);
@@ -693,39 +696,30 @@ export default function MyAuctionDetailScreen() {
             </TextCaption>
           ) : null}
 
-          {status === "payment_stage" ? (
-            <ButtonPrimary
-              title="Submit closure form"
-              onPress={() => router.push(`/auction/closure/${id}` as Href)}
-              style={{ marginTop: space.lg }}
-            />
-          ) : null}
+          <SellerPostClosePanel
+            auctionId={id}
+            status={status}
+            endsAt={endsAt || null}
+            title={title}
+            bidNumber={bidNumber}
+            winnerContactPhone={winnerContactPhone}
+            winnerPosition={winnerPosition}
+            currentHighestBid={Number(bid)}
+            startingPrice={startingPrice}
+            onRefresh={async () => {
+              await refetch();
+            }}
+            onFinalized={async () => {
+              qc.invalidateQueries({ queryKey: ["my-auctions"] });
+              qc.invalidateQueries({ queryKey: ["auctions"] });
+            }}
+          />
 
           <ButtonPrimary
             title="View public listing"
             onPress={() => router.push(`/auction/${id}` as Href)}
             style={{ marginTop: space.xl }}
           />
-
-          {status === "won" || status === "payment_stage" ? (
-            <ButtonPrimary
-              title="Mark paid (seller)"
-              onPress={async () => {
-                const { data: rpc, error: rpcErr } = await supabase.rpc("seller_mark_auction_paid", {
-                  p_auction_id: id,
-                });
-                if (rpcErr) Alert.alert("Error", rpcErr.message);
-                else if (rpc && typeof rpc === "object" && "ok" in rpc && rpc.ok === false) {
-                  Alert.alert("Error", String((rpc as { error?: string }).error));
-                } else {
-                  await refetch();
-                  qc.invalidateQueries({ queryKey: ["my-auctions"] });
-                  Alert.alert("Updated", "Marked as paid.");
-                }
-              }}
-              style={{ marginTop: space.md }}
-            />
-          ) : null}
         </View>
       </View>
     </Screen>

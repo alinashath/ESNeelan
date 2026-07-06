@@ -329,6 +329,18 @@ export default function BidManagementScreen() {
                       onManage={() => router.push(`/my-auctions/${id}` as Href)}
                       onViewLot={() => router.push(`/auction/${id}` as Href)}
                     />
+                    {status === "awaiting_winner_consent" ? (
+                      <ButtonSecondary
+                        title="View next steps"
+                        onPress={() => router.push(`/my-auctions/${id}` as Href)}
+                      />
+                    ) : null}
+                    {status === "payment_stage" ? (
+                      <ButtonPrimary
+                        title="Submit closure form"
+                        onPress={() => router.push(`/auction/closure/${id}` as Href)}
+                      />
+                    ) : null}
                     {status === "won" ? (
                       <ButtonSecondary
                         title="Mark buyer paid"

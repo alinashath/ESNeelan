@@ -5,6 +5,7 @@ import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { Checkbox } from "@/src/components/ui/Checkbox";
 import { Chip } from "@/src/components/ui/Chip";
 import { CommunicationCodeCard } from "@/src/components/ui/CommunicationCodeCard";
+import { SellerPostClosePanel } from "@/src/components/seller/SellerPostClosePanel";
 import { Countdown } from "@/src/components/ui/Countdown";
 import { NumericStepper } from "@/src/components/ui/NumericStepper";
 import { Screen } from "@/src/components/ui/Screen";
@@ -26,8 +27,6 @@ import { formatMoneyAmount } from "@/src/lib/format-money";
 import {
     BIDMASTER_WINNER_TERMS_VERSION,
     formatMaldivesPhoneDisplay,
-    sellerHighBidderPendingConsentParagraphs,
-    sellerPaymentStageParagraphs,
     winnerConsentRequestedParagraphs,
 } from "@/src/lib/bidmaster-legal-copy";
 import { listingAttributeChips } from "@/src/lib/listing-attributes-display";
@@ -644,7 +643,6 @@ export default function AuctionDetailScreen() {
   const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
 
   const sellerPhoneDisplay = formatMaldivesPhoneDisplay(sellerPhone);
-  const winnerContactDisplay = formatMaldivesPhoneDisplay(winnerContactPhone);
 
   const isSeller = session?.user.id === sellerId;
   const isWinner = !!session?.user.id && winnerId === session.user.id;
@@ -874,77 +872,25 @@ export default function AuctionDetailScreen() {
             </View>
           ) : null}
 
-          {isSeller && status === "awaiting_winner_consent" ? (
-            <View
-              style={{
-                marginTop: space.lg,
-                padding: space.md,
-                backgroundColor: colors.surfaceMuted,
-                borderRadius: radii.md,
+          {isSeller ? (
+            <SellerPostClosePanel
+              auctionId={id}
+              status={status}
+              endsAt={endsAt}
+              title={title}
+              bidNumber={bidNumber}
+              winnerContactPhone={winnerContactPhone}
+              winnerPosition={winnerPosition}
+              currentHighestBid={currentBid}
+              startingPrice={Number(a.starting_price)}
+              onRefresh={async () => {
+                await refetch();
               }}
-            >
-          <TextCaption style={{ fontWeight: "500" }}>
-                Awaiting winner consent
-              </TextCaption>
-              {sellerHighBidderPendingConsentParagraphs({
-                itemName: title,
-                bidNumber: bidNumber,
-                winningAmountLabel,
-              }).map((para, i) => (
-                <TextBody
-                  key={`sv-pend-${i}`}
-                  style={{
-                    marginTop: i === 0 ? space.sm : space.xs,
-                    color: colors.textSecondary,
-                  }}
-                >
-                  {para}
-                </TextBody>
-              ))}
-            </View>
-          ) : null}
-
-          {isSeller && status === "payment_stage" ? (
-            <View style={{ marginTop: space.lg, gap: space.sm }}>
-              <TextTitle style={{ fontSize: 18 }}>Winner contact</TextTitle>
-              <TextBody>
-                Phone:{" "}
-                <TextBody style={{ fontWeight: "600" }}>
-                  {winnerContactPhone ? winnerContactDisplay : "—"}
-                </TextBody>
-              </TextBody>
-              <TextCaption>Position: {winnerPosition}</TextCaption>
-              <ButtonPrimary
-                title="Submit closure form"
-                onPress={() => router.push(`/auction/closure/${id}` as Href)}
-              />
-              <View
-                style={{
-                  marginTop: space.md,
-                  paddingTop: space.md,
-                  borderTopWidth: 1,
-                  borderTopColor: colors.border,
-                }}
-              >
-                {sellerPaymentStageParagraphs({
-                  itemName: title,
-                  bidNumber: bidNumber ?? "—",
-                  winningAmountLabel,
-                  position: winnerPosition,
-                  winnerPhoneDisplay: winnerContactDisplay,
-                }).map((para, i) => (
-                  <TextBody
-                    key={`pay-stage-${i}`}
-                    style={{
-                      marginTop: i === 0 ? 0 : space.sm,
-                      color: colors.textSecondary,
-                    }}
-                  >
-                    {para}
-                  </TextBody>
-                ))}
-              </View>
-            </View>
+              onFinalized={async () => {
+                qc.invalidateQueries({ queryKey: ["my-auctions"] });
+                qc.invalidateQueries({ queryKey: ["auctions"] });
+              }}
+            />
           ) : null}
 
           {isWinner && status === "awaiting_winner_consent" ? (
