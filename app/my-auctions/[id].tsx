@@ -257,6 +257,8 @@ export default function MyAuctionDetailScreen() {
   const commCode = (r.communication_code as string | null) ?? null;
   const winnerContactPhone = (r.winner_contact_phone as string | null) ?? null;
   const winnerPosition = Number(r.winner_position ?? 1);
+  const winnerConsentRequestedAt =
+    ((r.winner_consent_requested_at as string | null) ?? (r.updated_at as string | null)) ?? null;
   const bidType = String(r.bid_type ?? "standard");
   const feePending = Boolean(r.featured_listing_fee_pending);
   const listingFeePaid = Boolean(r.listing_fee_paid);
@@ -706,6 +708,7 @@ export default function MyAuctionDetailScreen() {
             winnerPosition={winnerPosition}
             currentHighestBid={Number(bid)}
             startingPrice={startingPrice}
+            winnerConsentRequestedAt={winnerConsentRequestedAt}
             onRefresh={async () => {
               await refetch();
             }}

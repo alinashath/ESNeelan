@@ -19,6 +19,8 @@ export function notificationTypeTitle(type: string): string {
       return "Payment stage — contact winner";
     case "auction_pending_winner_consent":
       return "Bidding closed — awaiting winner consent";
+    case "winner_consent_expired":
+      return "Winner consent window expired";
     case "please_leave_feedback":
       return "Leave feedback";
     case "payment_proof_received":
@@ -188,6 +190,14 @@ export function getNotificationDisplay(type: string, payload: Record<string, unk
       } else {
         lines.push("Bidding closed — a high bidder must complete consent before you can contact them.");
       }
+      break;
+    }
+    case "winner_consent_expired": {
+      const title = lotTitle ?? "this auction";
+      lines.push(
+        `You did not complete platform consent in time for "${title}".`,
+        "The seller may offer the item to the next eligible bidder.",
+      );
       break;
     }
     case "please_leave_feedback": {

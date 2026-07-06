@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { supabase } from "@/src/lib/supabase";
@@ -11,10 +11,16 @@ import { TextTitle } from "@/src/components/ui/TextTitle";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
 import {
   formatMaldivesPhoneDisplay,
+  sellerAwaitingConsentDeadlineParagraphs,
   sellerHighBidderPendingConsentParagraphs,
   sellerPaymentStageParagraphs,
 } from "@/src/lib/bidmaster-legal-copy";
 import { formatMoneyAmount } from "@/src/lib/format-money";
+import {
+  formatWinnerConsentCountdown,
+  isWinnerConsentDeadlinePassed,
+  winnerConsentTimeRemainingMs,
+} from "@/src/lib/winner-consent-deadline";
 import { colors, radii, space } from "@/src/theme/tokens";
 
 export type SellerPostClosePanelProps = {
@@ -27,6 +33,7 @@ export type SellerPostClosePanelProps = {
   winnerPosition: number;
   currentHighestBid: number;
   startingPrice: number;
+  winnerConsentRequestedAt?: string | null;
   onRefresh?: () => void | Promise<void>;
   /** Called after seller_close_own_auction succeeds (e.g. invalidate queries). */
   onFinalized?: () => void | Promise<void>;
@@ -42,14 +49,31 @@ export function SellerPostClosePanel({
   winnerPosition,
   currentHighestBid,
   startingPrice,
+  winnerConsentRequestedAt,
   onRefresh,
   onFinalized,
 }: SellerPostClosePanelProps) {
   const [busy, setBusy] = useState(false);
+  const [tick, setTick] = useState(0);
   const st = String(status).trim().toLowerCase();
   const winningAmountLabel = `${formatMoneyAmount(currentHighestBid || startingPrice)} MVR`;
   const winnerContactDisplay = formatMaldivesPhoneDisplay(winnerContactPhone);
   const pastEndActive = st === "active" && endsAt != null && !isAuctionLiveForUi(status, endsAt);
+
+  const consentDeadlinePassed = useMemo(
+    () => isWinnerConsentDeadlinePassed(winnerConsentRequestedAt),
+    [winnerConsentRequestedAt, tick],
+  );
+  const consentCountdownLabel = useMemo(() => {
+    void tick;
+    return formatWinnerConsentCountdown(winnerConsentTimeRemainingMs(winnerConsentRequestedAt));
+  }, [winnerConsentRequestedAt, tick]);
+
+  useEffect(() => {
+    if (st !== "awaiting_winner_consent" || consentDeadlinePassed) return;
+    const t = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(t);
+  }, [consentDeadlinePassed, st]);
 
   async function handleRefresh() {
     if (onRefresh) await onRefresh();
@@ -99,6 +123,53 @@ export function SellerPostClosePanel({
     }
   }
 
+  async function skipWinner(selectNext: boolean) {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("seller_skip_winner_no_consent", {
+        p_auction_id: auctionId,
+        p_select_next: selectNext,
+        p_notes: null,
+      });
+      if (error) throw error;
+      const res = data as { ok?: boolean; error?: string; message?: string };
+      if (!res?.ok) {
+        if (res?.error === "consent_deadline_not_reached") {
+          throw new Error("The 48-hour consent window has not ended yet.");
+        }
+        throw new Error(res?.error ?? "Could not update winner");
+      }
+      await onFinalized?.();
+      await onRefresh?.();
+      if (res.message === "no_more_bidders") {
+        Alert.alert("No more bidders", "There are no further eligible bidders. The auction was cancelled.");
+      } else if (selectNext) {
+        Alert.alert("Next bidder selected", "The next eligible bidder has been notified to give consent.");
+      } else {
+        Alert.alert("Auction cancelled", "The winner was removed and the listing was cancelled.");
+      }
+    } catch (e: unknown) {
+      Alert.alert("Winner update", e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function confirmSkipWinner(selectNext: boolean) {
+    const title = selectNext ? "Choose next bidder?" : "Cancel winner and end auction?";
+    const message = selectNext
+      ? "The current high bidder will be skipped and the next eligible bidder (by amount) will be asked for consent."
+      : "The current high bidder will be skipped and this listing will be marked cancelled.";
+    Alert.alert(title, message, [
+      { text: "Back", style: "cancel" },
+      {
+        text: selectNext ? "Choose next bidder" : "Cancel auction",
+        style: selectNext ? "default" : "destructive",
+        onPress: () => void skipWinner(selectNext),
+      },
+    ]);
+  }
+
   if (pastEndActive) {
     return (
       <View style={{ marginTop: space.lg, gap: space.sm }}>
@@ -117,6 +188,7 @@ export function SellerPostClosePanel({
           padding: space.md,
           backgroundColor: colors.surfaceMuted,
           borderRadius: radii.md,
+          gap: space.sm,
         }}
       >
         <TextCaption style={{ fontWeight: "500" }}>Awaiting winner consent</TextCaption>
@@ -135,10 +207,51 @@ export function SellerPostClosePanel({
             {para}
           </TextBody>
         ))}
+        <View
+          style={{
+            marginTop: space.sm,
+            paddingTop: space.sm,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+          }}
+        >
+          {sellerAwaitingConsentDeadlineParagraphs({
+            deadlinePassed: consentDeadlinePassed,
+            countdownLabel: consentCountdownLabel,
+          }).map((para, i) => (
+            <TextBody
+              key={`sv-deadline-${i}`}
+              style={{
+                marginTop: i === 0 ? 0 : space.xs,
+                color: colors.textSecondary,
+              }}
+            >
+              {para}
+            </TextBody>
+          ))}
+        </View>
+        {consentDeadlinePassed ? (
+          <View style={{ gap: space.sm, marginTop: space.sm }}>
+            <ButtonPrimary
+              title="Choose next bidder"
+              onPress={() => confirmSkipWinner(true)}
+              disabled={busy}
+            />
+            <ButtonSecondary
+              title="Cancel winner & end auction"
+              onPress={() => confirmSkipWinner(false)}
+              disabled={busy}
+            />
+          </View>
+        ) : (
+          <TextCaption style={{ marginTop: space.sm, color: colors.textMuted }}>
+            Consent deadline: {consentCountdownLabel} remaining
+          </TextCaption>
+        )}
         <ButtonSecondary
           title="Refresh status"
           onPress={() => void handleRefresh()}
-          style={{ marginTop: space.md }}
+          disabled={busy}
         />
       </View>
     );

@@ -1,4 +1,7 @@
 import { APP_DISPLAY_NAME } from "./brand";
+import { WINNER_CONSENT_DEADLINE_HOURS } from "./winner-consent-deadline";
+
+export { WINNER_CONSENT_DEADLINE_HOURS };
 
 /**
  * Canonical legal / operational copy for bid lifecycle (seller go-live, winner consent,
@@ -77,6 +80,7 @@ export function winnerConsentRequestedParagraphs(args: {
     "Please do not share this code with anyone. Do not accept payment instructions that do not contain this code.",
     ...platformMarketplaceDisclaimer(),
     ...sellerCancellationAndEnforcementDisclaimer(),
+    `You must complete platform consent within ${WINNER_CONSENT_DEADLINE_HOURS} hours or the seller may select another bidder.`,
   );
   return lines;
 }
@@ -117,6 +121,25 @@ export function sellerHighBidderPendingConsentParagraphs(args: {
   lines.push(`Current high bid: ${winningAmountLabel}`);
   lines.push(
     "You will receive another notification when you can contact the winner about payment and delivery.",
+    `If the high bidder does not complete consent within ${WINNER_CONSENT_DEADLINE_HOURS} hours, you may cancel them or offer the item to the next eligible bidder.`,
   );
   return lines;
+}
+
+/** Seller copy while waiting for winner consent (includes 48h rule). */
+export function sellerAwaitingConsentDeadlineParagraphs(args: {
+  deadlinePassed: boolean;
+  countdownLabel: string;
+}): string[] {
+  const { deadlinePassed, countdownLabel } = args;
+  if (deadlinePassed) {
+    return [
+      `The high bidder did not complete platform consent within ${WINNER_CONSENT_DEADLINE_HOURS} hours.`,
+      "You may cancel this winner and end the auction, or select the next eligible bidder (by bid amount).",
+    ];
+  }
+  return [
+    `The high bidder has ${countdownLabel} left to complete platform consent.`,
+    `After ${WINNER_CONSENT_DEADLINE_HOURS} hours without consent, you can cancel them or choose the next eligible bidder.`,
+  ];
 }

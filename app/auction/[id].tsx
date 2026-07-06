@@ -626,6 +626,8 @@ export default function AuctionDetailScreen() {
   const sellerPhone = (a.seller_phone as string | null) ?? null;
   const winnerContactPhone = (a.winner_contact_phone as string | null) ?? null;
   const winnerPosition = Number(a.winner_position ?? 1);
+  const winnerConsentRequestedAt =
+    ((a.winner_consent_requested_at as string | null) ?? (a.updated_at as string | null)) ?? null;
   const sellerRatingSummary = a.seller_rating_summary as
     | SellerRatingSummary
     | null
@@ -883,6 +885,7 @@ export default function AuctionDetailScreen() {
               winnerPosition={winnerPosition}
               currentHighestBid={currentBid}
               startingPrice={Number(a.starting_price)}
+              winnerConsentRequestedAt={winnerConsentRequestedAt}
               onRefresh={async () => {
                 await refetch();
               }}

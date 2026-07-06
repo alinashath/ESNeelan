@@ -331,7 +331,7 @@ export default function BidManagementScreen() {
                     />
                     {status === "awaiting_winner_consent" ? (
                       <ButtonSecondary
-                        title="View next steps"
+                        title="Manage winner"
                         onPress={() => router.push(`/my-auctions/${id}` as Href)}
                       />
                     ) : null}
