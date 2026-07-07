@@ -10,20 +10,12 @@ import {
     accentWash,
     colors,
     fontFamilies,
-    palette,
     radii,
     space,
     typography,
 } from "@/src/theme/tokens";
 import { useEffect, useState } from "react";
-import {
-    Image,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import Animated, {
     useAnimatedStyle,
     useReducedMotion,
@@ -32,6 +24,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
 import { AuctionSoldBookmark } from "./AuctionSoldBookmark";
+import { ContainedListingPhoto } from "./ContainedListingPhoto";
 import { TextCaption } from "./TextCaption";
 import { ValueCurrency } from "./ValueCurrency";
 
@@ -65,7 +58,6 @@ function endingSoon(endsAt: string) {
   return ms > 0 && ms < 3600 * 1000;
 }
 
-const IMAGE_PLACEHOLDER = palette.dividerSoft;
 const PHOTO_HOVER_SCALE = 1.06;
 
 export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
@@ -177,36 +169,11 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
   ) : null;
 
   const imageBlock = (
-    <View
-      style={{
-        width: "100%",
-        height: imgH,
-        borderRadius: radii.md,
-        overflow: "hidden",
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.border,
-        backgroundColor: colors.surfaceMuted,
-      }}
+    <ContainedListingPhoto
+      uri={auction.image_url}
+      height={imgH}
+      photoAnimStyle={photoAnimStyle}
     >
-      {auction.image_url ? (
-        <Animated.View
-          style={[{ width: "100%", height: "100%" }, photoAnimStyle]}
-        >
-          <Image
-            source={{ uri: auction.image_url }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-        </Animated.View>
-      ) : (
-        <View
-          style={{
-            width: "100%",
-            height: "100%",
-            backgroundColor: IMAGE_PLACEHOLDER,
-          }}
-        />
-      )}
       {livePill}
       {showCountdownOnCard ? (
         <AuctionCountdownBadge
@@ -217,7 +184,7 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
           urgent={urgent}
         />
       ) : null}
-    </View>
+    </ContainedListingPhoto>
   );
 
   return (

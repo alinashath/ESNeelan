@@ -19,12 +19,16 @@ import {
   textMatchesQuery,
   type SortDir,
 } from "@/src/lib/managed-list";
+import { auctionStatusLabel } from "@/src/lib/auction-status-label";
+import { isAuctionLiveForUi } from "@/src/lib/auction-live";
 import { colors, radii, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 
 type Row = {
   id: string;
   title: string;
+  status: string;
+  ends_at: string | null;
   is_featured: boolean | null;
   featured_sort_order: number | null;
   created_at: string | null;
@@ -41,13 +45,13 @@ export default function AdminFeaturedScreen() {
   const [spot, setSpot] = useState<SpotFilter>("all");
 
   const { data, refetch, isLoading, isRefetching } = useQuery({
-    queryKey: ["admin", "active-auctions-featured"],
+    queryKey: ["admin", "auctions-featured"],
     enabled: profile?.role === "admin",
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from("auctions")
-        .select("id, title, is_featured, featured_sort_order, created_at")
-        .eq("status", "active")
+        .select("id, title, status, ends_at, is_featured, featured_sort_order, created_at")
+        .or("status.eq.active,is_featured.eq.true")
         .order("is_featured", { ascending: false })
         .order("featured_sort_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false });
@@ -154,7 +158,7 @@ export default function AdminFeaturedScreen() {
       <ChipRow>
         {(
           [
-            ["all", "ALL ACTIVE"],
+            ["all", "ALL"],
             ["featured", "FEATURED"],
             ["not_featured", "NOT FEATURED"],
           ] as const
@@ -184,8 +188,9 @@ export default function AdminFeaturedScreen() {
           <>
             <TextTitle style={{ marginBottom: space.xs }}>Home featured</TextTitle>
             <TextBody style={{ marginBottom: space.sm, color: colors.textSecondary }}>
-              Search and filter active listings. Tap the title to open the public listing. Toggle
-              featured for the home carousel; lower order shows first.
+              Manage live listings and remove ended or sold lots from the home carousel. Tap the
+              title to open the public listing. Only live auctions can be newly featured; lower
+              order shows first.
             </TextBody>
             {isLoading ? <TextCaption style={{ marginBottom: space.md }}>Loading…</TextCaption> : null}
             <ManagedListToolbar
@@ -214,7 +219,10 @@ export default function AdminFeaturedScreen() {
             No listings match your filters.
           </TextBody>
         }
-        renderItem={({ item: a }) => (
+        renderItem={({ item: a }) => {
+          const live = isAuctionLiveForUi(a.status, a.ends_at);
+          const statusLabel = auctionStatusLabel(a.status, a.ends_at);
+          return (
           <View
             style={{
               borderWidth: 1,
@@ -243,12 +251,27 @@ export default function AdminFeaturedScreen() {
                   opacity: pressed ? 0.75 : 1,
                 })}
               >
-                <TextBody style={{ flex: 1, fontWeight: "600" }} numberOfLines={2}>
-                  {a.title}
-                </TextBody>
+                <View style={{ flex: 1, gap: space.xs }}>
+                  <TextBody style={{ fontWeight: "600" }} numberOfLines={2}>
+                    {a.title}
+                  </TextBody>
+                  <TextCaption
+                    style={{
+                      color: live ? colors.success : colors.textMuted,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.6,
+                    }}
+                  >
+                    {statusLabel}
+                  </TextCaption>
+                </View>
                 <Ionicons name="open-outline" size={18} color={colors.tertiary} />
               </Pressable>
-              <Switch value={Boolean(a.is_featured)} onValueChange={(v) => setFeatured(a.id, v)} />
+              <Switch
+                value={Boolean(a.is_featured)}
+                disabled={!live && !a.is_featured}
+                onValueChange={(v) => setFeatured(a.id, v)}
+              />
             </View>
             {a.is_featured ? (
               <View>
@@ -282,8 +305,14 @@ export default function AdminFeaturedScreen() {
                 />
               </View>
             ) : null}
+            {!live && a.is_featured ? (
+              <TextCaption style={{ color: colors.textSecondary }}>
+                Turn off featured to remove this ended listing from the home carousel.
+              </TextCaption>
+            ) : null}
           </View>
-        )}
+          );
+        }}
       />
     </Screen>
   );
