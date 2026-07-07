@@ -1,4 +1,5 @@
-import { Image, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "@/src/components/ui/Badge";
 import { TextBody } from "@/src/components/ui/TextBody";
@@ -56,14 +57,12 @@ export function ManagedListingPreviewCard({
         overflow: "hidden",
       }}
     >
-      <View style={{ width: "100%", aspectRatio: 16 / 10, backgroundColor: colors.surfaceMuted }}>
-        {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-        ) : (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-            <Ionicons name="image-outline" size={36} color={colors.textMuted} />
-          </View>
-        )}
+      <ContainedListingPhoto
+        uri={imageUrl}
+        aspectRatio={16 / 10}
+        showBorder={false}
+        borderRadius={0}
+      >
         <View
           style={{
             position: "absolute",
@@ -76,7 +75,7 @@ export function ManagedListingPreviewCard({
         >
           <Badge title={statusPill} variant={live ? "accent" : "neutral"} compact />
         </View>
-      </View>
+      </ContainedListingPhoto>
 
       <View style={{ padding: space.lg, gap: space.md }}>
         <TextBody

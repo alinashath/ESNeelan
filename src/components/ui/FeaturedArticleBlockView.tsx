@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import {
-  Image,
   Linking,
   Pressable,
   Text,
@@ -8,6 +7,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { FeaturedArticleBlock } from "@/src/lib/featured-article-blocks";
@@ -221,16 +221,12 @@ function BlockRow({
             : { width: "100%" };
       return (
         <View style={outer}>
-          <Image
-            source={{ uri: url }}
+          <ContainedListingPhoto
+            uri={url}
+            aspectRatio={16 / 9}
+            borderRadius={placement === "bleed" ? 0 : radii.md}
+            showBorder={false}
             accessibilityLabel={block.alt?.trim() || "Article photo"}
-            style={{
-              width: "100%",
-              aspectRatio: 16 / 9,
-              borderRadius: placement === "bleed" ? 0 : radii.md,
-              backgroundColor: colors.surfaceMuted,
-            }}
-            resizeMode="cover"
           />
           {block.alt?.trim() ? (
             <TextCaption style={{ marginTop: space.xs, color: colors.textMuted }}>

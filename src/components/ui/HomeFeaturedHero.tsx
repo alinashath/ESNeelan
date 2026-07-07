@@ -12,7 +12,6 @@ import {
 } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  ImageBackground,
   Platform,
   Pressable,
   StyleSheet,
@@ -29,6 +28,7 @@ import Animated, {
 import type { AuctionCardAuction } from "./AuctionCard";
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
 import { AuctionSoldBookmark } from "./AuctionSoldBookmark";
+import { ContainedListingPhoto } from "./ContainedListingPhoto";
 import { ValueCurrency } from "./ValueCurrency";
 
 /** Hero scrim — legibility on photography (bottom-heavy). */
@@ -191,36 +191,19 @@ export function HomeFeaturedHero({
         if (Platform.OS === "web") setPhotoHovered(false);
       }}
     >
-      <View
-        style={{
-          width: "100%",
-          aspectRatio: mediaAspectRatio,
-          borderRadius: radii.lg,
-          overflow: "hidden",
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border,
-          backgroundColor: colors.surfaceMuted,
-          ...(fillParent && Platform.OS === "web"
+      <ContainedListingPhoto
+        uri={auction.image_url}
+        aspectRatio={mediaAspectRatio}
+        borderRadius={radii.lg}
+        photoAnimStyle={photoAnimStyle}
+        style={
+          fillParent && Platform.OS === "web"
             ? ({ boxSizing: "border-box" } as const)
-            : null),
-        }}
+            : undefined
+        }
       >
-        {auction.image_url ? (
-          <Animated.View style={[StyleSheet.absoluteFill, photoAnimStyle]}>
-            <ImageBackground
-              source={{ uri: auction.image_url }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            >
-              {media}
-            </ImageBackground>
-          </Animated.View>
-        ) : (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.surfaceMuted }]}>
-            {media}
-          </View>
-        )}
-      </View>
+        {media}
+      </ContainedListingPhoto>
     </Pressable>
   );
 }

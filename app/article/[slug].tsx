@@ -1,5 +1,6 @@
 import { useLayoutEffect } from "react";
-import { ActivityIndicator, Image, Text, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useFeaturedArticleBySlug } from "@/src/data/featured-articles";
 import { Screen } from "@/src/components/ui/Screen";
@@ -115,15 +116,12 @@ export default function FeaturedArticleScreen() {
           }}
         >
           {heroUri ? (
-            <Image
-              source={{ uri: heroUri }}
-              style={{
-                width: "100%",
-                height: 220,
-                backgroundColor: colors.surfaceMuted,
-                marginBottom: space.lg,
-              }}
-              resizeMode="cover"
+            <ContainedListingPhoto
+              uri={heroUri}
+              height={220}
+              showBorder={false}
+              borderRadius={0}
+              style={{ marginBottom: space.lg }}
             />
           ) : null}
           <View style={{ paddingHorizontal: space.lg }}>

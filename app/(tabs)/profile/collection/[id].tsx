@@ -3,10 +3,11 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   Pressable,
+  StyleSheet,
   View,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams, useFocusEffect, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -282,23 +283,19 @@ export default function ProfileCollectionEditorScreen() {
       <View style={{ marginTop: space.lg }}>
         <TextCaption style={{ marginBottom: space.xs, fontWeight: "600" }}>COVER (OPTIONAL)</TextCaption>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-          <View
-            style={{
-              width: 96,
-              height: 96,
-              borderRadius: radii.md,
-              overflow: "hidden",
-              backgroundColor: colors.surfaceMuted,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {data.cover_url ? (
-              <Image source={{ uri: data.cover_url }} style={{ width: 96, height: 96 }} resizeMode="cover" />
-            ) : (
-              <Ionicons name="image-outline" size={28} color={colors.textMuted} />
-            )}
-          </View>
+          <ContainedListingPhoto uri={data.cover_url} height={96} width={96} borderRadius={radii.md}>
+            {!data.cover_url ? (
+              <View
+                style={{
+                  ...StyleSheet.absoluteFill,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="image-outline" size={28} color={colors.textMuted} />
+              </View>
+            ) : null}
+          </ContainedListingPhoto>
           <View style={{ flex: 1, gap: space.sm }}>
             <ButtonSecondary
               title={uploadingCover ? "Working…" : data.cover_url ? "Change cover" : "Add cover"}
@@ -358,19 +355,12 @@ export default function ProfileCollectionEditorScreen() {
                 opacity: busy ? 0.6 : 1,
               })}
             >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: radii.sm,
-                  overflow: "hidden",
-                  backgroundColor: colors.surfaceMuted,
-                }}
-              >
-                {a.image_url ? (
-                  <Image source={{ uri: a.image_url }} style={{ width: 44, height: 44 }} resizeMode="cover" />
-                ) : null}
-              </View>
+              <ContainedListingPhoto
+                uri={a.image_url}
+                height={44}
+                width={44}
+                borderRadius={radii.sm}
+              />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <TextBody numberOfLines={2} style={{ fontWeight: "500" }}>
                   {String(a.title ?? "Listing")}

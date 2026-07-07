@@ -2,7 +2,7 @@ import { useImageMajorityColor } from "@/src/hooks/useImageMajorityColor";
 import { colors, palette, radii } from "@/src/theme/tokens";
 import type { ReactNode } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Image, Platform, StyleSheet, View } from "react-native";
+import { Image, Platform, StyleSheet, View, type DimensionValue } from "react-native";
 import type { AnimatedStyle } from "react-native-reanimated";
 import Animated from "react-native-reanimated";
 
@@ -11,20 +11,57 @@ const BLUR_FILL_RADIUS = Platform.select({ ios: 28, android: 18, web: 24, defaul
 
 type Props = {
   uri?: string | null;
-  height: number;
+  /** Fixed height — use alone or with `width`. */
+  height?: number;
+  /** Width ÷ height sizing when `height` is omitted. */
+  aspectRatio?: number;
+  width?: DimensionValue;
+  maxHeight?: number;
+  borderRadius?: number;
+  showBorder?: boolean;
+  borderColor?: string;
   photoAnimStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
   children?: ReactNode;
+  accessibilityLabel?: string;
+  style?: StyleProp<ViewStyle>;
 };
 
+function containerSizeStyle({
+  height,
+  aspectRatio,
+  width = "100%",
+  maxHeight,
+}: Pick<Props, "height" | "aspectRatio" | "width" | "maxHeight">): ViewStyle {
+  if (height != null) {
+    return { width, height, ...(maxHeight != null ? { maxHeight } : null) };
+  }
+  if (aspectRatio != null) {
+    return {
+      width,
+      aspectRatio,
+      ...(maxHeight != null ? { maxHeight } : null),
+    };
+  }
+  return { width, height: 200 };
+}
+
 /**
- * Listing photo — `contain` fit with letterbox fill from the image majority color (web)
+ * Photo — `contain` fit with letterbox fill from the image majority color (web)
  * or a blurred cover while color is loading / unavailable.
  */
 export function ContainedListingPhoto({
   uri,
   height,
+  aspectRatio,
+  width = "100%",
+  maxHeight,
+  borderRadius = radii.md,
+  showBorder = true,
+  borderColor = colors.border,
   photoAnimStyle,
   children,
+  accessibilityLabel,
+  style,
 }: Props) {
   const majorityColor = useImageMajorityColor(uri);
   const backgroundColor = majorityColor ?? colors.surfaceMuted;
@@ -32,15 +69,22 @@ export function ContainedListingPhoto({
 
   return (
     <View
-      style={{
-        width: "100%",
-        height,
-        borderRadius: radii.md,
-        overflow: "hidden",
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.border,
-        backgroundColor,
-      }}
+      accessibilityLabel={accessibilityLabel}
+      style={[
+        containerSizeStyle({ height, aspectRatio, width, maxHeight }),
+        {
+          borderRadius,
+          overflow: "hidden",
+          backgroundColor,
+          ...(showBorder
+            ? {
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor,
+              }
+            : null),
+        },
+        style,
+      ]}
     >
       {uri ? (
         <>
@@ -61,6 +105,7 @@ export function ContainedListingPhoto({
               source={{ uri }}
               style={{ width: "100%", height: "100%" }}
               resizeMode="contain"
+              accessibilityLabel={accessibilityLabel}
             />
           </Animated.View>
         </>

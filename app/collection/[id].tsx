@@ -2,11 +2,11 @@ import { useCallback, useLayoutEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   RefreshControl,
   View,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, useLocalSearchParams, useNavigation, useFocusEffect, type Href } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextTitle } from "@/src/components/ui/TextTitle";
@@ -51,16 +51,12 @@ export default function PublicCollectionScreen() {
   const header = data ? (
     <View style={{ marginBottom: space.lg }}>
       {data.cover_url ? (
-        <Image
-          source={{ uri: data.cover_url }}
-          style={{
-            width: "100%",
-            height: 180,
-            borderRadius: radii.lg,
-            marginBottom: space.md,
-            backgroundColor: colors.surfaceMuted,
-          }}
-          resizeMode="cover"
+        <ContainedListingPhoto
+          uri={data.cover_url}
+          height={180}
+          borderRadius={radii.lg}
+          showBorder={false}
+          style={{ marginBottom: space.md }}
         />
       ) : null}
       <TextTitle style={{ letterSpacing: -0.3 }}>{data.name}</TextTitle>

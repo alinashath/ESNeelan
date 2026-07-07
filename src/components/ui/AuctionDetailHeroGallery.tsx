@@ -13,6 +13,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Props = {
@@ -119,18 +120,12 @@ export function AuctionDetailHeroGallery({
           accessibilityRole="button"
           accessibilityLabel="View photos full screen"
         >
-          <Image
-            source={{ uri }}
-            style={{
-              width: "100%",
-              aspectRatio: 3 / 4,
-              maxHeight: Platform.OS === "web" ? 720 : 560,
-              borderRadius: radii.xl,
-              borderWidth: 1,
-              borderColor: colors.hairlineSoft,
-              backgroundColor: colors.surfaceMuted,
-            }}
-            resizeMode="cover"
+          <ContainedListingPhoto
+            uri={uri}
+            aspectRatio={3 / 4}
+            maxHeight={Platform.OS === "web" ? 720 : 560}
+            borderRadius={radii.xl}
+            borderColor={colors.hairlineSoft}
           />
         </Pressable>
 

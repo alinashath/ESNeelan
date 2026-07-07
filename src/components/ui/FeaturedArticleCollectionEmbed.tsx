@@ -1,10 +1,11 @@
 import {
   ActivityIndicator,
-  Image,
   Pressable,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSellerCollectionDetail, type CollectionAuctionBrief } from "@/src/data/seller-collections";
@@ -37,25 +38,19 @@ function GalleryTile({ item, onPress }: { item: CollectionAuctionBrief; onPress:
         opacity: pressed ? 0.9 : 1,
       })}
     >
-      <View
-        style={{
-          width: "100%",
-          aspectRatio: 1,
-          borderRadius: radii.md,
-          overflow: "hidden",
-          backgroundColor: colors.surfaceMuted,
-          borderWidth: 1,
-          borderColor: colors.border,
-        }}
-      >
-        {item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-        ) : (
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <ContainedListingPhoto uri={item.image_url} aspectRatio={1} borderRadius={radii.md}>
+        {!item.image_url ? (
+          <View
+            style={{
+              ...StyleSheet.absoluteFill,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Ionicons name="image-outline" size={28} color={colors.textMuted} />
           </View>
-        )}
-      </View>
+        ) : null}
+      </ContainedListingPhoto>
       <Text
         numberOfLines={2}
         style={{
@@ -142,10 +137,11 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
       }}
     >
       {heroUri ? (
-        <Image
-          source={{ uri: heroUri }}
-          style={{ width: "100%", height: 160, backgroundColor: colors.surfaceMuted }}
-          resizeMode="cover"
+        <ContainedListingPhoto
+          uri={heroUri}
+          height={160}
+          showBorder={false}
+          borderRadius={0}
         />
       ) : null}
 

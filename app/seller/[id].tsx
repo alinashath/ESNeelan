@@ -6,8 +6,10 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   View,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams, useNavigation, useFocusEffect, type Href } from "expo-router";
 import {
@@ -340,26 +342,24 @@ export default function SellerStorefrontScreen() {
                   backgroundColor: pressed ? colors.surfaceMuted : colors.background,
                 })}
               >
-                <View style={{ height: 88, backgroundColor: colors.surfaceMuted }}>
-                  {col.cover_url ? (
-                    <Image
-                      source={{ uri: col.cover_url }}
-                      style={{ width: "100%", height: "100%" }}
-                      resizeMode="cover"
-                      accessibilityIgnoresInvertColors
-                    />
-                  ) : (
+                <ContainedListingPhoto
+                  uri={col.cover_url}
+                  height={88}
+                  showBorder={false}
+                  borderRadius={0}
+                >
+                  {!col.cover_url ? (
                     <View
                       style={{
-                        flex: 1,
+                        ...StyleSheet.absoluteFill,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
                       <Ionicons name="albums-outline" size={28} color={colors.textMuted} />
                     </View>
-                  )}
-                </View>
+                  ) : null}
+                </ContainedListingPhoto>
                 <View style={{ padding: space.sm }}>
                   <TextCaption numberOfLines={2} style={{ fontWeight: "600", fontSize: 12 }}>
                     {col.name}

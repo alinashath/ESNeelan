@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, useFocusEffect, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -110,10 +110,11 @@ export function HomeFeaturedArticles() {
             })}
           >
             {a.cover_display_url ? (
-              <Image
-                source={{ uri: a.cover_display_url }}
-                style={{ width: "100%", height: imgH, backgroundColor: colors.surfaceMuted }}
-                resizeMode="cover"
+              <ContainedListingPhoto
+                uri={a.cover_display_url}
+                height={imgH}
+                showBorder={false}
+                borderRadius={0}
               />
             ) : (
               <View

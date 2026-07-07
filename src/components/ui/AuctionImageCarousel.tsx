@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, radii, space } from "@/src/theme/tokens";
+import { ContainedListingPhoto } from "./ContainedListingPhoto";
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
 import { TextCaption } from "./TextCaption";
 
@@ -81,11 +82,7 @@ export function AuctionImageCarousel({
         accessibilityRole="button"
         accessibilityLabel="View photos full screen"
       >
-        <Image
-          source={{ uri }}
-          style={{ width: "100%", height }}
-          resizeMode="cover"
-        />
+        <ContainedListingPhoto uri={uri} height={height} showBorder={false} borderRadius={0} />
       </Pressable>
       {showLiveBadge ? (
         <View

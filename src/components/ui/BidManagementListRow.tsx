@@ -1,5 +1,5 @@
-import { Image, Pressable, Text, useWindowDimensions, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { colors, fontFamilies, radii, space, typography } from "@/src/theme/tokens";
 
 const THUMB = 92;
@@ -215,46 +215,15 @@ export function BidManagementListRow({
       {compact ? (
         <>
           <View style={{ flexDirection: "row", gap: space.md, alignItems: "flex-start" }}>
-            <View
-              style={{
-                width: THUMB,
-                height: THUMB,
-                borderRadius: radii.md,
-                overflow: "hidden",
-                backgroundColor: colors.surfaceMuted,
-              }}
-            >
-              {imageUrl ? (
-                <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-              ) : (
-                <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-                  <Ionicons name="image-outline" size={28} color={colors.textMuted} />
-                </View>
-              )}
-            </View>
+            <ContainedListingPhoto uri={imageUrl} height={THUMB} width={THUMB} borderRadius={radii.md} />
             {body}
           </View>
           {actions}
         </>
       ) : (
         <View style={{ flexDirection: "row", gap: space.md, alignItems: "stretch" }}>
-          <View
-            style={{
-              width: THUMB,
-              height: THUMB,
-              borderRadius: radii.md,
-              overflow: "hidden",
-              backgroundColor: colors.surfaceMuted,
-              flexShrink: 0,
-            }}
-          >
-            {imageUrl ? (
-              <Image source={{ uri: imageUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-            ) : (
-              <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-                <Ionicons name="image-outline" size={28} color={colors.textMuted} />
-              </View>
-            )}
+          <View style={{ flexShrink: 0 }}>
+            <ContainedListingPhoto uri={imageUrl} height={THUMB} width={THUMB} borderRadius={radii.md} />
           </View>
           {body}
           {actions}

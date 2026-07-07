@@ -1,4 +1,5 @@
-import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuctionEmbedById } from "@/src/data/auctions";
@@ -115,21 +116,12 @@ function ArticleAuctionRow({
         opacity: pressed ? 0.92 : 1,
       })}
     >
-      <View
-        style={{
-          width: 76,
-          height: 76,
-          borderRadius: radii.sm,
-          overflow: "hidden",
-          backgroundColor: colors.surfaceMuted,
-          borderWidth: 1,
-          borderColor: colors.border,
-        }}
-      >
-        {auction.image_url ? (
-          <Image source={{ uri: auction.image_url }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-        ) : null}
-      </View>
+      <ContainedListingPhoto
+        uri={auction.image_url}
+        height={76}
+        width={76}
+        borderRadius={radii.sm}
+      />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text
           numberOfLines={2}

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -9,6 +8,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, useFocusEffect, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -55,24 +55,13 @@ type StoryCardProps = {
 function StoryCard({ item, layoutVariant, width }: StoryCardProps) {
   const thumb =
     item.cover_display_url ? (
-      <Image
-        source={{ uri: item.cover_display_url }}
-        style={
-          layoutVariant === "grid"
-            ? {
-                width: "100%",
-                aspectRatio: 16 / 9,
-                borderRadius: radii.sm,
-                backgroundColor: colors.surfaceMuted,
-              }
-            : {
-                width: 112,
-                height: 80,
-                borderRadius: radii.sm,
-                backgroundColor: colors.surfaceMuted,
-              }
-        }
-        resizeMode="cover"
+      <ContainedListingPhoto
+        uri={item.cover_display_url}
+        aspectRatio={layoutVariant === "grid" ? 16 / 9 : undefined}
+        height={layoutVariant === "grid" ? undefined : 80}
+        width={layoutVariant === "grid" ? "100%" : 112}
+        borderRadius={radii.sm}
+        showBorder={false}
       />
     ) : (
       <View
@@ -280,10 +269,11 @@ export default function ArtistsScreen() {
             style={({ pressed }) => ({ opacity: pressed ? 0.94 : 1 })}
           >
             {latest.cover_display_url ? (
-              <Image
-                source={{ uri: latest.cover_display_url }}
-                style={{ width: "100%", aspectRatio: 16 / 9, backgroundColor: colors.surfaceMuted }}
-                resizeMode="cover"
+              <ContainedListingPhoto
+                uri={latest.cover_display_url}
+                aspectRatio={16 / 9}
+                showBorder={false}
+                borderRadius={0}
               />
             ) : (
               <View

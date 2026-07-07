@@ -2,7 +2,8 @@ import { isAuctionLiveForUi } from "@/src/lib/auction-live";
 import { colors, fontMono, radii, shadows, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { TextBody } from "./TextBody";
@@ -142,14 +143,7 @@ export function MyActivityActiveBidCard({
 
   return (
     <View style={{ ...cardOuter }}>
-      <View style={{ height: IMG_H, backgroundColor: colors.surfaceMuted }}>
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-        ) : null}
+      <ContainedListingPhoto uri={imageUrl} height={IMG_H} showBorder={false} borderRadius={0}>
         {liveUi ? (
           soon ? (
             <View
@@ -242,7 +236,7 @@ export function MyActivityActiveBidCard({
             </Text>
           </View>
         )}
-      </View>
+      </ContainedListingPhoto>
 
       <View style={{ padding: space.lg }}>
         <View
@@ -387,14 +381,7 @@ export function MyActivityListingCard({
   const live = isAuctionLiveForUi(status, endsAt);
   return (
     <View style={{ ...cardOuter }}>
-      <View style={{ height: IMG_H, backgroundColor: colors.surfaceMuted }}>
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-        ) : null}
+      <ContainedListingPhoto uri={imageUrl} height={IMG_H} showBorder={false} borderRadius={0}>
         <View
           style={{
             position: "absolute",
@@ -419,7 +406,7 @@ export function MyActivityListingCard({
             {listingStatusLabel(status, endsAt)}
           </Text>
         </View>
-      </View>
+      </ContainedListingPhoto>
 
       <View style={{ padding: space.lg }}>
         <TextBody style={{ fontWeight: "600", fontSize: 17 }} numberOfLines={2}>
@@ -506,15 +493,7 @@ export function MyActivityWonCard({
 }: WonProps) {
   return (
     <View style={{ ...cardOuter }}>
-      <View style={{ height: IMG_H, backgroundColor: colors.surfaceMuted }}>
-        {imageUrl ? (
-          <Image
-            source={{ uri: imageUrl }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-        ) : null}
-      </View>
+      <ContainedListingPhoto uri={imageUrl} height={IMG_H} showBorder={false} borderRadius={0} />
       <View style={{ padding: space.lg }}>
         <TextBody style={{ fontWeight: "600", fontSize: 17 }} numberOfLines={2}>
           {title}

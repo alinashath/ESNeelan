@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 import { router, useFocusEffect, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/src/components/ui/Screen";
@@ -110,23 +111,24 @@ export default function ProfileCollectionsListScreen() {
                 backgroundColor: pressed ? colors.surfaceMuted : colors.background,
               })}
             >
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: radii.md,
-                  overflow: "hidden",
-                  backgroundColor: colors.surfaceMuted,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+              <ContainedListingPhoto
+                uri={item.cover_url}
+                height={56}
+                width={56}
+                borderRadius={radii.md}
               >
-                {item.cover_url ? (
-                  <Image source={{ uri: item.cover_url }} style={{ width: 56, height: 56 }} resizeMode="cover" />
-                ) : (
-                  <Ionicons name="image-outline" size={22} color={colors.textMuted} />
-                )}
-              </View>
+                {!item.cover_url ? (
+                  <View
+                    style={{
+                      ...StyleSheet.absoluteFill,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="image-outline" size={22} color={colors.textMuted} />
+                  </View>
+                ) : null}
+              </ContainedListingPhoto>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <TextBody style={{ fontWeight: "600" }} numberOfLines={2}>
                   {item.name}
