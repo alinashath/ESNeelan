@@ -6,7 +6,6 @@ import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHea
 import { HomeFeaturedArticles } from "@/src/components/ui/HomeFeaturedArticles";
 import { HomeFeaturedCarousel } from "@/src/components/ui/HomeFeaturedCarousel";
 import { HomeMarketingFooter } from "@/src/components/ui/HomeMarketingFooter";
-import { HomeTopSellers } from "@/src/components/ui/HomeTopSellers";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
 import { Screen } from "@/src/components/ui/Screen";
 import { SearchField } from "@/src/components/ui/SearchField";
@@ -125,8 +124,6 @@ export default function HomeScreen() {
       ) : null}
 
       <HomeFeaturedArticles />
-
-      <HomeTopSellers columnWidth={colW} gap={gap} multiColumn={multiCol} />
 
       <View
         style={{

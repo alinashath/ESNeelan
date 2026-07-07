@@ -1,7 +1,8 @@
-import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import type { RankedSellerRow } from "@/src/data/sellers";
 import { accentWash, colors, fontFamilies, radii, space, typography } from "@/src/theme/tokens";
 import { TextCaption } from "@/src/components/ui/TextCaption";
+import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
 
 type Props = {
   seller: RankedSellerRow;
@@ -11,6 +12,32 @@ type Props = {
   /** Match `AuctionCard`: no extra bottom margin when in grid row. */
   inGrid?: boolean;
 };
+
+const sellerBadge = (
+  <View
+    style={{
+      position: "absolute",
+      top: space.sm,
+      left: space.sm,
+      backgroundColor: colors.primary,
+      paddingHorizontal: space.md,
+      paddingVertical: 6,
+      borderRadius: radii.pill,
+    }}
+  >
+    <Text
+      style={{
+        color: colors.onAccent,
+        fontWeight: "400",
+        fontSize: 10,
+        letterSpacing: 0.8,
+        fontFamily: fontFamilies.body,
+      }}
+    >
+      SELLER
+    </Text>
+  </View>
+);
 
 /**
  * Seller tile sized like home **Trending** `AuctionCard` (160 / 200 image, same padding & chrome).
@@ -24,70 +51,33 @@ export function SellerTrendingCard({ seller, onPress, compact, inGrid }: Props) 
   const padBottom = compact ? space.md : space.xxl;
   const n = seller.active_listing_count;
 
-  const imageBlock = (
+  const imageBlock = seller.avatar_url ? (
+    <ContainedListingPhoto uri={seller.avatar_url} height={imgH}>
+      {sellerBadge}
+    </ContainedListingPhoto>
+  ) : (
     <View
       style={{
         width: "100%",
         height: imgH,
         borderRadius: radii.md,
         overflow: "hidden",
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.border,
-        backgroundColor: colors.surfaceMuted,
+        backgroundColor: colors.chipIdle,
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      {seller.avatar_url ? (
-        <Image
-          source={{ uri: seller.avatar_url }}
-          style={{ width: "100%", height: "100%" }}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
-        />
-      ) : (
-        <View
-          style={{
-            width: "100%",
-            height: "100%",
-            backgroundColor: colors.chipIdle,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: fontFamilies.displayRegular,
-              fontSize: compact ? 44 : 56,
-              fontWeight: "400",
-              color: colors.primary,
-            }}
-          >
-            {initial}
-          </Text>
-        </View>
-      )}
-      <View
+      <Text
         style={{
-          position: "absolute",
-          top: space.sm,
-          left: space.sm,
-          backgroundColor: colors.primary,
-          paddingHorizontal: space.md,
-          paddingVertical: 6,
-          borderRadius: radii.pill,
+          fontFamily: fontFamilies.displayRegular,
+          fontSize: compact ? 44 : 56,
+          fontWeight: "400",
+          color: colors.primary,
         }}
       >
-        <Text
-          style={{
-            color: colors.onAccent,
-            fontWeight: "400",
-            fontSize: 10,
-            letterSpacing: 0.8,
-            fontFamily: fontFamilies.body,
-          }}
-        >
-          SELLER
-        </Text>
-      </View>
+        {initial}
+      </Text>
+      {sellerBadge}
     </View>
   );
 

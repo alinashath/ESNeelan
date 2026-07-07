@@ -17,6 +17,16 @@ import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
 
+/** Uniform story card chrome — every tile same width and total height. */
+const STORY_CARD_W = 280;
+const STORY_IMG_H = 140;
+const STORY_BODY_H = 176;
+const STORY_TITLE_LH = 22;
+const STORY_TITLE_LINES = 2;
+const STORY_EXCERPT_LH = 18;
+const STORY_EXCERPT_LINES = 3;
+const STORY_SPOTLIGHT_H = 14;
+
 export function HomeFeaturedArticles() {
   const { data, isLoading, refetch } = usePublishedFeaturedArticlesForHome();
 
@@ -82,16 +92,13 @@ export function HomeFeaturedArticles() {
       >
         {list.map((a, index) => {
           const lead = index === 0;
-          const cardW = lead ? 300 : 260;
-          const imgH = lead ? 140 : 120;
-          const titleSize = lead ? 18 : 17;
-          const titleLh = lead ? 24 : 22;
           return (
           <Pressable
             key={a.id}
             onPress={() => router.push(`/article/${encodeURIComponent(a.slug)}` as Href)}
             style={({ pressed }) => ({
-              width: cardW,
+              width: STORY_CARD_W,
+              height: STORY_IMG_H + STORY_BODY_H,
               borderRadius: radii.md,
               borderWidth: lead ? 0 : 1,
               borderColor: colors.border,
@@ -112,56 +119,76 @@ export function HomeFeaturedArticles() {
             {a.cover_display_url ? (
               <ContainedListingPhoto
                 uri={a.cover_display_url}
-                height={imgH}
+                height={STORY_IMG_H}
                 showBorder={false}
                 borderRadius={0}
               />
             ) : (
               <View
                 style={{
-                  height: imgH,
+                  height: STORY_IMG_H,
                   backgroundColor: colors.accentTint,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="color-palette-outline" size={lead ? 40 : 36} color={colors.primary} />
+                <Ionicons name="color-palette-outline" size={40} color={colors.primary} />
               </View>
             )}
-            <View style={{ padding: space.md }}>
-              {lead ? (
-                <TextCaption
+            <View
+              style={{
+                padding: space.md,
+                height: STORY_BODY_H,
+                justifyContent: "space-between",
+              }}
+            >
+              <View>
+                <View
                   style={{
+                    height: STORY_SPOTLIGHT_H,
                     marginBottom: space.xs,
-                    fontWeight: "700",
-                    letterSpacing: 0.8,
-                    color: colors.accent,
-                    fontSize: 10,
+                    justifyContent: "center",
                   }}
                 >
-                  SPOTLIGHT
+                  {lead ? (
+                    <TextCaption
+                      style={{
+                        fontWeight: "700",
+                        letterSpacing: 0.8,
+                        color: colors.accent,
+                        fontSize: 10,
+                      }}
+                    >
+                      SPOTLIGHT
+                    </TextCaption>
+                  ) : null}
+                </View>
+                <Text
+                  numberOfLines={STORY_TITLE_LINES}
+                  style={{
+                    fontFamily: fontFamilies.headingSerif,
+                    fontSize: 17,
+                    lineHeight: STORY_TITLE_LH,
+                    height: STORY_TITLE_LH * STORY_TITLE_LINES,
+                    fontWeight: "600",
+                    color: colors.text,
+                  }}
+                >
+                  {a.title}
+                </Text>
+                <TextCaption
+                  numberOfLines={STORY_EXCERPT_LINES}
+                  style={{
+                    marginTop: space.xs,
+                    lineHeight: STORY_EXCERPT_LH,
+                    minHeight: STORY_EXCERPT_LH * STORY_EXCERPT_LINES,
+                  }}
+                >
+                  {a.excerpt?.trim() ? a.excerpt : " "}
                 </TextCaption>
-              ) : null}
-              <Text
-                numberOfLines={2}
-                style={{
-                  fontFamily: fontFamilies.headingSerif,
-                  fontSize: titleSize,
-                  lineHeight: titleLh,
-                  fontWeight: "600",
-                  color: colors.text,
-                }}
-              >
-                {a.title}
-              </Text>
-              {a.excerpt ? (
-                <TextCaption numberOfLines={3} style={{ marginTop: space.xs, lineHeight: 18 }}>
-                  {a.excerpt}
-                </TextCaption>
-              ) : null}
+              </View>
               <View
                 style={{
-                  marginTop: space.sm,
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
