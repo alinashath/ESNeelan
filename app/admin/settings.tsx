@@ -11,6 +11,7 @@ import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextLabel } from "@/src/components/ui/TextLabel";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { colors, radii, space } from "@/src/theme/tokens";
+import { MVR_SIGN } from "@/src/lib/format-money";
 
 export default function AdminSettingsScreen() {
   const { profile } = useAuth();
@@ -128,7 +129,7 @@ export default function AdminSettingsScreen() {
         Current saved value: {String(currentFee)}%. Use 0 for no fee messaging.
       </TextCaption>
 
-      <TextLabel style={{ marginTop: space.xl }}>FEATURED LISTING FEE (MVR)</TextLabel>
+      <TextLabel style={{ marginTop: space.xl }}>FEATURED LISTING FEE ({MVR_SIGN})</TextLabel>
       <TextInput
         value={featuredAmtInput}
         onChangeText={(t) => setFeaturedAmtDraft(t)}

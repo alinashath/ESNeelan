@@ -24,9 +24,10 @@ import { Screen } from "@/src/components/ui/Screen";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextTitle } from "@/src/components/ui/TextTitle";
+import { ValueCurrency } from "@/src/components/ui/ValueCurrency";
 import { auctionDetailStatusText, isAuctionLiveForUi } from "@/src/lib/auction-live";
 import { auctionStatusLabel } from "@/src/lib/auction-status-label";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 import { deliveryOptionLabel } from "@/src/lib/listing-delivery-options";
 import { itemConditionLabel } from "@/src/lib/listing-item-condition";
 import { listingAttributeChips } from "@/src/lib/listing-attributes-display";
@@ -293,7 +294,7 @@ export default function MyAuctionDetailScreen() {
   const canEditListing = status === "draft" || status === "pending_approval";
   const hideHeroActions = canEditListing;
   const listingShareUrl = buildAuctionPublicUrl(id);
-  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
+  const listingShareMessage = `${title} — ${formatMoneyWithSign(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
 
   async function openFeaturedFeeScreen() {
     const needRequest =
@@ -466,24 +467,11 @@ export default function MyAuctionDetailScreen() {
               >
                 {liveUi ? "Current bid" : "Current / starting"}
               </TextCaption>
-              <TextBody
-                style={{
-                  marginTop: space.xs,
-                  fontSize: 22,
-                  lineHeight: 28,
-                  fontWeight: "600",
-                  fontFamily: fontFamilies.bodySemiBold,
-                  color: colors.primary,
-                  letterSpacing: -0.3,
-                }}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
-              >
-                MVR {formatMoneyAmount(Number(bid))}
-              </TextBody>
+              <View style={{ marginTop: space.xs }}>
+                <ValueCurrency amount={Number(bid)} size="hero" amountFontWeight="600" />
+              </View>
               <TextCaption style={{ marginTop: space.xs, color: colors.textSecondary }}>
-                {bidCount} {bidCount === 1 ? "bid" : "bids"} · starts MVR {formatMoneyAmount(startingPrice)}
+                {bidCount} {bidCount === 1 ? "bid" : "bids"} · starts {formatMoneyWithSign(startingPrice)}
               </TextCaption>
             </View>
             {liveUi && endsAt ? (
@@ -563,7 +551,7 @@ export default function MyAuctionDetailScreen() {
           ) : null}
 
           <View style={{ marginTop: space.lg, flexDirection: "row", flexWrap: "wrap", gap: space.md }}>
-            <ManageFact label="Min bid step" value={`MVR ${formatMoneyAmount(minInc)}`} half />
+            <ManageFact label="Min bid step" value={formatMoneyWithSign(minInc)} half />
             <ManageFact label="Item condition" value={itemCondition || "—"} half />
           </View>
           <ManageFact label="Location / handoff" value={loc.trim() || "—"} />

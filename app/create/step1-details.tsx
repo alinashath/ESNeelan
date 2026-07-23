@@ -5,6 +5,7 @@ import { DateTimeField } from "@/src/components/ui/DateTimeField";
 import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { ListingStructuredFields } from "@/src/components/ui/ListingStructuredFields";
 import { NumericStepper } from "@/src/components/ui/NumericStepper";
+import { RufiyaaSign } from "@/src/components/ui/RufiyaaSign";
 import { Screen } from "@/src/components/ui/Screen";
 import { SearchableMultiCategoryPicker } from "@/src/components/ui/SearchableMultiCategoryPicker";
 import { TextArea } from "@/src/components/ui/TextArea";
@@ -35,6 +36,7 @@ import {
   LISTING_PAYMENT_INSTRUCTIONS_CAPTION,
 } from "@/src/lib/listing-payment-disclaimer";
 import { storagePublicUrl } from "@/src/lib/storage-url";
+import { MVR_SIGN } from "@/src/lib/format-money";
 import { supabase } from "@/src/lib/supabase";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { colors, radii, space } from "@/src/theme/tokens";
@@ -662,7 +664,7 @@ export default function CreateAuctionStep1Details() {
 
       {subStep === 3 ? (
         <View style={{ marginBottom: space.lg }}>
-          <TextLabel style={{ marginBottom: space.sm }}>Starting price (MVR)</TextLabel>
+          <TextLabel style={{ marginBottom: space.sm }}>Starting price ({MVR_SIGN})</TextLabel>
           <View
             style={{
               borderWidth: 1,
@@ -675,9 +677,9 @@ export default function CreateAuctionStep1Details() {
               backgroundColor: colors.background,
             }}
           >
-            <TextBody style={{ fontWeight: "600", color: colors.textMuted, marginRight: space.xs }}>
-              MVR
-            </TextBody>
+            <View style={{ marginRight: space.xs, justifyContent: "center" }}>
+              <RufiyaaSign size={15} color={colors.text} />
+            </View>
             <TextInput
               keyboardType="decimal-pad"
               value={startingPrice}
@@ -744,7 +746,7 @@ export default function CreateAuctionStep1Details() {
               <TextBody style={{ fontSize: 22, fontWeight: "600" }}>+</TextBody>
             </Pressable>
             <TextBody style={{ flex: 1, color: colors.textMuted, fontSize: 13 }}>
-              +/− moves the start price by {priceJump} MVR each tap.
+              +/− moves the start price by {MVR_SIGN} {priceJump} each tap.
             </TextBody>
           </View>
 
@@ -769,7 +771,7 @@ export default function CreateAuctionStep1Details() {
           </View>
           <View style={{ marginBottom: space.lg }}>
             <NumericStepper
-              label="Minimum bid increment (MVR)"
+              label={`Minimum bid increment (${MVR_SIGN})`}
               value={minInc}
               min={1}
               step={incStep}
@@ -777,7 +779,7 @@ export default function CreateAuctionStep1Details() {
             />
           </View>
 
-          <TextLabel style={{ marginBottom: space.sm }}>Buy Now price (optional, MVR)</TextLabel>
+          <TextLabel style={{ marginBottom: space.sm }}>Buy Now price (optional, {MVR_SIGN})</TextLabel>
           <TextCaption style={{ marginBottom: space.sm, color: colors.textMuted }}>
             Leave empty to disable. When set, buyers can request purchase at this price; you choose whether to accept.
           </TextCaption>
@@ -793,9 +795,9 @@ export default function CreateAuctionStep1Details() {
               backgroundColor: colors.background,
             }}
           >
-            <TextBody style={{ fontWeight: "600", color: colors.textMuted, marginRight: space.xs }}>
-              MVR
-            </TextBody>
+            <View style={{ marginRight: space.xs, justifyContent: "center" }}>
+              <RufiyaaSign size={15} color={colors.text} />
+            </View>
             <TextInput
               keyboardType="decimal-pad"
               value={buyNowPrice}

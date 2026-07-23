@@ -4,17 +4,17 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 
 ## ES Neelan UI
 
-**Default theme** follows the **Stitch** ES Neelan home handoff (see `docs/design-stitch-home.md`) and `DESIGN-pinterest.md` for motion/spacing vocabulary where useful. Brand red **`#e60023`** (`colors.primary` / `colors.accent`). Logo mark: `assets/images/brand-icon.png`.
+**Default theme** follows **Harper’s Bazaar Editorial** (see `docs/design-harpers-editorial.md`). Monochrome-first: black primary ink/CTAs, white surfaces, light gray structure. Logo mark: `assets/images/brand-icon.png`.
 
-Use **`docs/design-stitch-home.md`** + **`DESIGN-pinterest.md`** for product chrome, marketing layout, and spacing/motion vocabulary. **`BIDMASTER_DESIGN.md`** and **`DESIGN-apple.md`** are historical references only.
+Use **`docs/design-harpers-editorial.md`** for product chrome, layout, and component recipes. **`docs/design-stitch-home.md`**, **`DESIGN-pinterest.md`**, **`BIDMASTER_DESIGN.md`**, and **`DESIGN-apple.md`** are historical references only.
 
-- **Tokens:** `src/theme/tokens.ts` — Stitch palette, radii, surfaces; **Inter** for body/UI; **`headingSerif`** for display-level type.
-- **Typography:** **Inter** for body, captions, and controls; **`headingSerif`** (Georgia stack on web) for `typography.display` / `title` / `section` / `cardTitle` and featured lot titles — aligned with Stitch editorial.
-- **Principles:** one saturated red on light surfaces for primary CTAs and active nav emphasis; **minimal shadow** on lists; success `#2ECC8A` and danger `#D92D20` for auction semantics.
+- **Tokens:** `src/theme/tokens.ts` — editorial palette, tight radii, flat elevation; Helvetica-like sans for body/UI; **`headingSerif`** (Libre Baskerville / Georgia) for story and lot titles.
+- **Typography:** sans for masthead/display, labels, nav, and body; **`headingSerif`** for `typography.title` / `section` / `cardTitle` and featured lot titles.
+- **Principles:** black on white for primary CTAs and active emphasis; borders before shadows; success `#2ECC8A` and error `#B00020` only for auction / validation semantics.
 
-### Stitch / Figma MCP
+### Design handoff
 
-When Stitch MCP is unavailable, implement from `docs/design-stitch-home.md`, exported HTML, and `DESIGN-pinterest.md`.
+When implementing UI, prefer `docs/design-harpers-editorial.md` over older Stitch/Pinterest notes.
 
 ## Mobile UI / UX
 

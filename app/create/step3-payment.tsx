@@ -16,7 +16,7 @@ import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { colors, radii, space } from "@/src/theme/tokens";
 import { useState } from "react";
 import { useAppSettings } from "@/src/data/app-settings";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 
 export default function CreateAuctionStep3Payment() {
   const { id: rawId } = useLocalSearchParams<{ id?: string | string[] }>();
@@ -157,7 +157,7 @@ export default function CreateAuctionStep3Payment() {
         Step 3 of 3 — pay, upload proof, then submit. An admin verifies before your listing joins the queue.
       </TextBody>
       <View style={{ marginBottom: space.md, gap: space.sm }}>
-        <TextBody style={{ color: colors.text }}>1. Transfer MVR {formatMoneyAmount(feeAmt)} to the account below.</TextBody>
+        <TextBody style={{ color: colors.text }}>1. Transfer {formatMoneyWithSign(feeAmt)} to the account below.</TextBody>
         <TextBody style={{ color: colors.text }}>2. Save a screenshot or receipt image on your phone.</TextBody>
         <TextBody style={{ color: colors.text }}>3. Upload it here and tap submit for approval.</TextBody>
       </View>

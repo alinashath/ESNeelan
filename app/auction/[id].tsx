@@ -16,7 +16,7 @@ import { SellerCard } from "@/src/components/ui/SellerCard";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextTitle } from "@/src/components/ui/TextTitle";
-import {
+import { ValueCurrency } from "@/src/components/ui/ValueCurrency";import {
     useAuctionBids,
     useAuctionDetail,
     useCuratedCategories,
@@ -27,7 +27,7 @@ import {
     auctionDetailStatusText,
     isAuctionLiveForUi,
 } from "@/src/lib/auction-live";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyAmount, formatMoneyWithSign, MVR_SIGN } from "@/src/lib/format-money";
 import {
     BIDMASTER_WINNER_TERMS_VERSION,
     formatMaldivesPhoneDisplay,
@@ -198,10 +198,13 @@ export default function AuctionDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
-    // Only depend on `id`: refetch/refetchBids identities change often and would re-run this
-    // effect after subscribe(), causing "cannot add postgres_changes callbacks after subscribe()".
+    // Unique topic per mount: supabase.channel(name) reuses an existing instance, and
+    // adding postgres_changes after subscribe() throws (StrictMode remounts +
+    // feedback → replace back to this screen race removeChannel). Filters, not the
+    // topic, scope events.
+    const topic = `auction-${id}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const ch = supabase
-      .channel(`auction-${id}`)
+      .channel(topic)
       .on(
         "postgres_changes",
         {
@@ -231,7 +234,7 @@ export default function AuctionDetailScreen() {
       )
       .subscribe();
     return () => {
-      supabase.removeChannel(ch);
+      void supabase.removeChannel(ch);
     };
   }, [id]);
 
@@ -312,7 +315,7 @@ export default function AuctionDetailScreen() {
         min_required: res.min_required != null ? Number(res.min_required) : undefined,
         message:
           res?.error === "below_min"
-            ? `Minimum required: MVR ${formatMoneyAmount(Number(res.min_required ?? 0))}.`
+            ? `Minimum required: ${formatMoneyWithSign(Number(res.min_required ?? 0))}.`
             : (res?.error ?? "Unknown"),
       };
     }
@@ -357,8 +360,8 @@ export default function AuctionDetailScreen() {
       const inc = formatMoneyAmount(step);
       const detail =
         bidCountFromRow > 0 && bidAmount <= currentBidForLabel
-          ? `That amount matches or is below the current leading bid (MVR ${lead}). Each new bid must be at least MVR ${inc} higher than the leader (seller-set increment).`
-          : `Your bid must be at least MVR ${need}.`;
+          ? `That amount matches or is below the current leading bid (${MVR_SIGN} ${lead}). Each new bid must be at least ${MVR_SIGN} ${inc} higher than the leader (seller-set increment).`
+          : `Your bid must be at least ${MVR_SIGN} ${need}.`;
       Alert.alert("Update your bid", detail, [
         { text: "Cancel", style: "cancel" },
         { text: "Use minimum bid", onPress: () => setBidAmount(minNext) },
@@ -383,7 +386,7 @@ export default function AuctionDetailScreen() {
         const minR = result.min_required ?? minNext;
         Alert.alert(
           "Bid not accepted",
-          `That price is not valid for the current auction state. The next bid must be at least MVR ${formatMoneyAmount(minR)} (minimum increment MVR ${formatMoneyAmount(step)}).`,
+          `That price is not valid for the current auction state. The next bid must be at least ${formatMoneyWithSign(minR)} (minimum increment ${formatMoneyWithSign(step)}).`,
           [
             { text: "Cancel", style: "cancel" },
             { text: "Update bid", onPress: () => setBidAmount(minR) },
@@ -415,17 +418,17 @@ export default function AuctionDetailScreen() {
     const high = currentBidForLabel;
     const proposed = bidAmount;
     if (proposed + 0.0001 < minNext) {
-      return `Bid at least MVR ${formatMoneyAmount(minNext)} to continue (current high MVR ${formatMoneyAmount(high)}).`;
+      return `Bid at least ${formatMoneyWithSign(minNext)} to continue (current high ${formatMoneyWithSign(high)}).`;
     }
     const lift = proposed - high;
     if (Math.abs(lift) < 0.0001) {
-      return `You'd match the current high at MVR ${formatMoneyAmount(proposed)} — use the minimum bid to advance.`;
+      return `You'd match the current high at ${formatMoneyWithSign(proposed)} — use the minimum bid to advance.`;
     }
-    return `+MVR ${formatMoneyAmount(lift)} over current — you'd be the top bidder at ${formatMoneyAmount(proposed)}.`;
+    return `+${MVR_SIGN} ${formatMoneyAmount(lift)} over current — you'd be the top bidder at ${formatMoneyAmount(proposed)}.`;
   }, [row, bidAmount, minNext, currentBidForLabel]);
 
   const winningAmountLabel = useMemo(
-    () => `${formatMoneyAmount(Number(currentBidForLabel))} MVR`,
+    () => formatMoneyWithSign(Number(currentBidForLabel)),
     [currentBidForLabel],
   );
 
@@ -551,7 +554,7 @@ export default function AuctionDetailScreen() {
     const cur =
       (r.current_highest_bid as number | null) ?? Number(r.starting_price);
     const bidsN = Number(r.bid_count ?? 0);
-    const subtitle = `Current bid MVR ${formatMoneyAmount(Number(cur))} · ${bidsN} ${bidsN === 1 ? "bid" : "bids"}`;
+    const subtitle = `Current bid ${formatMoneyWithSign(Number(cur))} · ${bidsN} ${bidsN === 1 ? "bid" : "bids"}`;
     return (
       <AuctionSeoHead
         phase="ready"
@@ -651,7 +654,7 @@ export default function AuctionDetailScreen() {
     buyNowPriceRaw != null && Number(buyNowPriceRaw) > 0 ? Number(buyNowPriceRaw) : null;
   const liveUi = isAuctionLiveForUi(status, endsAt);
   const listingShareUrl = buildAuctionPublicUrl(id);
-  const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
+  const listingShareMessage = `${title} — ${formatMoneyWithSign(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
 
   const sellerPhoneDisplay = formatMaldivesPhoneDisplay(sellerPhone);
 
@@ -668,7 +671,7 @@ export default function AuctionDetailScreen() {
     if (buyNowPrice == null) return;
     Alert.alert(
       "Request Buy Now?",
-      `Ask the seller to sell this item for ${formatMoneyAmount(buyNowPrice)} MVR. The sale only completes if they accept.`,
+      `Ask the seller to sell this item for ${formatMoneyWithSign(buyNowPrice)}. The sale only completes if they accept.`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -824,22 +827,13 @@ export default function AuctionDetailScreen() {
               >
                 Current bid
               </TextCaption>
-              <TextBody
-                style={{
-                  marginTop: space.xs,
-                  fontSize: 22,
-                  lineHeight: 28,
-                  fontWeight: "600",
-                  fontFamily: fontFamilies.bodySemiBold,
-                  color: colors.primary,
-                  letterSpacing: -0.3,
-                }}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
-              >
-                MVR {formatMoneyAmount(currentBid)}
-              </TextBody>
+              <View style={{ marginTop: space.xs }}>
+                <ValueCurrency
+                  amount={currentBid}
+                  size="hero"
+                  amountFontWeight="600"
+                />
+              </View>
               <TextCaption
                 style={{ marginTop: space.xs, fontWeight: "400", color: colors.textSecondary }}
               >
@@ -849,7 +843,7 @@ export default function AuctionDetailScreen() {
                 <TextCaption
                   style={{ marginTop: space.sm, fontWeight: "500", color: colors.text }}
                 >
-                  Buy Now {formatMoneyAmount(buyNowPrice)} MVR
+                  Buy Now {formatMoneyWithSign(buyNowPrice)}
                 </TextCaption>
               ) : null}
             </View>
@@ -1066,7 +1060,7 @@ export default function AuctionDetailScreen() {
                 min={minNext}
                 step={step}
                 onChange={setBidAmount}
-                label="Your bid (MVR)"
+                label={`Your bid (${MVR_SIGN})`}
                 format={formatMoneyAmount}
               />
 
@@ -1121,7 +1115,7 @@ export default function AuctionDetailScreen() {
               ) : null}
 
               <ButtonPrimary
-                title={`Place bid — MVR ${formatMoneyAmount(bidAmount)}`}
+                title={`Place bid — ${formatMoneyWithSign(bidAmount)}`}
                 icon="hammer"
                 loading={placingBid}
                 onPress={() => void handlePlaceBid()}
@@ -1133,7 +1127,7 @@ export default function AuctionDetailScreen() {
                   {myPendingBuyNow ? (
                     <>
                       <TextCaption style={{ color: colors.textSecondary }}>
-                        Your Buy Now request ({formatMoneyAmount(pendingBuyNow!.amount)} MVR) is
+                        Your Buy Now request ({formatMoneyWithSign(pendingBuyNow!.amount)}) is
                         waiting for the seller.
                       </TextCaption>
                       <ButtonSecondary
@@ -1148,7 +1142,7 @@ export default function AuctionDetailScreen() {
                     </TextCaption>
                   ) : (
                     <ButtonSecondary
-                      title={`Request Buy Now — MVR ${formatMoneyAmount(buyNowPrice)}`}
+                      title={`Request Buy Now — ${formatMoneyWithSign(buyNowPrice)}`}
                       onPress={() => void requestBuyNow()}
                       disabled={buyNowBusy || placingBid}
                     />

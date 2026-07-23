@@ -62,13 +62,13 @@ gtag('config', '${GA_MEASUREMENT_ID}');`,
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no"
         />
-        <meta name="theme-color" content={palette.canvasParchment} />
+        <meta name="theme-color" content={palette.canvas} />
         {siteWideOpenGraphTags()}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
 

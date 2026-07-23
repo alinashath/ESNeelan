@@ -19,7 +19,7 @@ import {
   type ActivityTabKey,
 } from "@/src/components/ui/MyActivityWhiteCards";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 
 type AuctionJoin = {
   id: string;
@@ -33,10 +33,6 @@ type AuctionJoin = {
   bid_count?: number | null;
   image_url?: string | null;
 } | null;
-
-function fmtMoney(n: number) {
-  return formatMoneyAmount(n);
-}
 
 function wonStatusPill(status: string): { pill: string; tone: "live" | "muted" | "urgent" } {
   const s = status.toLowerCase();
@@ -190,12 +186,12 @@ export default function BidManagementScreen() {
                     statusPill={pill}
                     statusPillTone={tone}
                     metaLines={[
-                      { label: currentLabel, value: `${fmtMoney(current)} MVR`, emphasize: true },
+                      { label: currentLabel, value: formatMoneyWithSign(current), emphasize: true },
                       {
                         label: "Total bids",
                         value: `${bids} ${bids === 1 ? "bid" : "bids"}`,
                       },
-                      { label: "Your bid", value: `${fmtMoney(Number(r.amount))} MVR`, emphasize: leading },
+                      { label: "Your bid", value: formatMoneyWithSign(Number(r.amount)), emphasize: leading },
                       { label: "Position", value: leading ? "Leading" : "Outbid" },
                       { label: "Placed", value: placed },
                     ]}
@@ -234,7 +230,7 @@ export default function BidManagementScreen() {
                     statusPill={pill}
                     statusPillTone={tone}
                     metaLines={[
-                      { label: "Winning bid", value: `${fmtMoney(high)} MVR`, emphasize: true },
+                      { label: "Winning bid", value: formatMoneyWithSign(high), emphasize: true },
                       ...(paySnippet ? [{ label: "Payment", value: paySnippet }] : []),
                     ]}
                     onViewLot={() => router.push(`/auction/${id}` as Href)}
