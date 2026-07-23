@@ -6,6 +6,7 @@ import { Checkbox } from "@/src/components/ui/Checkbox";
 import { Chip } from "@/src/components/ui/Chip";
 import { CommunicationCodeCard } from "@/src/components/ui/CommunicationCodeCard";
 import { SellerBuyNowPanel } from "@/src/components/seller/SellerBuyNowPanel";
+import { SellerBuyNowSettingsPanel } from "@/src/components/seller/SellerBuyNowSettingsPanel";
 import { SellerPostClosePanel } from "@/src/components/seller/SellerPostClosePanel";
 import { Countdown } from "@/src/components/ui/Countdown";
 import { NumericStepper } from "@/src/components/ui/NumericStepper";
@@ -977,6 +978,22 @@ export default function AuctionDetailScreen() {
               onFinalized={async () => {
                 qc.invalidateQueries({ queryKey: ["my-auctions"] });
                 qc.invalidateQueries({ queryKey: ["auctions"] });
+              }}
+            />
+          ) : null}
+
+          {isSeller && liveUi ? (
+            <SellerBuyNowSettingsPanel
+              auctionId={id}
+              startingPrice={Number(a.starting_price)}
+              currentHighestBid={
+                a.current_highest_bid != null ? Number(a.current_highest_bid) : null
+              }
+              buyNowPrice={buyNowPrice}
+              enabled
+              onRefresh={async () => {
+                await refetch();
+                await refetchBuyNow();
               }}
             />
           ) : null}

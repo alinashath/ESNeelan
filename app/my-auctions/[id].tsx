@@ -16,6 +16,7 @@ import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { CommunicationCodeCard } from "@/src/components/ui/CommunicationCodeCard";
 import { SellerBuyNowPanel } from "@/src/components/seller/SellerBuyNowPanel";
+import { SellerBuyNowSettingsPanel } from "@/src/components/seller/SellerBuyNowSettingsPanel";
 import { SellerPostClosePanel } from "@/src/components/seller/SellerPostClosePanel";
 import { Countdown } from "@/src/components/ui/Countdown";
 import { InfoCallout } from "@/src/components/ui/InfoCallout";
@@ -699,6 +700,23 @@ export default function MyAuctionDetailScreen() {
             </TextCaption>
           ) : null}
 
+          <SellerBuyNowSettingsPanel
+            auctionId={id}
+            startingPrice={startingPrice}
+            currentHighestBid={
+              r.current_highest_bid != null ? Number(r.current_highest_bid) : null
+            }
+            buyNowPrice={
+              r.buy_now_price != null && Number(r.buy_now_price) > 0
+                ? Number(r.buy_now_price)
+                : null
+            }
+            enabled={liveUi}
+            onRefresh={async () => {
+              await refetch();
+            }}
+          />
+
           <SellerPostClosePanel
             auctionId={id}
             status={status}
@@ -721,7 +739,7 @@ export default function MyAuctionDetailScreen() {
 
           <SellerBuyNowPanel
             auctionId={id}
-            enabled={isAuctionLiveForUi(status, endsAt) && Number(r.buy_now_price ?? 0) > 0}
+            enabled={liveUi && Number(r.buy_now_price ?? 0) > 0}
             onRefresh={async () => {
               await refetch();
             }}

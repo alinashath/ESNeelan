@@ -59,6 +59,7 @@ const TAB_PAGE_TITLES: Record<string, string> = {
   "/artists": `Stories | ${APP_DISPLAY_NAME}`,
   "/notifications": `Alerts | ${APP_DISPLAY_NAME}`,
   "/profile": `Profile | ${APP_DISPLAY_NAME}`,
+  "/categories": `Categories | ${APP_DISPLAY_NAME}`,
 };
 
 function normalizePathname(pathname: string): string {

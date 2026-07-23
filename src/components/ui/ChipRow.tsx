@@ -14,6 +14,8 @@ export function ChipRow({ children, style, dense }: Props) {
   return (
     <ScrollView
       horizontal
+      nestedScrollEnabled
+      keyboardShouldPersistTaps="handled"
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={[{ paddingVertical: dense ? 2 : space.xs }, style]}

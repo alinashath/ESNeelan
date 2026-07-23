@@ -47,6 +47,15 @@ const ROUTES_IN_HEADER_SCROLL = new Set([
   "create",
 ]);
 
+type HeaderNavItem = {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  focused: boolean;
+  badge: number | null;
+  onPress: () => void;
+};
+
 function hrefForRoute(name: string): Href {
   if (name === "index") return "/(tabs)";
   return `/(tabs)/${name}` as Href;
@@ -71,14 +80,43 @@ export function WebTabsHeaderBar(
 ) {
   const { state, descriptors, insets, unread } = props;
   const router = useRouter();
+  const pathname = usePathname();
   const activeName = useActiveTabRouteName();
   const { search, setSearch } = useHomeCatalogSearch();
   const searchAutocompleteCandidates = useHomeSearchAutocompleteCandidates();
   const { session, loading: authLoading } = useAuth();
-  const signedIn = !!session;
-  const showSignUp = !authLoading && !session;
+  const showSignUpBtn = !authLoading && !session;
+  const categoriesFocused = pathname.startsWith("/categories");
 
   const routes = state.routes.filter((r) => ROUTES_IN_HEADER_SCROLL.has(r.name));
+
+  const navItems: HeaderNavItem[] = [];
+  for (const route of routes) {
+    const { options } = descriptors[route.key]!;
+    const label = options.title ?? route.name;
+    const focused = !categoriesFocused && route.name === activeName;
+    const rawBadge = options.tabBarBadge;
+    const badge =
+      typeof rawBadge === "number" && rawBadge > 0 ? rawBadge : null;
+    navItems.push({
+      key: route.key,
+      label,
+      icon: TAB_ICONS[route.name] ?? "ellipse-outline",
+      focused,
+      badge,
+      onPress: () => router.navigate(hrefForRoute(route.name)),
+    });
+    if (route.name === "explore") {
+      navItems.push({
+        key: "categories",
+        label: "Categories",
+        icon: "grid-outline",
+        focused: categoriesFocused,
+        badge: null,
+        onPress: () => router.push("/categories" as Href),
+      });
+    }
+  }
 
   return (
     <View
@@ -105,42 +143,34 @@ export function WebTabsHeaderBar(
           style={styles.tabScroll}
           contentContainerStyle={styles.tabScrollContent}
         >
-          {routes.map((route) => {
-            const { options } = descriptors[route.key]!;
-            const label = options.title ?? route.name;
-            const focused = route.name === activeName;
-            const tint = focused ? colors.primary : colors.textSecondary;
-            const iconName = TAB_ICONS[route.name] ?? "ellipse-outline";
-            const rawBadge = options.tabBarBadge;
-            const badge =
-              typeof rawBadge === "number" && rawBadge > 0 ? rawBadge : null;
-
+          {navItems.map((item) => {
+            const tint = item.focused ? colors.primary : colors.textSecondary;
             return (
               <Pressable
-                key={route.key}
+                key={item.key}
                 accessibilityRole="tab"
-                accessibilityState={{ selected: focused }}
-                accessibilityLabel={label}
-                onPress={() => router.navigate(hrefForRoute(route.name))}
+                accessibilityState={{ selected: item.focused }}
+                accessibilityLabel={item.label}
+                onPress={item.onPress}
                 style={({ pressed }) => [
                   styles.tab,
-                  focused ? styles.tabFocused : styles.tabIdle,
+                  item.focused ? styles.tabFocused : styles.tabIdle,
                   pressed && styles.tabPressed,
                 ]}
               >
                 <View style={styles.tabInner}>
                   <View style={styles.iconWrap}>
-                    <Ionicons name={iconName} size={18} color={tint} />
-                    {badge != null ? (
+                    <Ionicons name={item.icon} size={18} color={tint} />
+                    {item.badge != null ? (
                       <View style={styles.badge}>
                         <Text style={styles.badgeText}>
-                          {badge > 99 ? "99+" : String(badge)}
+                          {item.badge > 99 ? "99+" : String(item.badge)}
                         </Text>
                       </View>
                     ) : null}
                   </View>
                   <Text style={[styles.tabLabel, { color: tint }]} numberOfLines={1}>
-                    {label}
+                    {item.label}
                   </Text>
                 </View>
               </Pressable>
@@ -148,7 +178,7 @@ export function WebTabsHeaderBar(
           })}
         </ScrollView>
 
-        {activeName === "index" ? (
+        {activeName === "index" && !categoriesFocused ? (
           <View style={styles.searchWrap}>
             <SearchField
               placeholder="Search"
@@ -163,7 +193,7 @@ export function WebTabsHeaderBar(
         )}
 
         <View style={styles.actions}>
-          {showSignUp ? (
+          {showSignUpBtn ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Sign up"
@@ -223,12 +253,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 6,
     elevation: 2,
+    // Keep search autocomplete above page content; portal still used for clipping.
+    zIndex: 1000,
+    overflow: "visible",
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: space.md,
     minHeight: 48,
+    overflow: "visible",
+    zIndex: 1,
   },
   brand: {
     flexShrink: 0,
@@ -236,7 +271,7 @@ const styles = StyleSheet.create({
   tabScroll: {
     flexGrow: 0,
     flexShrink: 1,
-    maxWidth: 420,
+    maxWidth: 520,
     minWidth: 0,
   },
   tabScrollContent: {
@@ -251,7 +286,7 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     justifyContent: "center",
     overflow: "visible",
-    zIndex: 1,
+    zIndex: 2,
   },
   searchSpacer: {
     flex: 1,

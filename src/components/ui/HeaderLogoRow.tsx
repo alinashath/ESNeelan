@@ -37,7 +37,7 @@ export function HeaderBrandMark({ wordmark = APP_DISPLAY_NAME }: { wordmark?: st
   );
 }
 
-/** Home header — brand + optional bell. */
+/** Home header — brand + categories + optional bell. */
 export function HeaderLogoRow({ onBellPress, wordmark = APP_DISPLAY_NAME }: Props) {
   const openAlerts =
     onBellPress ?? (() => router.push("/(tabs)/notifications" as Href));
@@ -52,7 +52,14 @@ export function HeaderLogoRow({ onBellPress, wordmark = APP_DISPLAY_NAME }: Prop
       }}
     >
       <HeaderBrandMark wordmark={wordmark} />
-      <ButtonIcon name="notifications-outline" onPress={openAlerts} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+        <ButtonIcon
+          name="grid-outline"
+          onPress={() => router.push("/categories" as Href)}
+          accessibilityLabel="Categories"
+        />
+        <ButtonIcon name="notifications-outline" onPress={openAlerts} />
+      </View>
     </View>
   );
 }
