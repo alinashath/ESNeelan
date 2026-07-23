@@ -5,6 +5,11 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  connectRedis,
+  isRedisConfigured,
+  pingRedis,
+} from "./redis-client.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -261,6 +266,14 @@ const server = http.createServer(async (req, res) => {
   const urlPath = req.url?.split("?")[0] || "/";
   const ua = req.headers["user-agent"] || "";
 
+  if (urlPath === "/health/redis") {
+    const configured = isRedisConfigured();
+    const ok = configured ? await pingRedis() : false;
+    res.writeHead(ok ? 200 : 503, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok, configured }));
+    return;
+  }
+
   const auctionMatch = urlPath.match(/^\/auction\/([^/]+)$/);
   if (auctionMatch && BOT_UA.test(ua)) {
     const id = decodeURIComponent(auctionMatch[1]);
@@ -324,4 +337,13 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`${APP_DISPLAY_NAME} web server listening on 0.0.0.0:${PORT}`);
+  if (!isRedisConfigured()) {
+    console.log("[redis] REDIS_URL not set — skipping");
+    return;
+  }
+  void connectRedis().then(async (client) => {
+    if (!client) return;
+    const ok = await pingRedis();
+    console.log(ok ? "[redis] ping ok" : "[redis] ping failed");
+  });
 });

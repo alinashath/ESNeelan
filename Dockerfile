@@ -30,8 +30,11 @@ FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/scripts/web-server.mjs ./scripts/web-server.mjs
+COPY scripts/web-server.mjs scripts/redis-client.mjs ./scripts/
 
 EXPOSE 8080
 CMD ["node", "scripts/web-server.mjs"]

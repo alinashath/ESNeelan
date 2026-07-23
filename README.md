@@ -105,6 +105,15 @@ Production web is a **static export** (`app.json` → `expo.web.output: "static"
 3. **Critical:** Declare the same names in the Dockerfile as **`ARG`** (already done for the common keys) and mark those variables as **available at build time** in Railway so `expo export` can read them. Redeploy after changing them.
 4. Redeploy so a new image runs `npm run build` inside Docker, then `node scripts/web-server.mjs`.
 
+##### Railway Redis (optional)
+
+The web server can use a Railway Redis instance via **`REDIS_URL`** (runtime only — not a Docker build ARG; private networking is unavailable during image build).
+
+1. In the same project/environment: **New** → **Database** → **Redis**.
+2. On the **web** service **Variables**, add `REDIS_URL=${{Redis.REDIS_URL}}` (use the exact Redis service name if it differs).
+3. Redeploy the web service. Deploy logs should show `[redis] connected` and `[redis] ping ok`.
+4. Smoke-check: `curl -s https://<your-domain>/health/redis` → `{"ok":true,"configured":true}`. If Redis is unset or down, the site still serves; health returns `ok: false`.
+
 Smoke-test locally after `npm run build`:
 
 ```bash
