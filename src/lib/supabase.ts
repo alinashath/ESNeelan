@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { WebSocketLikeConstructor } from "@supabase/realtime-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
@@ -51,15 +52,41 @@ function createWebAuthStorage() {
   };
 }
 
-const nativeSecureStorage = {
-  getItem: (key: string) => SecureStore.getItemAsync(key),
-  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-  removeItem: (key: string) => SecureStore.deleteItemAsync(key),
+/**
+ * Native auth storage via AsyncStorage (SecureStore caps values at ~2KB and
+ * silently fails for typical Supabase session payloads). Migrates any legacy
+ * SecureStore session on first read so existing logins are not dropped.
+ */
+const nativeAuthStorage = {
+  async getItem(key: string): Promise<string | null> {
+    const existing = await AsyncStorage.getItem(key);
+    if (existing != null) return existing;
+    try {
+      const legacy = await SecureStore.getItemAsync(key);
+      if (legacy == null) return null;
+      await AsyncStorage.setItem(key, legacy);
+      await SecureStore.deleteItemAsync(key);
+      return legacy;
+    } catch {
+      return null;
+    }
+  },
+  setItem(key: string, value: string): Promise<void> {
+    return AsyncStorage.setItem(key, value);
+  },
+  async removeItem(key: string): Promise<void> {
+    await AsyncStorage.removeItem(key);
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch {
+      /* ignore missing legacy key */
+    }
+  },
 };
 
 const authStorage =
   Platform.OS === "ios" || Platform.OS === "android"
-    ? nativeSecureStorage
+    ? nativeAuthStorage
     : createWebAuthStorage();
 
 /**

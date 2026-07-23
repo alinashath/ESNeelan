@@ -157,7 +157,7 @@ Should return the listing/story title, not the generic site title.
 | `src/components/layout/content-width.tsx` | Context + `useScreenContentWidth()` for lists/carousels inside `Screen`             |
 | `src/lib/web-tabs-layout.ts`              | `useWebWideTabHeader()` — web ≥768px uses top logo+nav header                       |
 | `src/components/ui/`                      | Atomic UI (text, buttons, inputs, badges, cards, countdown, etc.)                   |
-| `src/lib/supabase.ts`                     | Supabase client + SecureStore session                                               |
+| `src/lib/supabase.ts`                     | Supabase client + persisted auth session (AsyncStorage / localStorage)              |
 | `src/data/`                               | TanStack Query hooks                                                                |
 | `supabase/migrations/`                    | Schema, RLS, RPCs, storage policies                                                 |
 | `supabase/functions/`                     | `sms-hook`, `promote-admin`, `process-notifications`, `close-expired-auctions`      |

@@ -209,11 +209,11 @@ max_frequency = "5s"
 # [auth.sms.test_otp]
 # 4152127777 = "123456"
 
-# Configure logged in session timeouts.
+# Keep sessions alive until the user explicitly signs out (no timebox / inactivity).
+# Leave [auth.sessions] unset locally. In the hosted Dashboard (Authentication →
+# Sessions), also clear any timebox / inactivity timeout so production matches.
 # [auth.sessions]
-# Force log out after the specified duration.
 # timebox = "24h"
-# Force log out if the user has been inactive longer than the specified duration.
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.

@@ -8,6 +8,7 @@ import {
     useMemo,
     useState,
 } from "react";
+import { AppState, type AppStateStatus, Platform } from "react-native";
 
 export type UserRole = "buyer" | "seller" | "admin";
 
@@ -122,6 +123,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [loadProfile]);
 
+  // Keep JWT refresh running while the app is foregrounded so the session
+  // survives overnight / backgrounding until the user explicitly signs out.
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+
+    const syncRefresh = (state: AppStateStatus) => {
+      if (state === "active") {
+        void supabase.auth.startAutoRefresh();
+      } else {
+        void supabase.auth.stopAutoRefresh();
+      }
+    };
+
+    syncRefresh(AppState.currentState);
+    const sub = AppState.addEventListener("change", syncRefresh);
+    return () => {
+      sub.remove();
+      void supabase.auth.stopAutoRefresh();
+    };
+  }, []);
+
   const refreshProfile = useCallback(async () => {
     if (session?.user) await loadProfile(session.user.id);
   }, [loadProfile, session?.user]);
@@ -131,7 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "global" });
+    setSession(null);
     setProfile(null);
   }, []);
 
