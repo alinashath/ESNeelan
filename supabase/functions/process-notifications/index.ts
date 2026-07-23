@@ -81,6 +81,8 @@ const SMS_ALERT_TYPES = new Set<string>([
   "winner_consent_requested",
   "winner_consented",
   "auction_pending_winner_consent",
+  "buy_now_requested",
+  "buy_now_accepted",
 ]);
 
 function buildSmsBody(type: string, payload: Record<string, unknown>): string | null {
@@ -107,6 +109,28 @@ function buildSmsBody(type: string, payload: Record<string, unknown>): string | 
     }
     case "auction_pending_winner_consent": {
       return `AUC: "${shortTitle}" closed. Wait for winner consent before contact. Open the app.`;
+    }
+    case "buy_now_requested": {
+      const amt = num(payload.amount);
+      const a =
+        amt == null
+          ? null
+          : `${new Intl.NumberFormat(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(amt)} MVR`;
+      return `AUC: Buy Now request on "${shortTitle}"${a ? ` (${a})` : ""}. Open the app to accept or decline.`;
+    }
+    case "buy_now_accepted": {
+      const amt = num(payload.amount);
+      const a =
+        amt == null
+          ? null
+          : `${new Intl.NumberFormat(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(amt)} MVR`;
+      return `AUC: Buy Now accepted for "${shortTitle}"${a ? ` at ${a}` : ""}. Open the app for payment steps.`;
     }
     default:
       return null;
@@ -349,6 +373,40 @@ function buildEmailBody(type: string, payload: Record<string, unknown>): string 
       const a = mvr(payload.amount);
       return joinParas([title ? `Lot: ${title}` : "Auction", ...(a ? [`Your bid: ${a}`] : [])]);
     }
+    case "buy_now_requested": {
+      const a = mvr(payload.amount);
+      const buyer = str(payload.buyer_name);
+      return joinParas([
+        title ? `Lot: ${title}` : "Your listing",
+        ...(a ? [`Buy Now amount: ${a}`] : []),
+        ...(buyer ? [`Buyer: ${buyer}`] : []),
+        "Open the AUC app to accept or decline this request.",
+      ]);
+    }
+    case "buy_now_accepted": {
+      const a = mvr(payload.amount);
+      return joinParas([
+        title ? `Lot: ${title}` : "An auction",
+        ...(a ? [`Accepted amount: ${a}`] : []),
+        "The seller accepted your Buy Now request. Open the app for contact and payment steps.",
+      ]);
+    }
+    case "buy_now_declined": {
+      const a = mvr(payload.amount);
+      return joinParas([
+        title ? `Lot: ${title}` : "An auction",
+        ...(a ? [`Requested amount: ${a}`] : []),
+        "The seller declined your Buy Now request. You can keep bidding if the lot is still live.",
+      ]);
+    }
+    case "buy_now_cancelled": {
+      const a = mvr(payload.amount);
+      return joinParas([
+        title ? `Lot: ${title}` : "Your listing",
+        ...(a ? [`Amount: ${a}`] : []),
+        "The buyer cancelled their Buy Now request.",
+      ]);
+    }
     default:
       return joinParas([
         `Notification: ${type}`,
@@ -404,6 +462,14 @@ function subjectForType(type: string): string {
       return "AUC: Featured fee request declined";
     case "marked_paid":
       return "AUC: Seller marked payment received";
+    case "buy_now_requested":
+      return "AUC: Buy Now request";
+    case "buy_now_accepted":
+      return "AUC: Buy Now accepted";
+    case "buy_now_declined":
+      return "AUC: Buy Now declined";
+    case "buy_now_cancelled":
+      return "AUC: Buy Now cancelled";
     default:
       return "AUC notification";
   }

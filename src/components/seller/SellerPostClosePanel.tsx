@@ -4,6 +4,7 @@ import { router, type Href } from "expo-router";
 import { supabase } from "@/src/lib/supabase";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
+import { DateTimeField } from "@/src/components/ui/DateTimeField";
 import { InfoCallout } from "@/src/components/ui/InfoCallout";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
@@ -39,6 +40,13 @@ export type SellerPostClosePanelProps = {
   onFinalized?: () => void | Promise<void>;
 };
 
+function defaultReenableEndsAt(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + 3);
+  d.setMinutes(0, 0, 0);
+  return d;
+}
+
 export function SellerPostClosePanel({
   auctionId,
   status,
@@ -55,6 +63,7 @@ export function SellerPostClosePanel({
 }: SellerPostClosePanelProps) {
   const [busy, setBusy] = useState(false);
   const [tick, setTick] = useState(0);
+  const [reenableEndsAt, setReenableEndsAt] = useState(defaultReenableEndsAt);
   const st = String(status).trim().toLowerCase();
   const winningAmountLabel = `${formatMoneyAmount(currentHighestBid || startingPrice)} MVR`;
   const winnerContactDisplay = formatMaldivesPhoneDisplay(winnerContactPhone);
@@ -156,11 +165,11 @@ export function SellerPostClosePanel({
   }
 
   function confirmSkipWinner(selectNext: boolean) {
-    const title = selectNext ? "Choose next bidder?" : "Cancel winner and end auction?";
+    const titleAlert = selectNext ? "Choose next bidder?" : "Cancel winner and end auction?";
     const message = selectNext
       ? "The current high bidder will be skipped and the next eligible bidder (by amount) will be asked for consent."
       : "The current high bidder will be skipped and this listing will be marked cancelled.";
-    Alert.alert(title, message, [
+    Alert.alert(titleAlert, message, [
       { text: "Back", style: "cancel" },
       {
         text: selectNext ? "Choose next bidder" : "Cancel auction",
@@ -170,11 +179,72 @@ export function SellerPostClosePanel({
     ]);
   }
 
+  async function handleReenable() {
+    if (reenableEndsAt.getTime() <= Date.now()) {
+      Alert.alert("New end time", "Choose an end date and time in the future.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("seller_reenable_auction", {
+        p_auction_id: auctionId,
+        p_ends_at: reenableEndsAt.toISOString(),
+      });
+      if (error) throw error;
+      const res = data as { ok?: boolean; error?: string };
+      if (!res?.ok) {
+        const err = res?.error ?? "Could not re-enable auction";
+        if (err === "has_bids") throw new Error("This listing has bids and cannot be re-enabled.");
+        if (err === "not_ended") throw new Error("Only ended (no bids) listings can be re-enabled.");
+        if (err === "ends_at_must_be_future") throw new Error("Choose an end time in the future.");
+        if (err === "ends_at_before_starts_at") {
+          throw new Error("End time must be after the original start time.");
+        }
+        throw new Error(err);
+      }
+      await onFinalized?.();
+      await onRefresh?.();
+      Alert.alert("Auction re-enabled", "Your listing is live again until the new end time.");
+    } catch (e: unknown) {
+      Alert.alert("Re-enable", e instanceof Error ? e.message : "Could not re-enable auction");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (pastEndActive) {
     return (
       <View style={{ marginTop: space.lg, gap: space.sm }}>
         <InfoCallout message="Bidding has ended on this listing. Finalize the auction to select a high bidder and start the winner consent flow." />
         <ButtonPrimary title="Finalize auction" onPress={() => void handleFinalize()} disabled={busy} />
+        <ButtonSecondary title="Refresh status" onPress={() => void handleRefresh()} disabled={busy} />
+      </View>
+    );
+  }
+
+  if (st === "ended") {
+    return (
+      <View
+        style={{
+          marginTop: space.lg,
+          padding: space.md,
+          backgroundColor: colors.surfaceMuted,
+          borderRadius: radii.md,
+          gap: space.sm,
+        }}
+      >
+        <TextCaption style={{ fontWeight: "500" }}>Ended with no bids</TextCaption>
+        <TextBody style={{ color: colors.textSecondary }}>
+          You can re-enable this listing with a new end date. Bidding will open again immediately.
+        </TextBody>
+        <DateTimeField
+          label="New auction end"
+          value={reenableEndsAt}
+          mode="datetime"
+          onChange={setReenableEndsAt}
+          minimumDate={new Date()}
+        />
+        <ButtonPrimary title="Re-enable auction" onPress={() => void handleReenable()} disabled={busy} />
         <ButtonSecondary title="Refresh status" onPress={() => void handleRefresh()} disabled={busy} />
       </View>
     );

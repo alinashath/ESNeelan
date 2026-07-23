@@ -5,9 +5,11 @@ import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { Checkbox } from "@/src/components/ui/Checkbox";
 import { Chip } from "@/src/components/ui/Chip";
 import { CommunicationCodeCard } from "@/src/components/ui/CommunicationCodeCard";
+import { SellerBuyNowPanel } from "@/src/components/seller/SellerBuyNowPanel";
 import { SellerPostClosePanel } from "@/src/components/seller/SellerPostClosePanel";
 import { Countdown } from "@/src/components/ui/Countdown";
 import { NumericStepper } from "@/src/components/ui/NumericStepper";
+import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { Screen } from "@/src/components/ui/Screen";
 import { SellerCard } from "@/src/components/ui/SellerCard";
 import { TextBody } from "@/src/components/ui/TextBody";
@@ -17,6 +19,7 @@ import {
     useAuctionBids,
     useAuctionDetail,
     useCuratedCategories,
+    usePendingBuyNowRequest,
     type SellerRatingSummary,
 } from "@/src/data/auctions";
 import {
@@ -155,8 +158,10 @@ export default function AuctionDetailScreen() {
   } = useAuctionDetail(id);
   const { data: curatedCategories } = useCuratedCategories();
   const { data: bids, refetch: refetchBids } = useAuctionBids(id);
+  const { data: pendingBuyNow, refetch: refetchBuyNow } = usePendingBuyNowRequest(id);
   const [bidAmount, setBidAmount] = useState(0);
   const [placingBid, setPlacingBid] = useState(false);
+  const [buyNowBusy, setBuyNowBusy] = useState(false);
   const [agreeWinnerTerms, setAgreeWinnerTerms] = useState(false);
   const [agreeShareContact, setAgreeShareContact] = useState(false);
 
@@ -640,6 +645,9 @@ export default function AuctionDetailScreen() {
   const bidCount = Number(a.bid_count ?? 0);
   const currentBid =
     (a.current_highest_bid as number | null) ?? Number(a.starting_price);
+  const buyNowPriceRaw = a.buy_now_price as number | string | null | undefined;
+  const buyNowPrice =
+    buyNowPriceRaw != null && Number(buyNowPriceRaw) > 0 ? Number(buyNowPriceRaw) : null;
   const liveUi = isAuctionLiveForUi(status, endsAt);
   const listingShareUrl = buildAuctionPublicUrl(id);
   const listingShareMessage = `${title} — MVR ${formatMoneyAmount(currentBid)} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
@@ -648,6 +656,76 @@ export default function AuctionDetailScreen() {
 
   const isSeller = session?.user.id === sellerId;
   const isWinner = !!session?.user.id && winnerId === session.user.id;
+  const myPendingBuyNow =
+    !!pendingBuyNow && !!session?.user.id && pendingBuyNow.buyer_id === session.user.id;
+
+  async function requestBuyNow() {
+    if (!session) {
+      router.push("/(auth)/login");
+      return;
+    }
+    if (buyNowPrice == null) return;
+    Alert.alert(
+      "Request Buy Now?",
+      `Ask the seller to sell this item for ${formatMoneyAmount(buyNowPrice)} MVR. The sale only completes if they accept.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Send request",
+          onPress: () => {
+            void (async () => {
+              setBuyNowBusy(true);
+              try {
+                const { data, error } = await supabase.rpc("buyer_request_buy_now", {
+                  p_auction_id: id,
+                });
+                if (error) throw error;
+                const res = data as { ok?: boolean; error?: string };
+                if (!res?.ok) {
+                  if (res?.error === "request_pending") {
+                    throw new Error("Another Buy Now request is already pending on this listing.");
+                  }
+                  if (res?.error === "buy_now_not_enabled") {
+                    throw new Error("Buy Now is not available on this listing.");
+                  }
+                  throw new Error(res?.error ?? "Could not send Buy Now request");
+                }
+                await refetchBuyNow();
+                qc.invalidateQueries({ queryKey: ["buy-now-request", id] });
+                Alert.alert(
+                  "Request sent",
+                  "The seller has been notified. Bidding continues until they accept or decline.",
+                );
+              } catch (e: unknown) {
+                Alert.alert("Buy Now", e instanceof Error ? e.message : "Request failed");
+              } finally {
+                setBuyNowBusy(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }
+
+  async function cancelBuyNow() {
+    setBuyNowBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("buyer_cancel_buy_now_request", {
+        p_auction_id: id,
+      });
+      if (error) throw error;
+      const res = data as { ok?: boolean; error?: string };
+      if (!res?.ok) throw new Error(res?.error ?? "Could not cancel request");
+      await refetchBuyNow();
+      qc.invalidateQueries({ queryKey: ["buy-now-request", id] });
+      Alert.alert("Cancelled", "Your Buy Now request was cancelled.");
+    } catch (e: unknown) {
+      Alert.alert("Buy Now", e instanceof Error ? e.message : "Could not cancel");
+    } finally {
+      setBuyNowBusy(false);
+    }
+  }
 
   return (
     <>
@@ -766,6 +844,13 @@ export default function AuctionDetailScreen() {
               >
                 {bidCount} {bidCount === 1 ? "bid" : "bids"} placed
               </TextCaption>
+              {buyNowPrice != null && liveUi ? (
+                <TextCaption
+                  style={{ marginTop: space.sm, fontWeight: "500", color: colors.text }}
+                >
+                  Buy Now {formatMoneyAmount(buyNowPrice)} MVR
+                </TextCaption>
+              ) : null}
             </View>
             {liveUi ? (
               <View
@@ -896,6 +981,17 @@ export default function AuctionDetailScreen() {
             />
           ) : null}
 
+          {isSeller && liveUi && buyNowPrice != null ? (
+            <SellerBuyNowPanel
+              auctionId={id}
+              enabled
+              onRefresh={async () => {
+                await refetch();
+                await refetchBuyNow();
+              }}
+            />
+          ) : null}
+
           {isWinner && status === "awaiting_winner_consent" ? (
             <View style={{ marginTop: space.lg, gap: space.md }}>
               <TextTitle style={{ fontSize: 20 }}>
@@ -1014,6 +1110,34 @@ export default function AuctionDetailScreen() {
                 onPress={() => void handlePlaceBid()}
                 style={{ marginTop: space.md, borderRadius: radii.pill, alignSelf: "stretch" }}
               />
+
+              {buyNowPrice != null ? (
+                <View style={{ marginTop: space.md, gap: space.sm }}>
+                  {myPendingBuyNow ? (
+                    <>
+                      <TextCaption style={{ color: colors.textSecondary }}>
+                        Your Buy Now request ({formatMoneyAmount(pendingBuyNow!.amount)} MVR) is
+                        waiting for the seller.
+                      </TextCaption>
+                      <ButtonSecondary
+                        title="Cancel Buy Now request"
+                        onPress={() => void cancelBuyNow()}
+                        disabled={buyNowBusy || placingBid}
+                      />
+                    </>
+                  ) : pendingBuyNow ? (
+                    <TextCaption style={{ color: colors.textMuted }}>
+                      A Buy Now request is pending on this listing. You can still place bids.
+                    </TextCaption>
+                  ) : (
+                    <ButtonSecondary
+                      title={`Request Buy Now — MVR ${formatMoneyAmount(buyNowPrice)}`}
+                      onPress={() => void requestBuyNow()}
+                      disabled={buyNowBusy || placingBid}
+                    />
+                  )}
+                </View>
+              ) : null}
             </View>
           ) : null}
 
@@ -1181,15 +1305,30 @@ export default function AuctionDetailScreen() {
       </View>
 
       {winnerId === session?.user.id &&
-      ["won", "paid", "payment_stage"].includes(status) &&
-      payment ? (
-        <View style={{ marginTop: space.xxl }}>
-          <TextTitle>Payment instructions</TextTitle>
-          <TextCaption style={{ marginTop: space.sm, color: colors.textSecondary }}>
-            {APP_DISPLAY_NAME} does not process this payment. Settle directly with the seller using the
-            details below.
+      ["won", "paid", "payment_stage"].includes(status) ? (
+        <View style={{ marginTop: space.xxl, gap: space.sm }}>
+          <TextTitle>Next steps</TextTitle>
+          <TextCaption style={{ color: colors.textSecondary }}>
+            Contact the seller to arrange payment and delivery. {APP_DISPLAY_NAME} does not process this
+            payment.
           </TextCaption>
-          <TextBody style={{ marginTop: space.sm }}>{payment}</TextBody>
+          {sellerPhone ? (
+            <TextBody>
+              Seller phone:{" "}
+              <TextBody style={{ fontWeight: "600" }}>{sellerPhoneDisplay}</TextBody>
+            </TextBody>
+          ) : null}
+          {communicationCode ? (
+            <TextCaption>Communication code: {communicationCode}</TextCaption>
+          ) : null}
+          {payment ? (
+            <>
+              <TextCaption style={{ marginTop: space.sm, fontWeight: "600" }}>
+                Payment instructions
+              </TextCaption>
+              <TextBody>{payment}</TextBody>
+            </>
+          ) : null}
         </View>
       ) : null}
 

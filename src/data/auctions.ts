@@ -697,3 +697,48 @@ export function useAdminAuctionSearchForArticles(
     },
   });
 }
+
+export type BuyNowRequestRow = {
+  id: string;
+  auction_id: string;
+  buyer_id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  buyer_display_name: string | null;
+};
+
+/** Pending Buy Now request for an auction (at most one). Includes buyer name for sellers. */
+export function usePendingBuyNowRequest(auctionId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["buy-now-request", auctionId],
+    enabled: !!auctionId,
+    queryFn: async (): Promise<BuyNowRequestRow | null> => {
+      if (!auctionId) return null;
+      const { data, error } = await supabase
+        .from("buy_now_requests")
+        .select("id, auction_id, buyer_id, amount, status, created_at")
+        .eq("auction_id", auctionId)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+
+      const { data: buyer } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", data.buyer_id)
+        .maybeSingle();
+
+      return {
+        id: data.id as string,
+        auction_id: data.auction_id as string,
+        buyer_id: data.buyer_id as string,
+        amount: Number(data.amount),
+        status: String(data.status),
+        created_at: String(data.created_at),
+        buyer_display_name: (buyer?.display_name as string | null) ?? null,
+      };
+    },
+  });
+}

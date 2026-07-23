@@ -75,6 +75,7 @@ export default function CreateAuctionStep1Details() {
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOptionId[]>([]);
   const [listingAttributes, setListingAttributes] = useState<ListingAttributesV1>({});
   const [startingPrice, setStartingPrice] = useState("10");
+  const [buyNowPrice, setBuyNowPrice] = useState("");
   const [priceJump, setPriceJump] = useState<number>(10);
   const [minInc, setMinInc] = useState(5);
   const [incStep, setIncStep] = useState<number>(1);
@@ -132,7 +133,7 @@ export default function CreateAuctionStep1Details() {
         .from("auctions")
         .select(
           `
-          id, title, description, location, terms, payment_instructions, starting_price, min_bid_increment,
+          id, title, description, location, terms, payment_instructions, starting_price, buy_now_price, min_bid_increment,
           starts_at, ends_at, status, bid_type, category_id,
           item_condition, delivery_options, listing_attributes,
           auction_categories ( category_id, sort_order ),
@@ -158,6 +159,9 @@ export default function CreateAuctionStep1Details() {
       );
       setListingAttributes(parseListingAttributesJson(r.listing_attributes));
       setStartingPrice(String(r.starting_price ?? "0"));
+      setBuyNowPrice(
+        r.buy_now_price != null && Number(r.buy_now_price) > 0 ? String(r.buy_now_price) : "",
+      );
       setMinInc(Number(r.min_bid_increment ?? 5));
       if (r.starts_at) setStartsAt(new Date(String(r.starts_at)));
       if (r.ends_at) setEndsAt(new Date(String(r.ends_at)));
@@ -233,6 +237,11 @@ export default function CreateAuctionStep1Details() {
   function validateBiddingForWizard() {
     const sp = Number(startingPrice);
     if (!Number.isFinite(sp) || sp < 0) return false;
+    const bnTrim = buyNowPrice.trim();
+    if (bnTrim) {
+      const bn = Number(bnTrim);
+      if (!Number.isFinite(bn) || bn <= sp) return false;
+    }
     if (endsAt.getTime() - startsAt.getTime() < 24 * 3600 * 1000) return false;
     return true;
   }
@@ -263,7 +272,7 @@ export default function CreateAuctionStep1Details() {
       if (!validateBiddingForWizard()) {
         Alert.alert(
           "Check price and dates",
-          "Use a valid starting price (zero or more) and end the auction at least 24 hours after it starts.",
+          "Use a valid starting price (zero or more), optional Buy Now above starting price, and end the auction at least 24 hours after it starts.",
         );
         return;
       }
@@ -338,6 +347,19 @@ export default function CreateAuctionStep1Details() {
       );
       return;
     }
+    const bnTrim = buyNowPrice.trim();
+    let buyNowValue: number | null = null;
+    if (bnTrim) {
+      const bn = Number(bnTrim);
+      if (!Number.isFinite(bn) || bn <= sp) {
+        Alert.alert(
+          "Buy Now price",
+          "Leave Buy Now empty to disable it, or set an amount higher than the starting price.",
+        );
+        return;
+      }
+      buyNowValue = bn;
+    }
     if (existingImages.length === 0 && photos.length === 0) {
       Alert.alert("Photos", "Add at least one item photo.");
       return;
@@ -367,6 +389,7 @@ export default function CreateAuctionStep1Details() {
         terms: terms.trim(),
         category_id: primaryCategoryId,
         starting_price: sp,
+        buy_now_price: buyNowValue,
         min_bid_increment: minInc,
         starts_at: startsAt.toISOString(),
         ends_at: endsAt.toISOString(),
@@ -751,6 +774,41 @@ export default function CreateAuctionStep1Details() {
               min={1}
               step={incStep}
               onChange={setMinInc}
+            />
+          </View>
+
+          <TextLabel style={{ marginBottom: space.sm }}>Buy Now price (optional, MVR)</TextLabel>
+          <TextCaption style={{ marginBottom: space.sm, color: colors.textMuted }}>
+            Leave empty to disable. When set, buyers can request purchase at this price; you choose whether to accept.
+          </TextCaption>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: radii.sm,
+              flexDirection: "row",
+              alignItems: "center",
+              paddingLeft: space.md,
+              marginBottom: space.lg,
+              backgroundColor: colors.background,
+            }}
+          >
+            <TextBody style={{ fontWeight: "600", color: colors.textMuted, marginRight: space.xs }}>
+              MVR
+            </TextBody>
+            <TextInput
+              keyboardType="decimal-pad"
+              value={buyNowPrice}
+              onChangeText={setBuyNowPrice}
+              placeholder="Off"
+              placeholderTextColor={colors.textMuted}
+              style={{
+                flex: 1,
+                paddingVertical: space.md,
+                fontSize: 17,
+                fontWeight: "600",
+                color: colors.text,
+              }}
             />
           </View>
 

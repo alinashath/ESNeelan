@@ -45,6 +45,14 @@ export function notificationTypeTitle(type: string): string {
       return "Payment marked received";
     case "won_auction":
       return "You won";
+    case "buy_now_requested":
+      return "Buy Now request";
+    case "buy_now_accepted":
+      return "Buy Now accepted";
+    case "buy_now_declined":
+      return "Buy Now declined";
+    case "buy_now_cancelled":
+      return "Buy Now cancelled";
     default:
       return type.replace(/_/g, " ");
   }
@@ -235,6 +243,32 @@ export function getNotificationDisplay(type: string, payload: Record<string, unk
     }
     case "won_auction": {
       lines.push("You won — check the listing for payment instructions.");
+      break;
+    }
+    case "buy_now_requested": {
+      const a = mvr(payload.amount);
+      const buyer = str(payload.buyer_name);
+      if (a) lines.push(`Buy Now amount: ${a}`);
+      if (buyer) lines.push(`Buyer: ${buyer}`);
+      lines.push("Open the listing to accept or decline this request.");
+      break;
+    }
+    case "buy_now_accepted": {
+      const a = mvr(payload.amount);
+      if (a) lines.push(`Accepted amount: ${a}`);
+      lines.push("The seller accepted your Buy Now request — open the listing for contact and payment steps.");
+      break;
+    }
+    case "buy_now_declined": {
+      const a = mvr(payload.amount);
+      if (a) lines.push(`Requested amount: ${a}`);
+      lines.push("The seller declined your Buy Now request. You can keep bidding if the lot is still live.");
+      break;
+    }
+    case "buy_now_cancelled": {
+      const a = mvr(payload.amount);
+      if (a) lines.push(`Amount: ${a}`);
+      lines.push("The buyer cancelled their Buy Now request.");
       break;
     }
     default: {
