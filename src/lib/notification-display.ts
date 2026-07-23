@@ -7,7 +7,7 @@ import {
   sellerPaymentStageParagraphs,
   winnerConsentRequestedParagraphs,
 } from "@/src/lib/bidmaster-legal-copy";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 
 export function notificationTypeTitle(type: string): string {
   switch (type) {
@@ -72,7 +72,7 @@ function num(v: unknown): number | null {
 function mvr(v: unknown): string | null {
   const n = num(v);
   if (n == null) return null;
-  return `${formatMoneyAmount(n)} MVR`;
+  return formatMoneyWithSign(n);
 }
 
 export type NotificationDisplay = {

@@ -24,8 +24,8 @@ export function Chip({
 }: Props) {
   const outlined = appearance === "outlined";
 
-  const padH = compact ? 16 : space.lg;
-  const padV = compact ? 8 : space.sm;
+  const padH = compact ? 8 : space.sm;
+  const padV = compact ? 4 : space.xs;
 
   const bg = outlined
     ? selected
@@ -68,9 +68,9 @@ export function Chip({
       <TextCaption
         style={{
           color: textColor,
-          fontWeight: outlined ? (selected ? "600" : "500") : selected ? "600" : "400",
-          fontSize: compact ? 12 : undefined,
-          lineHeight: compact ? 15 : undefined,
+          fontWeight: "400",
+          fontSize: 12,
+          lineHeight: 16,
         }}
       >
         {title}

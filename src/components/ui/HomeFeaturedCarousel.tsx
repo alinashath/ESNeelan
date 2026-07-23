@@ -66,7 +66,7 @@ function featuredColumnCount(viewportW: number, itemCount: number): number {
  * Featured strip — wide web/tablet: equal-width single-row grid.
  * Narrow / native: horizontal snap carousel with peek.
  */
-export function HomeFeaturedCarousel({ auctions, toCardAuction, currency = "MVR" }: Props) {
+export function HomeFeaturedCarousel({ auctions, toCardAuction, currency }: Props) {
   const screenW = useScreenContentWidth();
   const listInnerW = Math.max(0, screenW - space.lg * 4);
   const [page, setPage] = useState(0);

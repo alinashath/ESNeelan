@@ -118,8 +118,8 @@ function buildSmsBody(type: string, payload: Record<string, unknown>): string | 
           : `${new Intl.NumberFormat(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }).format(amt)} MVR`;
-      return `AUC: Buy Now request on "${shortTitle}"${a ? ` (${a})` : ""}. Open the app to accept or decline.`;
+            }).format(amt)}`;
+      return `AUC: Buy Now request on "${shortTitle}"${a ? ` (${"\u20C2"} ${a})` : ""}. Open the app to accept or decline.`;
     }
     case "buy_now_accepted": {
       const amt = num(payload.amount);
@@ -129,8 +129,8 @@ function buildSmsBody(type: string, payload: Record<string, unknown>): string | 
           : `${new Intl.NumberFormat(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }).format(amt)} MVR`;
-      return `AUC: Buy Now accepted for "${shortTitle}"${a ? ` at ${a}` : ""}. Open the app for payment steps.`;
+            }).format(amt)}`;
+      return `AUC: Buy Now accepted for "${shortTitle}"${a ? ` at ${"\u20C2"} ${a}` : ""}. Open the app for payment steps.`;
     }
     default:
       return null;
@@ -142,10 +142,10 @@ function buildSmsBody(type: string, payload: Record<string, unknown>): string | 
 function mvr(v: unknown): string | null {
   const n = num(v);
   if (n == null) return null;
-  return `${new Intl.NumberFormat(undefined, {
+  return `\u20C2 ${new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(n)} MVR`;
+  }).format(n)}`;
 }
 
 function joinParas(lines: string[]): string {

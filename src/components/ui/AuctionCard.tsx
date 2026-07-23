@@ -8,8 +8,6 @@ import {
 } from "@/src/lib/ui-motion";
 import {
     accentWash,
-    colors,
-    fontFamilies,
     radii,
     space,
     typography,
@@ -25,7 +23,6 @@ import Animated, {
 import { AuctionCountdownBadge } from "./AuctionCountdownBadge";
 import { AuctionSoldBookmark } from "./AuctionSoldBookmark";
 import { ContainedListingPhoto } from "./ContainedListingPhoto";
-import { TextCaption } from "./TextCaption";
 import { ValueCurrency } from "./ValueCurrency";
 
 export type AuctionCardAuction = {
@@ -68,9 +65,9 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
   const showClosedOnImage =
     !soldUi && String(auction.status).trim().toLowerCase() === "active" && !liveUi;
   const imgH = compact ? 160 : 200;
-  const padH = compact ? space.sm : space.xxxl;
-  const padTop = compact ? space.sm : space.lg;
-  const padBottom = compact ? space.md : space.xxl;
+  const padH = compact ? space.sm : space.lg;
+  const padTop = compact ? space.sm : space.md;
+  const padBottom = compact ? space.md : space.xl;
   const reducedMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const cardAnim = useAnimatedStyle(() => ({
@@ -112,61 +109,8 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
 
   const showCountdownOnCard = liveUi && !compact;
 
-  const priceRowLabel = soldUi ? null : showClosedOnImage ? "Sold" : "Current bid";
-
-  const livePill = liveUi ? (
-    <View
-      style={{
-        position: "absolute",
-        top: space.sm,
-        left: space.sm,
-        backgroundColor: urgent ? colors.danger : colors.success,
-        paddingHorizontal: space.md,
-        paddingVertical: 6,
-        borderRadius: radii.pill,
-      }}
-    >
-      <Text
-        style={{
-          color: colors.white,
-          fontWeight: "600",
-          fontSize: 10,
-          letterSpacing: 0.8,
-          fontFamily: fontFamilies.body,
-        }}
-      >
-        {urgent ? "ENDING SOON" : "LIVE"}
-      </Text>
-    </View>
-  ) : soldUi ? (
-    <AuctionSoldBookmark />
-  ) : showClosedOnImage ? (
-    <View
-      style={{
-        position: "absolute",
-        top: space.sm,
-        left: space.sm,
-        backgroundColor: colors.surfaceMuted,
-        borderWidth: 1,
-        borderColor: colors.border,
-        paddingHorizontal: space.md,
-        paddingVertical: 6,
-        borderRadius: radii.pill,
-      }}
-    >
-      <Text
-        style={{
-          color: colors.textSecondary,
-          fontWeight: "600",
-          fontSize: 10,
-          letterSpacing: 0.6,
-          fontFamily: fontFamilies.body,
-        }}
-      >
-        Closed
-      </Text>
-    </View>
-  ) : null;
+  const statusOverlay =
+    soldUi || showClosedOnImage ? <AuctionSoldBookmark /> : null;
 
   const imageBlock = (
     <ContainedListingPhoto
@@ -174,7 +118,7 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
       height={imgH}
       photoAnimStyle={photoAnimStyle}
     >
-      {livePill}
+      {statusOverlay}
       {showCountdownOnCard ? (
         <AuctionCountdownBadge
           endsAt={auction.ends_at}
@@ -232,50 +176,14 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
                 fontWeight: "600",
               },
             ]}
-            numberOfLines={2}
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {auction.title}
           </Text>
 
-          {soldUi ? null : priceRowLabel ? (
-            <TextCaption
-              style={{
-                marginTop: space.xs,
-                fontSize: 12,
-                fontWeight: "400",
-                letterSpacing: 0.2,
-                color: colors.textMuted,
-                fontFamily: fontFamilies.body,
-              }}
-            >
-              {priceRowLabel}
-            </TextCaption>
-          ) : null}
-
-          <View
-            style={{
-              marginTop: space.sm,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <ValueCurrency
-              amount={bid}
-              size={compact ? "compact" : "default"}
-              layout="inline"
-              amountFontWeight="600"
-            />
-            <Text
-              style={{
-                fontSize: compact ? 13 : 14,
-                fontWeight: "400",
-                color: colors.textSecondary,
-                fontFamily: fontFamilies.body,
-              }}
-            >
-              {auction.bid_count} {auction.bid_count === 1 ? "bid" : "bids"}
-            </Text>
+          <View style={{ marginTop: space.sm }}>
+            <ValueCurrency amount={bid} size="sm" layout="inline" />
           </View>
         </View>
       </Pressable>

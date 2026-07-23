@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(230, 0, 35, 0.08)",
+    backgroundColor: "rgba(0, 0, 0, 0.06)",
   },
   title: {
     fontSize: 22,

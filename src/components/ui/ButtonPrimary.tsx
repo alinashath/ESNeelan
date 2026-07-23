@@ -81,7 +81,7 @@ export function ButtonPrimary({
             {
               backgroundColor: bg,
               ...buttonPrimaryPadding,
-              borderRadius: radii.pill,
+              borderRadius: radii.sm,
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "row",
@@ -98,7 +98,9 @@ export function ButtonPrimary({
         ) : (
           <>
             {icon ? <Ionicons name={icon} size={20} color={fg} /> : null}
-            <TextBody style={{ color: fg, fontWeight: "600" }}>{title}</TextBody>
+            <TextBody style={{ color: fg, fontWeight: "400", fontSize: 14, lineHeight: 20 }}>
+              {title}
+            </TextBody>
           </>
         )}
       </Pressable>

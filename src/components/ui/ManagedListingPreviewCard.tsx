@@ -4,9 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { Badge } from "@/src/components/ui/Badge";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
-import { formatMoneyAmount } from "@/src/lib/format-money";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
 import { colors, fontFamilies, palette, radii, space, typography } from "@/src/theme/tokens";
+import { ValueCurrency } from "@/src/components/ui/ValueCurrency";
 
 export type ManagedListingPreviewCardProps = {
   imageUrl?: string | null;
@@ -105,16 +105,7 @@ export function ManagedListingPreviewCard({
             >
               {live ? "Current bid" : "Price / high bid"}
             </TextCaption>
-            <TextBody
-              style={{
-                marginTop: space.xs,
-                fontSize: 18,
-                fontWeight: "600",
-                color: colors.primary,
-              }}
-            >
-              MVR {formatMoneyAmount(currentMvr)}
-            </TextBody>
+            <ValueCurrency amount={currentMvr} size="compact" amountFontWeight="600" />
           </View>
           <View style={{ flex: 1, minWidth: 120 }}>
             <TextCaption

@@ -8,8 +8,8 @@ export function Card({ children, style, ...rest }: Props) {
     <View
       style={[
         {
-          backgroundColor: colors.surfaceMuted,
-          borderRadius: radii.lg,
+          backgroundColor: colors.white,
+          borderRadius: radii.md,
           padding: space.lg,
           borderWidth: 1,
           borderColor: colors.border,

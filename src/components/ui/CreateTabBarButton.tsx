@@ -1,4 +1,4 @@
-import { accentBorderSubtle, colors, shadows } from "@/src/theme/tokens";
+import { accentBorderSubtle, colors, radii, shadows } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View, type PressableProps, type ViewStyle } from "react-native";
 
@@ -27,7 +27,7 @@ export function CreateTabBarButton({
           style={({ pressed }) => ({
             width: 44,
             height: 44,
-            borderRadius: 22,
+            borderRadius: radii.sm,
             backgroundColor: colors.accent,
             alignItems: "center",
             justifyContent: "center",
@@ -55,7 +55,7 @@ export function CreateTabBarButton({
           width: 52,
           height: 52,
           marginTop: -22,
-          borderRadius: 16,
+          borderRadius: radii.md,
           backgroundColor: colors.accent,
           alignItems: "center",
           justifyContent: "center",

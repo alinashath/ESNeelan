@@ -1,69 +1,65 @@
 import { Platform, TextStyle } from "react-native";
 
 /**
- * AUC — brand red `#e60023` for primary ink, CTAs, and logo tile.
- * Headlines use `fontFamilies.headingSerif` (Georgia stack on web).
+ * Harper’s Bazaar Editorial — monochrome fashion system.
+ * Black primary ink/CTAs, serif story headlines, Helvetica-like body/UI.
+ * See `docs/design-harpers-editorial.md`.
  */
 export const palette = {
-  /** Brand red — nav active, prices, links, logo */
-  primary: "#e60023",
-  /** Filled CTA, featured ribbon */
-  primaryCta: "#e60023",
-  primaryPressed: "#cc001f",
-  primaryFocus: "#435ee5",
+  /** Masthead, nav, buttons, body ink */
+  primary: "#000000",
+  /** Filled CTA */
+  primaryCta: "#000000",
+  primaryPressed: "#333333",
+  primaryFocus: "#666666",
   primaryOnDark: "#ffffff",
   ink: "#000000",
-  inkSoft: "#211922",
-  body: "#33332e",
-  /** Main on-surface ink from Stitch */
-  onSurface: "#2a1615",
-  charcoal: "#262622",
-  inkMuted80: "#62625b",
-  inkMuted48: "#91918c",
-  /** Nav / secondary label */
-  secondary: "#5d5f5b",
-  hairline: "#dadad3",
-  dividerSoft: "#e5e5e0",
-  hairlineSoft: "#e5e5e0",
+  inkSoft: "#333333",
+  body: "#444444",
+  onSurface: "#000000",
+  charcoal: "#333333",
+  inkMuted80: "#666666",
+  inkMuted48: "#666666",
+  /** Supporting text */
+  secondary: "#444444",
+  /** Borders / dividers */
+  hairline: "#E5E7EB",
+  dividerSoft: "#E5E7EB",
+  hairlineSoft: "#E5E7EB",
   canvas: "#ffffff",
-  /** Page wash */
-  canvasParchment: "#fff8f7",
-  surfaceCard: "#f6f6f3",
-  /** Auction detail / Stitch — stat cards, seller pill */
-  surfaceSoft: "#fbfbf9",
-  /** Warm container — listing codes, legal callouts */
-  surfaceBlush: "#ffe9e7",
-  /** Verified seller badge (Stitch tertiary) */
-  tertiaryInk: "#005f90",
-  tertiaryBadgeBg: "rgba(0, 121, 182, 0.1)",
-  tertiaryBadgeBorder: "rgba(0, 95, 144, 0.2)",
-  secondaryFixed: "#e3e3de",
-  secondaryContainer: "#e0e0db",
-  /** Home stats bar — warm light grey (Stitch marketing strip) */
-  statsBarSurface: "#eae9e4",
-  surfacePearl: "#f6f6f3",
-  surfaceTile1: "#272729",
-  surfaceTile2: "#2A2A2C",
-  surfaceTile3: "#252527",
+  canvasParchment: "#ffffff",
+  surfaceCard: "#F7F7F7",
+  surfaceSoft: "#F7F7F7",
+  surfaceBlush: "#F7F7F7",
+  tertiaryInk: "#333333",
+  tertiaryBadgeBg: "rgba(0, 0, 0, 0.06)",
+  tertiaryBadgeBorder: "rgba(0, 0, 0, 0.16)",
+  secondaryFixed: "#F7F7F7",
+  secondaryContainer: "#F7F7F7",
+  statsBarSurface: "#F7F7F7",
+  surfacePearl: "#F7F7F7",
+  surfaceTile1: "#000000",
+  surfaceTile2: "#333333",
+  surfaceTile3: "#444444",
   surfaceBlack: "#000000",
-  surfaceChipTranslucent: "#D2D2D7",
+  surfaceChipTranslucent: "#E5E7EB",
   onPrimary: "#ffffff",
   onDark: "#ffffff",
   neutral: "#ffffff",
-  primaryDeep: "#cc001f",
+  primaryDeep: "#333333",
   surface: "#ffffff",
   surfaceRaised: "#ffffff",
   successGreen: "#2ECC8A",
-  alertRed: "#D92D20",
+  alertRed: "#B00020",
   ivory: "#ffffff",
   ivoryMuted: "rgba(255,255,255,0.88)",
   obsidian: "#000000",
 } as const;
 
-export const accentBorderSubtle = "rgba(230, 0, 35, 0.35)";
-export const accentBorderStrong = "rgba(67, 94, 229, 0.5)";
-export const accentWash = "rgba(230, 0, 35, 0.1)";
-export const accentWashDeep = "rgba(230, 0, 35, 0.16)";
+export const accentBorderSubtle = "rgba(0, 0, 0, 0.2)";
+export const accentBorderStrong = "rgba(0, 0, 0, 0.45)";
+export const accentWash = "rgba(0, 0, 0, 0.06)";
+export const accentWashDeep = "rgba(0, 0, 0, 0.1)";
 
 export const goldBorderSubtle = accentBorderSubtle;
 export const goldBorderStrong = accentBorderStrong;
@@ -76,10 +72,10 @@ export const colors = {
   accent: palette.primaryCta,
   accentPressed: palette.primaryPressed,
   background: palette.surfaceCard,
-  surfaceMuted: palette.hairlineSoft,
+  surfaceMuted: palette.surfaceCard,
   statsBarSurface: palette.statsBarSurface,
-  searchBarFill: palette.secondaryContainer,
-  /** Icon wells, Stitch `secondary-container` */
+  searchBarFill: palette.surface,
+  /** Icon wells */
   secondaryContainer: palette.secondaryContainer,
   chipIdle: palette.secondaryFixed,
   hairlineSoft: palette.hairlineSoft,
@@ -114,13 +110,14 @@ export const colors = {
 } as const;
 
 const accentRingShadow = {
-  shadowColor: palette.primaryFocus,
+  shadowColor: "#000000",
   shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 0.28,
+  shadowOpacity: 0.16,
   shadowRadius: 0,
   elevation: 0,
 } as const;
 
+/** Flat / print-like — borders over shadows */
 export const shadows = {
   card: {
     shadowColor: "#000000",
@@ -131,22 +128,23 @@ export const shadows = {
   },
   productImage: {
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
   },
   tabFab: {
     shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   accentRing: accentRingShadow,
   goldRing: accentRingShadow,
 } as const;
 
+/** Design scale: 4 / 8 / 16 / 20 / 24 / 32 / 48 */
 export const appleSpacing = {
   xxs: 4,
   xs: 8,
@@ -155,102 +153,132 @@ export const appleSpacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
-  section: 64,
-  gutter: 24,
+  section: 48,
+  gutter: 32,
 } as const;
 
 export const buttonPrimaryPadding = {
-  paddingVertical: 10,
-  paddingHorizontal: 18,
-  minHeight: 44,
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  minHeight: 40,
 } as const;
 
 export const space = {
   xs: 4,
   sm: 8,
-  md: 12,
+  md: 16,
   lg: 16,
   xl: 24,
   xxl: 32,
-  xxxl: 40,
+  xxxl: 48,
   sectionX: appleSpacing.gutter,
 } as const;
 
-/** Stitch: pin `rounded-xl` ≈ 12px, product cards 16px, hero cards 32px, pills full */
+/** Editorial: 4px controls, 8px cards, 12–16px larger modules, pills for chips only */
 export const radii = {
   none: 0,
-  xs: 8,
-  sm: 8,
-  md: 12,
+  xs: 4,
+  sm: 4,
+  md: 8,
   xl: 16,
-  lg: 32,
+  lg: 12,
   pill: 9999,
 } as const;
 
-/** Stitch / editorial — display & product titles (Georgia on web; system serif on native). */
+/**
+ * NewParis Text substitute — editorial serif for story / product headlines.
+ * Helvetica Now Text substitute — system Helvetica stack on web; Inter on native.
+ */
 const HEADING_SERIF: string =
   Platform.OS === "web"
-    ? 'Georgia, "Times New Roman", Times, serif'
+    ? '"Libre Baskerville", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif'
     : Platform.OS === "ios"
       ? "Georgia"
       : "serif";
 
+const BODY_SANS: string =
+  Platform.OS === "web"
+    ? '"Helvetica Neue", Helvetica, Arial, sans-serif'
+    : "Inter_400Regular";
+
+const BODY_SANS_MEDIUM: string =
+  Platform.OS === "web"
+    ? '"Helvetica Neue", Helvetica, Arial, sans-serif'
+    : "Inter_500Medium";
+
+const BODY_SANS_SEMIBOLD: string =
+  Platform.OS === "web"
+    ? '"Helvetica Neue", Helvetica, Arial, sans-serif'
+    : "Inter_600SemiBold";
+
+const UI_SANS: string =
+  Platform.OS === "web"
+    ? '"Helvetica Neue", Helvetica, Arial, sans-serif'
+    : "Inter_400Regular";
+
 export const fontFamilies = {
-  displayRegular: "Inter_400Regular",
-  displayMedium: "Inter_500Medium",
-  displaySemiBold: "Inter_600SemiBold",
-  displayBold: "Inter_600SemiBold",
-  /** Headlines, section titles, card titles — matches featured hero title. */
+  displayRegular: BODY_SANS,
+  displayMedium: BODY_SANS_MEDIUM,
+  displaySemiBold: BODY_SANS_SEMIBOLD,
+  displayBold: BODY_SANS_SEMIBOLD,
+  /** Story / lot titles — NewParis Text role */
   headingSerif: HEADING_SERIF,
-  body: "Inter_400Regular",
-  bodyMedium: "Inter_500Medium",
-  bodySemiBold: "Inter_600SemiBold",
-  bodyBold: "Inter_600SemiBold",
+  body: BODY_SANS,
+  bodyMedium: BODY_SANS_MEDIUM,
+  bodySemiBold: BODY_SANS_SEMIBOLD,
+  bodyBold: BODY_SANS_SEMIBOLD,
+  ui: UI_SANS,
 } as const;
 
 export const fontMono = fontFamilies.bodySemiBold;
 
 export const typography = {
+  /** headline-display — hero / masthead (sans, assertive) */
   display: {
-    fontSize: 34,
-    lineHeight: 38,
-    fontWeight: "600" as TextStyle["fontWeight"],
+    fontSize: 36,
+    lineHeight: 43,
+    fontWeight: "700" as TextStyle["fontWeight"],
     color: palette.ink,
-    letterSpacing: -1.0,
-    fontFamily: fontFamilies.headingSerif,
+    letterSpacing: 0,
+    fontFamily: fontFamilies.ui,
   },
+  /** headline-lg — editorial story title */
   title: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: "600" as TextStyle["fontWeight"],
+    fontSize: 31,
+    lineHeight: 43,
+    fontWeight: "400" as TextStyle["fontWeight"],
     color: palette.ink,
-    letterSpacing: -0.8,
+    letterSpacing: 0,
     fontFamily: fontFamilies.headingSerif,
   },
+  /** headline-md */
   section: {
-    fontSize: 22,
+    fontSize: 27,
     lineHeight: 28,
-    fontWeight: "600" as TextStyle["fontWeight"],
+    fontWeight: "400" as TextStyle["fontWeight"],
     color: palette.ink,
-    letterSpacing: -1.2,
+    letterSpacing: 0.2,
     fontFamily: fontFamilies.headingSerif,
   },
+  /** headline-sm scale with serif for lot / card titles */
   cardTitle: {
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: "600" as TextStyle["fontWeight"],
+    fontSize: 23,
+    lineHeight: 28,
+    fontWeight: "400" as TextStyle["fontWeight"],
     color: palette.onSurface,
-    letterSpacing: -0.3,
+    letterSpacing: 0,
     fontFamily: fontFamilies.headingSerif,
   },
+  /** body-md */
   body: {
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
     fontWeight: "400" as TextStyle["fontWeight"],
     color: palette.body,
     letterSpacing: 0,
     fontFamily: fontFamilies.body,
   },
+  /** body-sm / label-md utility */
   caption: {
     fontSize: 14,
     lineHeight: 20,
@@ -259,12 +287,13 @@ export const typography = {
     letterSpacing: 0,
     fontFamily: fontFamilies.body,
   },
+  /** label-sm */
   label: {
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: "600" as TextStyle["fontWeight"],
+    fontWeight: "400" as TextStyle["fontWeight"],
     color: palette.inkMuted80,
-    letterSpacing: 0.15,
-    fontFamily: fontFamilies.bodySemiBold,
+    letterSpacing: 0,
+    fontFamily: fontFamilies.ui,
   },
 } as const;

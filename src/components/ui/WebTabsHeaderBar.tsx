@@ -301,15 +301,17 @@ const styles = StyleSheet.create({
   signUp: {
     backgroundColor: colors.accent,
     paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: radii.pill,
+    paddingHorizontal: 16,
+    borderRadius: radii.sm,
     marginRight: space.xs,
+    minHeight: 40,
+    justifyContent: "center",
   },
   signUpLabel: {
     color: colors.onAccent,
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.1,
+    fontSize: 14,
+    fontWeight: "400",
+    letterSpacing: 0,
   },
   iconHit: {
     padding: space.xs,
@@ -362,9 +364,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tabLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    letterSpacing: 0.05,
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: "400",
+    letterSpacing: 0,
   },
   badge: {
     position: "absolute",

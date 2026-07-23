@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/src/lib/supabase";
 
-const CHANNEL = "catalog-auctions-realtime";
 const INVALIDATE_DEBOUNCE_MS = 200;
 
 /**
@@ -27,8 +26,11 @@ export function useAuctionCatalogRealtimeSync() {
       }, INVALIDATE_DEBOUNCE_MS);
     }
 
+    // Unique topic avoids StrictMode remount reusing a subscribed channel instance
+    // (cannot add postgres_changes after subscribe()).
+    const topic = `catalog-auctions-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const channel = supabase
-      .channel(CHANNEL)
+      .channel(topic)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "auctions" },

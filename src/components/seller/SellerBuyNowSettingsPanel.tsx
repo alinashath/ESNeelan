@@ -6,7 +6,8 @@ import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextLabel } from "@/src/components/ui/TextLabel";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { RufiyaaSign } from "@/src/components/ui/RufiyaaSign";
+import { formatMoneyWithSign, MVR_SIGN } from "@/src/lib/format-money";
 import { supabase } from "@/src/lib/supabase";
 import { colors, radii, space } from "@/src/theme/tokens";
 
@@ -59,7 +60,7 @@ export function SellerBuyNowSettingsPanel({
       if (!res?.ok) {
         if (res?.error === "buy_now_too_low") {
           throw new Error(
-            `Buy Now must be above ${formatMoneyAmount(Number(res.min_required ?? floor))} MVR (starting price or current bid).`,
+            `Buy Now must be above ${formatMoneyWithSign(Number(res.min_required ?? floor))} (starting price or current bid).`,
           );
         }
         if (res?.error === "auction_ended") {
@@ -85,8 +86,8 @@ export function SellerBuyNowSettingsPanel({
         Alert.alert(
           "Buy Now updated",
           res.pending_cancelled
-            ? `Buy Now is now ${formatMoneyAmount(price)} MVR. Pending requests at the old price were cancelled.`
-            : `Buy Now is set to ${formatMoneyAmount(price)} MVR.`,
+            ? `Buy Now is now ${formatMoneyWithSign(price)}. Pending requests at the old price were cancelled.`
+            : `Buy Now is set to ${formatMoneyWithSign(price)}.`,
         );
       }
     } catch (e: unknown) {
@@ -106,7 +107,7 @@ export function SellerBuyNowSettingsPanel({
     if (!Number.isFinite(n) || n <= floor) {
       Alert.alert(
         "Buy Now price",
-        `Enter an amount higher than ${formatMoneyAmount(floor)} MVR (starting price or current leading bid).`,
+        `Enter an amount higher than ${formatMoneyWithSign(floor)} (starting price or current leading bid).`,
       );
       return;
     }
@@ -141,10 +142,10 @@ export function SellerBuyNowSettingsPanel({
       <TextCaption style={{ fontWeight: "600" }}>Buy Now settings</TextCaption>
       <TextBody style={{ color: colors.textSecondary, fontSize: 14 }}>
         Set or change the Buy Now price while this auction is live. Must be above{" "}
-        {formatMoneyAmount(floor)} MVR (starting price or current leading bid). Changing or removing
+        {formatMoneyWithSign(floor)} (starting price or current leading bid). Changing or removing
         it cancels any pending Buy Now request.
       </TextBody>
-      <TextLabel style={{ marginTop: space.xs }}>Buy Now price (MVR)</TextLabel>
+      <TextLabel style={{ marginTop: space.xs }}>Buy Now price ({MVR_SIGN})</TextLabel>
       <View
         style={{
           borderWidth: 1,
@@ -156,9 +157,9 @@ export function SellerBuyNowSettingsPanel({
           backgroundColor: colors.background,
         }}
       >
-        <TextBody style={{ fontWeight: "600", color: colors.textMuted, marginRight: space.xs }}>
-          MVR
-        </TextBody>
+        <View style={{ marginRight: space.xs, justifyContent: "center" }}>
+          <RufiyaaSign size={15} color={colors.text} />
+        </View>
         <TextInput
           keyboardType="decimal-pad"
           value={draft}
@@ -177,7 +178,7 @@ export function SellerBuyNowSettingsPanel({
       </View>
       {buyNowPrice != null && buyNowPrice > 0 ? (
         <TextCaption style={{ color: colors.textMuted }}>
-          Currently {formatMoneyAmount(buyNowPrice)} MVR
+          Currently {formatMoneyWithSign(buyNowPrice)}
         </TextCaption>
       ) : (
         <TextCaption style={{ color: colors.textMuted }}>Buy Now is currently off</TextCaption>

@@ -16,7 +16,7 @@ import {
   sellerHighBidderPendingConsentParagraphs,
   sellerPaymentStageParagraphs,
 } from "@/src/lib/bidmaster-legal-copy";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 import {
   formatWinnerConsentCountdown,
   isWinnerConsentDeadlinePassed,
@@ -65,7 +65,7 @@ export function SellerPostClosePanel({
   const [tick, setTick] = useState(0);
   const [reenableEndsAt, setReenableEndsAt] = useState(defaultReenableEndsAt);
   const st = String(status).trim().toLowerCase();
-  const winningAmountLabel = `${formatMoneyAmount(currentHighestBid || startingPrice)} MVR`;
+  const winningAmountLabel = formatMoneyWithSign(currentHighestBid || startingPrice);
   const winnerContactDisplay = formatMaldivesPhoneDisplay(winnerContactPhone);
   const pastEndActive = st === "active" && endsAt != null && !isAuctionLiveForUi(status, endsAt);
 

@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
 });
 
 export const floatingTabIndicatorStyle = {
-  backgroundColor: "rgba(230, 0, 35, 0.12)",
-  borderRadius: 999,
+  backgroundColor: "rgba(0, 0, 0, 0.06)",
+  borderRadius: 8,
   borderWidth: StyleSheet.hairlineWidth,
-  borderColor: "rgba(230, 0, 35, 0.16)",
+  borderColor: "rgba(0, 0, 0, 0.12)",
 } as const;
 
 export const floatingTabLabelStyle = {

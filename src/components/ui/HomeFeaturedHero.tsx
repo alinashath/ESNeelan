@@ -1,3 +1,4 @@
+import { MVR_SIGN } from "@/src/lib/format-money";
 import { useEffect, useState } from "react";
 import { isAuctionLiveForUi, isAuctionSoldForUi } from "@/src/lib/auction-live";
 import {
@@ -66,7 +67,7 @@ type Props = {
 export function HomeFeaturedHero({
   auction,
   onPress,
-  currency = "MVR",
+  currency = MVR_SIGN,
   cardWidth: cardWidthProp,
   fillParent = false,
   showCountdown = true,
@@ -167,7 +168,6 @@ export function HomeFeaturedHero({
             currency={currency}
             size="default"
             layout="inline"
-            currencyColor={colors.ivoryMuted}
             amountColor={colors.ivory}
             amountFontWeight="600"
           />

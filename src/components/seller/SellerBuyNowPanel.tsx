@@ -6,7 +6,7 @@ import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { usePendingBuyNowRequest } from "@/src/data/auctions";
-import { formatMoneyAmount } from "@/src/lib/format-money";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 import { supabase } from "@/src/lib/supabase";
 import { colors, radii, space } from "@/src/theme/tokens";
 
@@ -74,7 +74,7 @@ export function SellerBuyNowPanel({ auctionId, enabled = true, onRefresh }: Prop
     if (!pending) return;
     Alert.alert(
       "Accept Buy Now?",
-      `This ends bidding and moves the listing to payment stage at ${formatMoneyAmount(pending.amount)} MVR.`,
+      `This ends bidding and moves the listing to payment stage at ${formatMoneyWithSign(pending.amount)}.`,
       [
         { text: "Back", style: "cancel" },
         { text: "Accept", style: "default", onPress: () => void accept() },
@@ -103,7 +103,7 @@ export function SellerBuyNowPanel({ auctionId, enabled = true, onRefresh }: Prop
       <TextBody>
         {pending.buyer_display_name ?? "A buyer"} offered{" "}
         <TextBody style={{ fontWeight: "600" }}>
-          {formatMoneyAmount(pending.amount)} MVR
+          {formatMoneyWithSign(pending.amount)}
         </TextBody>
         .
       </TextBody>
