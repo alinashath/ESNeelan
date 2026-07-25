@@ -1,5 +1,6 @@
 /**
- * Production web server: static `dist/` + SPA fallback + OG HTML for social crawlers.
+ * Production web server: static `dist/` + SPA fallback + OG HTML for social crawlers
+ * + dynamic `/sitemap.xml` and `/robots.txt`.
  */
 import http from "node:http";
 import fs from "node:fs";
@@ -38,6 +39,8 @@ const MIME = {
   ".js": "application/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json",
+  ".xml": "application/xml; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -50,12 +53,56 @@ const MIME = {
   ".webp": "image/webp",
 };
 
+/** Public catalog statuses (matches `CATALOG_LISTING_STATUSES` in the app). */
+const SITEMAP_AUCTION_STATUSES = ["active", "ended", "completed", "won", "paid"];
+
+const SITEMAP_STATIC_PATHS = [
+  { path: "/", changefreq: "daily", priority: "1.0" },
+  { path: "/explore", changefreq: "daily", priority: "0.9" },
+  { path: "/artists", changefreq: "daily", priority: "0.8" },
+  { path: "/categories", changefreq: "weekly", priority: "0.7" },
+  { path: "/sellers", changefreq: "daily", priority: "0.7" },
+];
+
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function escapeXml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function getRequestOrigin(req) {
+  if (SITE_URL) return SITE_URL;
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  if (!host) return "";
+  const protoHeader = req.headers["x-forwarded-proto"];
+  const proto = String(protoHeader || "https").split(",")[0].trim() || "https";
+  return `${proto}://${host}`.replace(/\/$/, "");
+}
+
+function toSitemapLastmod(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
+function sitemapUrlEntry({ loc, lastmod, changefreq, priority }) {
+  const parts = [`    <loc>${escapeXml(loc)}</loc>`];
+  if (lastmod) parts.push(`    <lastmod>${escapeXml(lastmod)}</lastmod>`);
+  if (changefreq) parts.push(`    <changefreq>${escapeXml(changefreq)}</changefreq>`);
+  if (priority) parts.push(`    <priority>${escapeXml(priority)}</priority>`);
+  return `  <url>\n${parts.join("\n")}\n  </url>`;
 }
 
 function formatMoneyAmount(amount) {
@@ -120,6 +167,153 @@ async function supabaseRestGet(table, filters, select) {
   if (!res.ok) return null;
   const rows = await res.json();
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
+/** Paginated PostgREST list (anon key; respects RLS). */
+async function supabaseRestList(table, filters, select, { order, pageSize = 1000, maxRows = 10000 } = {}) {
+  if (!SUPABASE_URL || !SUPABASE_ANON) return [];
+  const all = [];
+  let offset = 0;
+  while (offset < maxRows) {
+    const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+    for (const [key, value] of Object.entries(filters)) {
+      url.searchParams.set(key, value);
+    }
+    url.searchParams.set("select", select);
+    if (order) url.searchParams.set("order", order);
+    const end = Math.min(offset + pageSize - 1, maxRows - 1);
+    const res = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+        Range: `${offset}-${end}`,
+        Prefer: "count=exact",
+      },
+    });
+    if (!res.ok) break;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) break;
+    all.push(...rows);
+    if (rows.length < pageSize) break;
+    offset += pageSize;
+  }
+  return all;
+}
+
+async function fetchSitemapAuctionRows() {
+  return supabaseRestList(
+    "auctions",
+    { status: `in.(${SITEMAP_AUCTION_STATUSES.join(",")})` },
+    "id,updated_at",
+    { order: "updated_at.desc" },
+  );
+}
+
+async function fetchSitemapArticleRows() {
+  const nowIso = new Date().toISOString();
+  return supabaseRestList(
+    "featured_articles",
+    {
+      status: "eq.published",
+      published_at: `lte.${nowIso}`,
+    },
+    "slug,updated_at,published_at",
+    { order: "published_at.desc" },
+  );
+}
+
+async function fetchSitemapSellerIds() {
+  const rows = await supabaseRestList(
+    "auctions",
+    { status: "eq.active" },
+    "seller_id",
+    { order: "seller_id.asc" },
+  );
+  return [...new Set(rows.map((r) => r?.seller_id).filter(Boolean).map(String))];
+}
+
+async function buildSitemapXml(origin) {
+  const entries = SITEMAP_STATIC_PATHS.map((p) =>
+    sitemapUrlEntry({
+      loc: `${origin}${p.path === "/" ? "/" : p.path}`,
+      changefreq: p.changefreq,
+      priority: p.priority,
+    }),
+  );
+
+  try {
+    const [auctions, articles, sellerIds] = await Promise.all([
+      fetchSitemapAuctionRows(),
+      fetchSitemapArticleRows(),
+      fetchSitemapSellerIds(),
+    ]);
+
+    for (const row of auctions) {
+      if (!row?.id || !UUID_RE.test(String(row.id))) continue;
+      entries.push(
+        sitemapUrlEntry({
+          loc: `${origin}/auction/${encodeURIComponent(row.id)}`,
+          lastmod: toSitemapLastmod(row.updated_at),
+          changefreq: "daily",
+          priority: "0.8",
+        }),
+      );
+    }
+
+    for (const row of articles) {
+      const slug = String(row?.slug || "").trim();
+      if (!SLUG_RE.test(slug)) continue;
+      entries.push(
+        sitemapUrlEntry({
+          loc: `${origin}/article/${encodeURIComponent(slug)}`,
+          lastmod: toSitemapLastmod(row.updated_at || row.published_at),
+          changefreq: "weekly",
+          priority: "0.7",
+        }),
+      );
+    }
+
+    for (const id of sellerIds) {
+      if (!UUID_RE.test(id)) continue;
+      entries.push(
+        sitemapUrlEntry({
+          loc: `${origin}/seller/${encodeURIComponent(id)}`,
+          changefreq: "weekly",
+          priority: "0.6",
+        }),
+      );
+    }
+  } catch {
+    /* still return static URLs */
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries.join("\n")}
+</urlset>
+`;
+}
+
+function buildRobotsTxt(origin) {
+  const lines = [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /admin",
+    "Disallow: /create",
+    "Disallow: /my-auctions",
+    "Disallow: /won",
+    "Disallow: /login",
+    "Disallow: /signup",
+    "Disallow: /verify",
+    "Disallow: /profile",
+    "Disallow: /notifications",
+    "Disallow: /_sitemap",
+    "",
+  ];
+  if (origin) {
+    lines.push(`Sitemap: ${origin}/sitemap.xml`, "");
+  }
+  return lines.join("\n");
 }
 
 async function fetchAuctionForOg(id) {
@@ -271,6 +465,37 @@ const server = http.createServer(async (req, res) => {
     const ok = configured ? await pingRedis() : false;
     res.writeHead(ok ? 200 : 503, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ ok, configured }));
+    return;
+  }
+
+  if (urlPath === "/robots.txt") {
+    const origin = getRequestOrigin(req);
+    res.writeHead(200, {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    });
+    res.end(buildRobotsTxt(origin));
+    return;
+  }
+
+  if (urlPath === "/sitemap.xml") {
+    const origin = getRequestOrigin(req);
+    if (!origin) {
+      res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Set EXPO_PUBLIC_SITE_URL (or serve behind a Host header) to generate sitemap URLs.");
+      return;
+    }
+    try {
+      const xml = await buildSitemapXml(origin);
+      res.writeHead(200, {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=900",
+      });
+      res.end(xml);
+    } catch {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("Failed to build sitemap");
+    }
     return;
   }
 

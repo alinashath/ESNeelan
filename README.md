@@ -21,7 +21,7 @@ Copy the **anon key** and **URL** from the CLI output into `.env`:
 cp .env.example .env
 # Edit .env — set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY
 # For production web: set EXPO_PUBLIC_SITE_URL to your public origin (no trailing slash) so
-# Open Graph tags, canonical URLs, and native share links use absolute URLs. Optional:
+# Open Graph tags, canonical URLs, native share links, and `/sitemap.xml` use absolute URLs. Optional:
 # EXPO_PUBLIC_DEFAULT_OG_IMAGE_URL for a default 1200×630 social preview image.
 # Featured listing fee (amount + bank payee) is configured in **Admin → Platform settings** (`app_settings` via RPC `admin_update_app_settings`). Sellers see those values on the featured fee upload screens.
 ```
@@ -96,7 +96,7 @@ Run `npm run web` (or `npx expo start --web`). On large viewports, `Screen` cent
 
 #### Host web on Railway
 
-Production web is a **static export** (`app.json` → `expo.web.output: "static"` → `dist/`). A root **`Dockerfile`** builds the site and runs **`scripts/web-server.mjs`** on `0.0.0.0:$PORT` (static files + SPA fallback for `/auction/{id}` and `/article/{slug}` + Open Graph HTML for social crawlers). Railway auto-detects it (`Using detected Dockerfile!` in build logs).
+Production web is a **static export** (`app.json` → `expo.web.output: "static"` → `dist/`). A root **`Dockerfile`** builds the site and runs **`scripts/web-server.mjs`** on `0.0.0.0:$PORT` (static files + SPA fallback for `/auction/{id}` and `/article/{slug}` + Open Graph HTML for social crawlers + dynamic `/sitemap.xml` / `/robots.txt`). Railway auto-detects it (`Using detected Dockerfile!` in build logs).
 
 **Why this matters:** [Railpack](https://railpack.com/languages/node) picks **`package.json` → `start` first**. If `start` were `expo start`, the platform would run the **Metro dev server** in production. The browser then requests dev-only URLs such as `/.expo/static-tmp/_error.bundle?...&dev=true`, which do not exist on a static host (404 + non-JavaScript MIME type). **`start` must serve `./dist`**, not Expo dev.
 
