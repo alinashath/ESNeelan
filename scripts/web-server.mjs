@@ -62,6 +62,8 @@ const SITEMAP_STATIC_PATHS = [
   { path: "/artists", changefreq: "daily", priority: "0.8" },
   { path: "/categories", changefreq: "weekly", priority: "0.7" },
   { path: "/sellers", changefreq: "daily", priority: "0.7" },
+  { path: "/privacy", changefreq: "yearly", priority: "0.3" },
+  { path: "/support", changefreq: "yearly", priority: "0.3" },
 ];
 
 function escapeHtml(s) {

@@ -6,6 +6,7 @@ import {
   CONTACT_PHONE_DISPLAY,
 } from "@/src/lib/brand";
 import { HeaderBrandMark } from "@/src/components/ui/HeaderLogoRow";
+import { Link } from "expo-router";
 import { Platform, Pressable, StyleSheet, Text, View, Linking } from "react-native";
 import { appleSpacing, colors, fontFamilies, space } from "@/src/theme/tokens";
 
@@ -37,6 +38,16 @@ export function HomeMarketingFooter() {
             <Text style={styles.contactLink}>{CONTACT_EMAIL}</Text>
           </Pressable>
         </View>
+      </View>
+
+      <View style={styles.legalRow}>
+        <Link href="/privacy" accessibilityRole="link" style={styles.legalLinkWrap}>
+          <Text style={styles.legalLink}>Privacy</Text>
+        </Link>
+        <Text style={styles.legalSep}>·</Text>
+        <Link href="/support" accessibilityRole="link" style={styles.legalLinkWrap}>
+          <Text style={styles.legalLink}>Support</Text>
+        </Link>
       </View>
 
       <View style={styles.bottomRow}>
@@ -82,6 +93,28 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.primary,
     fontWeight: "600",
+  },
+  legalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: space.sm,
+    marginBottom: space.md,
+  },
+  legalLinkWrap: {
+    alignSelf: "flex-start",
+  },
+  legalLink: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.primary,
+    fontWeight: "600",
+  },
+  legalSep: {
+    fontFamily: fontFamilies.body,
+    fontSize: 13,
+    color: colors.textMuted,
   },
   bottomRow: {
     gap: space.xs,

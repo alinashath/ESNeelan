@@ -100,6 +100,8 @@ export default function RootLayout() {
           />
           <Stack.Screen name="categories" options={{ headerShown: false, title: "Categories" }} />
           <Stack.Screen name="sellers" options={{ headerShown: false, title: "Sellers" }} />
+          <Stack.Screen name="privacy" options={{ headerShown: false, title: "Privacy" }} />
+          <Stack.Screen name="support" options={{ headerShown: false, title: "Support" }} />
           <Stack.Screen
             name="article/[slug]"
             options={{

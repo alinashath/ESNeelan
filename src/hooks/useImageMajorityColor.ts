@@ -11,6 +11,7 @@ export function useImageMajorityColor(uri?: string | null) {
     }
 
     let cancelled = false;
+    setColor(null);
 
     void extractImageMajorityColor(uri).then((next) => {
       if (!cancelled) setColor(next);

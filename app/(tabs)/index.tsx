@@ -27,6 +27,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -226,7 +227,7 @@ export default function HomeScreen() {
             </View>
           ) : null}
 
-          {!isSearching ? (
+          {!isSearching && Platform.OS === "web" ? (
             <View style={{ marginHorizontal: -space.lg }}>
               <HomeFeaturedArticles />
             </View>

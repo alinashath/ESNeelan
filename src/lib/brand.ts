@@ -13,3 +13,7 @@ export const COMPANY_NAME = "Effimetic Solutions LLP";
 export const CONTACT_EMAIL = "auc@effimetic.com";
 export const CONTACT_PHONE = "+9607910106";
 export const CONTACT_PHONE_DISPLAY = "+960 7910106";
+
+/** Public web legal / help URLs (App Store Connect + site footer). */
+export const PRIVACY_POLICY_URL = "https://auc.effimetic.com/privacy";
+export const SUPPORT_URL = "https://auc.effimetic.com/support";
