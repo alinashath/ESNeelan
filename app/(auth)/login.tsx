@@ -11,15 +11,22 @@ import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
+import { Checkbox } from "@/src/components/ui/Checkbox";
+import { TERMS_ACCEPTANCE_LABEL } from "@/src/lib/community-standards";
 import { space } from "@/src/theme/tokens";
 
 export default function LoginScreen() {
   const [phoneDigits, setPhoneDigits] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   async function sendOtp() {
     setError(null);
+    if (!acceptedTerms) {
+      setError("Agree to the Terms of Use and Community Standards to continue.");
+      return;
+    }
     const e164 = toE164Maldives(phoneDigits);
     if (!e164) {
       setError("Enter your 7-digit Maldivian mobile number.");
@@ -61,6 +68,12 @@ export default function LoginScreen() {
         error={error}
         autoFocus
       />
+      <View style={{ marginBottom: space.lg, gap: space.sm }}>
+        <Checkbox checked={acceptedTerms} onToggle={() => setAcceptedTerms((v) => !v)} label={TERMS_ACCEPTANCE_LABEL} />
+        <Link href={"/terms" as Href} asChild>
+          <Pressable accessibilityRole="link"><TextCaption style={{ textDecorationLine: "underline" }}>Read the Terms of Use & Community Standards</TextCaption></Pressable>
+        </Link>
+      </View>
       <ButtonPrimary title="Send code" loading={loading} onPress={sendOtp} />
       <View style={{ marginTop: space.xl, gap: space.md }}>
         <TextCaption>

@@ -101,6 +101,8 @@ export const SUPPORT_SECTIONS: { title: string; paragraphs: string[] }[] = [
     title: "Safety",
     paragraphs: [
       `Never share one-time codes, passwords, or payment credentials with anyone claiming to be ${APP_DISPLAY_NAME} support outside the official contacts on this page.`,
+      "Use the Report or Block & report action on any listing containing objectionable content or abusive behavior. Blocking removes that user's listings from your feed immediately.",
+      "Our safety team reviews objectionable-content reports within 24 hours, removes violating content, and ejects users who provide it.",
     ],
   },
 ];

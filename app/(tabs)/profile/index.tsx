@@ -323,6 +323,12 @@ export default function ProfileScreen() {
           subtitle="Reminders, bids, and updates"
           onPress={() => router.push("/profile/notifications" as Href)}
         />
+        <ProfileMenuRow
+          icon="trash-outline"
+          title="Delete account"
+          subtitle="Permanently delete your account and data"
+          onPress={() => router.push("/profile/delete-account" as Href)}
+        />
       </View>
 
       <ButtonSecondary

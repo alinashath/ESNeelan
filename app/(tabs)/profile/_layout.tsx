@@ -33,6 +33,15 @@ export default function ProfileTabStackLayout() {
         }}
       />
       <Stack.Screen
+        name="delete-account"
+        options={{
+          headerShown: true,
+          title: "Delete account",
+          headerLeft: makeRootStackBackHeader("/(tabs)/profile"),
+          headerBackTitle: "Profile",
+        }}
+      />
+      <Stack.Screen
         name="bid-management"
         options={{
           headerShown: true,

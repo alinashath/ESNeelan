@@ -1313,6 +1313,14 @@ export default function AuctionDetailScreen() {
                   )
           }
         />
+        {!isSeller ? (
+          <ButtonSecondary
+            title="Report listing or block user"
+            icon="flag-outline"
+            onPress={() => session ? router.push({ pathname: "/auction/report/[id]", params: { id, sellerId } }) : router.push("/(auth)/login")}
+            style={{ marginTop: space.md }}
+          />
+        ) : null}
       </View>
 
       {winnerId === session?.user.id &&

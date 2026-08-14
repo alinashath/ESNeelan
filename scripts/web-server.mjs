@@ -458,6 +458,11 @@ function sendSpa(res) {
   sendFile(res, path.join(DIST, "index.html"));
 }
 
+function buildSupportHtml(origin) {
+  const canonical = `${origin || "https://auc.effimetic.com"}/support`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Support | ${APP_DISPLAY_NAME}</title><meta name="description" content="Contact AUC support for account, listing, and marketplace help."><link rel="canonical" href="${escapeHtml(canonical)}"><style>body{margin:0;background:#f7f7f7;color:#000;font:16px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}main{max-width:760px;margin:auto;padding:48px 32px}h1,h2{font-family:Georgia,serif;font-weight:400}h1{font-size:40px}h2{margin-top:32px;padding-top:24px;border-top:1px solid #e5e7eb}a{color:#000}p{color:#444}.brand{font-weight:700;letter-spacing:.08em}</style></head><body><main><div class="brand">AUC</div><h1>Support</h1><p>Contact AUC for account, listing, seller verification, bidding, or marketplace help.</p><h2>Contact support</h2><p>Email: <a href="mailto:auc@effimetic.com">auc@effimetic.com</a><br>Phone: <a href="tel:+9607910106">+960 7910106</a></p><p>We typically respond during business hours in the Maldives (UTC+5).</p><h2>Safety reports</h2><p>Use <strong>Report</strong> or <strong>Block &amp; report</strong> on a listing for objectionable content or abusive behavior. Blocking removes that user's listings from your feed immediately. We review safety reports within 24 hours, remove violating content, and eject offending users.</p><h2>Before you contact us</h2><p>Include your registered phone number, the auction title or link, and a short description of the issue. Never share a one-time code or payment credentials.</p><p><a href="/privacy">Privacy Policy</a> · <a href="/">Back to AUC</a></p></main></body></html>`;
+}
+
 const server = http.createServer(async (req, res) => {
   const urlPath = req.url?.split("?")[0] || "/";
   const ua = req.headers["user-agent"] || "";
@@ -467,6 +472,12 @@ const server = http.createServer(async (req, res) => {
     const ok = configured ? await pingRedis() : false;
     res.writeHead(ok ? 200 : 503, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ ok, configured }));
+    return;
+  }
+
+  if (urlPath === "/support" || urlPath === "/support/") {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" });
+    res.end(buildSupportHtml(getRequestOrigin(req)));
     return;
   }
 

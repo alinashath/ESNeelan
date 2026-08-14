@@ -77,6 +77,10 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="auction/report/[id]"
+            options={{ headerShown: true, title: "Report", headerTintColor: colors.text, headerShadowVisible: false, headerStyle: { backgroundColor: colors.background } }}
+          />
+          <Stack.Screen
             name="seller/[id]"
             options={{
               headerShown: true,
@@ -102,6 +106,7 @@ export default function RootLayout() {
           <Stack.Screen name="sellers" options={{ headerShown: false, title: "Sellers" }} />
           <Stack.Screen name="privacy" options={{ headerShown: false, title: "Privacy" }} />
           <Stack.Screen name="support" options={{ headerShown: false, title: "Support" }} />
+          <Stack.Screen name="terms" options={{ headerShown: true, title: "Terms of Use", headerShadowVisible: false, headerStyle: { backgroundColor: colors.background } }} />
           <Stack.Screen
             name="article/[slug]"
             options={{
