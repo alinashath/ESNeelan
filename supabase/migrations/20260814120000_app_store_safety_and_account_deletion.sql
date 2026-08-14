@@ -10,10 +10,13 @@ create table if not exists public.user_blocks (
 );
 
 alter table public.user_blocks enable row level security;
+drop policy if exists user_blocks_select_own on public.user_blocks;
 create policy user_blocks_select_own on public.user_blocks for select to authenticated
   using ((select auth.uid()) = blocker_id);
+drop policy if exists user_blocks_insert_own on public.user_blocks;
 create policy user_blocks_insert_own on public.user_blocks for insert to authenticated
   with check ((select auth.uid()) = blocker_id);
+drop policy if exists user_blocks_delete_own on public.user_blocks;
 create policy user_blocks_delete_own on public.user_blocks for delete to authenticated
   using ((select auth.uid()) = blocker_id);
 
@@ -56,17 +59,31 @@ $$;
 grant execute on function public.block_and_report_user(uuid, uuid, text, text) to authenticated;
 
 -- A blocked seller's listings disappear immediately from the blocker's catalog/detail queries.
+create or replace function public.current_user_blocks_profile(p_profile_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.user_blocks b
+    where b.blocker_id = (select auth.uid())
+      and b.blocked_id = p_profile_id
+  );
+$$;
+revoke all on function public.current_user_blocks_profile(uuid) from public;
+grant execute on function public.current_user_blocks_profile(uuid) to anon, authenticated, service_role;
+
 drop policy if exists auctions_select on public.auctions;
 create policy auctions_select on public.auctions for select using (
   public.is_admin()
   or seller_id = (select auth.uid())
   or (
-    status in ('active', 'ended', 'won', 'paid', 'completed')
-    and not exists (select 1 from public.profiles p where p.id = auctions.seller_id and p.suspended_at is not null)
-    and not exists (
-      select 1 from public.user_blocks b
-      where b.blocker_id = (select auth.uid()) and b.blocked_id = auctions.seller_id
-    )
+    status in ('active', 'ended', 'won', 'paid', 'completed', 'awaiting_winner_consent', 'payment_stage')
+    and not public.profile_is_suspended(auctions.seller_id)
+    and not public.current_user_blocks_profile(auctions.seller_id)
   )
 );
 

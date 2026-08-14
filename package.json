@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "sharp": "0.34.5",
     "typescript": "~6.0.3"
   },
   "engines": {
@@ -57,7 +58,7 @@
     "eas:build:ios:preview": "npx eas-cli build --platform ios --profile preview",
     "eas:build:ios:production": "npx eas-cli build --platform ios --profile production",
     "eas:credentials:ios": "npx eas-cli credentials --platform ios",
-    "sync:brand-icons": "npx --yes -p sharp@0.34.5 node scripts/sync-brand-web-icons.mjs",
+    "sync:brand-icons": "node scripts/sync-brand-web-icons.mjs",
     "build": "npm run sync:brand-icons && expo export --platform web && node scripts/fix-export-html-titles.mjs",
     "start:web": "npm start",
     "supabase:functions": "supabase functions deploy sms-hook && supabase functions deploy promote-admin && supabase functions deploy process-notifications && supabase functions deploy close-expired-auctions && supabase functions deploy delete-account",
