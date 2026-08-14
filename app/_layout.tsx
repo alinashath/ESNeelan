@@ -42,7 +42,8 @@ export default function RootLayout() {
               headerTintColor: colors.primary,
               headerShadowVisible: false,
               headerLeft: makeRootStackBackHeader("/(tabs)", colors.primary, true),
-              animation: "slide_from_right",
+              animation: "fade_from_bottom",
+              animationDuration: 320,
               gestureEnabled: true,
               fullScreenGestureEnabled: true,
             }}
@@ -106,7 +107,17 @@ export default function RootLayout() {
           <Stack.Screen name="sellers" options={{ headerShown: false, title: "Sellers" }} />
           <Stack.Screen name="privacy" options={{ headerShown: false, title: "Privacy" }} />
           <Stack.Screen name="support" options={{ headerShown: false, title: "Support" }} />
-          <Stack.Screen name="terms" options={{ headerShown: true, title: "Terms of Use", headerShadowVisible: false, headerStyle: { backgroundColor: colors.background } }} />
+          <Stack.Screen
+            name="terms"
+            options={{
+              headerShown: true,
+              title: "Terms of Use",
+              headerBackTitle: "Back",
+              headerBackButtonDisplayMode: "default",
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: colors.background },
+            }}
+          />
           <Stack.Screen
             name="article/[slug]"
             options={{

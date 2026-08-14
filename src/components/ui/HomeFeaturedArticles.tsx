@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -18,13 +19,13 @@ import { TextCaption } from "@/src/components/ui/TextCaption";
 import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
 
 /** Uniform story card chrome — every tile same width and total height. */
-const STORY_CARD_W = 280;
-const STORY_IMG_H = 140;
-const STORY_BODY_H = 176;
-const STORY_TITLE_LH = 22;
+const STORY_CARD_W = 300;
+const STORY_IMG_H = 176;
+const STORY_BODY_H = 188;
+const STORY_TITLE_LH = 24;
 const STORY_TITLE_LINES = 2;
 const STORY_EXCERPT_LH = 18;
-const STORY_EXCERPT_LINES = 3;
+const STORY_EXCERPT_LINES = 2;
 const STORY_SPOTLIGHT_H = 14;
 
 export function HomeFeaturedArticles() {
@@ -99,21 +100,14 @@ export function HomeFeaturedArticles() {
             style={({ pressed }) => ({
               width: STORY_CARD_W,
               height: STORY_IMG_H + STORY_BODY_H,
-              borderRadius: radii.md,
-              borderWidth: lead ? 0 : 1,
+              borderRadius: radii.lg,
+              borderWidth: StyleSheet.hairlineWidth,
               borderColor: colors.border,
-              backgroundColor: colors.background,
+              borderTopWidth: lead ? 3 : StyleSheet.hairlineWidth,
+              borderTopColor: lead ? colors.primary : colors.border,
+              backgroundColor: colors.white,
               overflow: "hidden",
               opacity: pressed ? 0.92 : 1,
-              ...(lead
-                ? {
-                    shadowColor: "#000000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.08,
-                    shadowRadius: 12,
-                    elevation: 4,
-                  }
-                : {}),
             })}
           >
             {a.cover_display_url ? (
@@ -137,7 +131,8 @@ export function HomeFeaturedArticles() {
             )}
             <View
               style={{
-                padding: space.md,
+                paddingHorizontal: space.lg,
+                paddingVertical: space.md,
                 height: STORY_BODY_H,
                 justifyContent: "space-between",
               }}
@@ -167,10 +162,10 @@ export function HomeFeaturedArticles() {
                   numberOfLines={STORY_TITLE_LINES}
                   style={{
                     fontFamily: fontFamilies.headingSerif,
-                    fontSize: 17,
+                    fontSize: 19,
                     lineHeight: STORY_TITLE_LH,
                     height: STORY_TITLE_LH * STORY_TITLE_LINES,
-                    fontWeight: "600",
+                    fontWeight: "400",
                     color: colors.text,
                   }}
                 >
@@ -191,7 +186,10 @@ export function HomeFeaturedArticles() {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 4,
+                  justifyContent: "space-between",
+                  borderTopWidth: StyleSheet.hairlineWidth,
+                  borderTopColor: colors.border,
+                  paddingTop: space.sm,
                 }}
               >
                 <Text
@@ -204,7 +202,18 @@ export function HomeFeaturedArticles() {
                 >
                   Read
                 </Text>
-                <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: radii.pill,
+                    backgroundColor: colors.tertiaryMuted,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name="arrow-forward" size={14} color={colors.primary} />
+                </View>
               </View>
             </View>
           </Pressable>

@@ -7,7 +7,6 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
-import { router, type Href } from "expo-router";
 import { useScreenContentWidth } from "@/src/components/layout/content-width";
 import { HomeFeaturedHero } from "@/src/components/ui/HomeFeaturedHero";
 import { TextCaption } from "@/src/components/ui/TextCaption";
@@ -125,7 +124,7 @@ export function HomeFeaturedCarousel({ auctions, toCardAuction, currency }: Prop
           <View key={item.id} style={{ minWidth: 0, width: "100%" }}>
             <HomeFeaturedHero
               auction={toCardAuction(item)}
-              onPress={() => router.push(`/auction/${item.id}` as Href)}
+              href={`/auction/${item.id}`}
               currency={currency}
               fillParent
               showCountdown={index === 0}
@@ -167,7 +166,7 @@ export function HomeFeaturedCarousel({ auctions, toCardAuction, currency }: Prop
           >
             <HomeFeaturedHero
               auction={toCardAuction(item)}
-              onPress={() => router.push(`/auction/${item.id}` as Href)}
+              href={`/auction/${item.id}`}
               currency={currency}
               cardWidth={cardW}
               showCountdown={index === 0}

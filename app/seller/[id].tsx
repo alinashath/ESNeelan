@@ -477,7 +477,7 @@ export default function SellerStorefrontScreen() {
                   }}
                   compact={multiCol}
                   inGrid={multiCol}
-                  onPress={() => router.push(`/auction/${item.id}` as Href)}
+                  href={`/auction/${item.id}`}
                 />
               </View>
             )}

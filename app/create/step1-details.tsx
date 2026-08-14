@@ -204,9 +204,14 @@ export default function CreateAuctionStep1Details() {
     try {
       const { error: dbErr } = await supabase.from("auction_images").delete().eq("id", img.id);
       if (dbErr) throw dbErr;
-      const { error: stErr } = await supabase.storage.from("auction-images").remove([img.storage_path]);
-      if (stErr) {
-        console.warn("auction-images storage remove:", stErr.message);
+      const { count, error: countErr } = await supabase
+        .from("auction_images")
+        .select("id", { count: "exact", head: true })
+        .eq("storage_path", img.storage_path);
+      if (countErr) throw countErr;
+      if ((count ?? 0) === 0) {
+        const { error: stErr } = await supabase.storage.from("auction-images").remove([img.storage_path]);
+        if (stErr) console.warn("auction-images storage remove:", stErr.message);
       }
       setExistingImages((prev) => prev.filter((x) => x.id !== img.id));
     } catch (e: unknown) {

@@ -72,16 +72,16 @@ export function ValueCurrency({
         minWidth: size === "hero" ? 0 : undefined,
         flexDirection: "row",
         alignItems: "center",
-        flexWrap: "wrap",
+        flexWrap: "nowrap",
         columnGap: 6,
         rowGap: 2,
       }}
     >
       <RufiyaaSign size={s.sign} color={curColor} />
       <Text
-        numberOfLines={size === "hero" ? 1 : undefined}
-        adjustsFontSizeToFit={size === "hero"}
-        minimumFontScale={size === "hero" ? 0.55 : undefined}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={size === "hero" ? 0.55 : 0.8}
         style={amountStyle}
       >
         {formatted}

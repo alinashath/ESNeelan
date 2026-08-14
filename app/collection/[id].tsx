@@ -159,7 +159,7 @@ export default function PublicCollectionScreen() {
                   }}
                   compact={multiCol}
                   inGrid={multiCol}
-                  onPress={() => router.push(`/auction/${item.id}` as Href)}
+                  href={`/auction/${item.id}`}
                 />
               </View>
             )}

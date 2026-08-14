@@ -1,5 +1,6 @@
 import { MVR_SIGN } from "@/src/lib/format-money";
 import { useEffect, useState } from "react";
+import { Link, type Href } from "expo-router";
 import { isAuctionLiveForUi, isAuctionSoldForUi } from "@/src/lib/auction-live";
 import {
   durationPhotoHoverMs,
@@ -48,7 +49,8 @@ const PHOTO_HOVER_SCALE = 1.06;
 
 type Props = {
   auction: AuctionCardAuction;
-  onPress: () => void;
+  onPress?: () => void;
+  href?: Href;
   currency?: string;
   /** When set (e.g. home carousel / grid cell), sets card width. */
   cardWidth?: number;
@@ -67,6 +69,7 @@ type Props = {
 export function HomeFeaturedHero({
   auction,
   onPress,
+  href,
   currency = MVR_SIGN,
   cardWidth: cardWidthProp,
   fillParent = false,
@@ -176,7 +179,7 @@ export function HomeFeaturedHero({
     </>
   );
 
-  return (
+  const hero = (
     <Pressable
       onPress={onPress}
       style={
@@ -206,4 +209,14 @@ export function HomeFeaturedHero({
       </ContainedListingPhoto>
     </Pressable>
   );
+
+  if (href) {
+    return (
+      <Link href={href} asChild>
+        <Link.AppleZoom>{hero}</Link.AppleZoom>
+      </Link>
+    );
+  }
+
+  return hero;
 }

@@ -1,5 +1,5 @@
 import { Pressable, type PressableProps } from "react-native";
-import { colors, goldBorderSubtle, radii, space } from "@/src/theme/tokens";
+import { colors, fontFamilies, goldBorderSubtle, radii, space } from "@/src/theme/tokens";
 import { TextCaption } from "./TextCaption";
 
 type Props = PressableProps & {
@@ -24,8 +24,8 @@ export function Chip({
 }: Props) {
   const outlined = appearance === "outlined";
 
-  const padH = compact ? 8 : space.sm;
-  const padV = compact ? 4 : space.xs;
+  const padH = compact ? 12 : space.md;
+  const padV = compact ? 7 : space.sm;
 
   const bg = outlined
     ? selected
@@ -36,7 +36,7 @@ export function Chip({
       : colors.surfaceMuted;
 
   const border = outlined
-    ? { borderWidth: 0 }
+    ? { borderWidth: 1, borderColor: selected ? colors.primary : colors.border }
     : selected
       ? { borderWidth: 1, borderColor: goldBorderSubtle }
       : { borderWidth: 1, borderColor: colors.border };
@@ -58,7 +58,9 @@ export function Chip({
             paddingVertical: padV,
             borderRadius: radii.pill,
             backgroundColor: bg,
-            opacity: state.pressed ? 0.85 : 1,
+            minHeight: compact ? 32 : 36,
+            justifyContent: "center",
+            opacity: state.pressed ? 0.72 : 1,
             ...border,
           },
           fromParent,
@@ -68,7 +70,8 @@ export function Chip({
       <TextCaption
         style={{
           color: textColor,
-          fontWeight: "400",
+          fontFamily: fontFamilies.bodyMedium,
+          fontWeight: "500",
           fontSize: 12,
           lineHeight: 16,
         }}

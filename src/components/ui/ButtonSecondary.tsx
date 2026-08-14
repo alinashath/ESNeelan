@@ -1,6 +1,6 @@
 import { Pressable, type PressableProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radii, space, buttonPrimaryPadding } from "@/src/theme/tokens";
+import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
 import { TextBody } from "./TextBody";
 
 type Props = PressableProps & {
@@ -20,11 +20,13 @@ export function ButtonSecondary({ title, disabled, style, icon, ...rest }: Props
           {
             borderWidth: 1,
             borderColor: colors.primary,
-            ...buttonPrimaryPadding,
+            minHeight: 48,
+            paddingVertical: 11,
+            paddingHorizontal: space.lg,
             borderRadius: radii.sm,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "transparent",
+            backgroundColor: state.pressed ? colors.tertiaryMuted : colors.white,
             flexDirection: "row",
             gap: space.sm,
             opacity: state.pressed ? 0.75 : disabled ? 0.45 : 1,
@@ -35,7 +37,7 @@ export function ButtonSecondary({ title, disabled, style, icon, ...rest }: Props
       {...rest}
     >
       {icon ? <Ionicons name={icon} size={20} color={colors.primary} /> : null}
-      <TextBody style={{ color: colors.primary, fontWeight: "400", fontSize: 14, lineHeight: 20 }}>
+      <TextBody style={{ color: colors.primary, fontFamily: fontFamilies.bodySemiBold, fontWeight: "600", fontSize: 14, lineHeight: 20, letterSpacing: 0.2 }}>
         {title}
       </TextBody>
     </Pressable>

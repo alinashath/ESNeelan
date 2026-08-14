@@ -58,7 +58,7 @@ export function Countdown({
       totalSec <= 0 ? colors.textMuted : urgentDetail ? colors.danger : colors.text;
     return (
       <View style={{ flex: 1, minWidth: 0 }}>
-        <TextCaption style={{ fontWeight: "600", letterSpacing: 1.2, color: colors.textMuted }}>
+        <TextCaption style={{ fontWeight: "600", fontSize: 10, letterSpacing: 1, color: colors.textMuted }}>
           ENDS IN
         </TextCaption>
         {totalSec <= 0 ? (
@@ -66,7 +66,8 @@ export function Countdown({
             style={{
               marginTop: space.xs,
               fontWeight: "600",
-              fontSize: 20,
+              fontSize: 17,
+              lineHeight: 22,
               fontFamily: fontFamilies.bodySemiBold,
               color: colors.textMuted,
             }}
@@ -78,7 +79,8 @@ export function Countdown({
             style={{
               marginTop: space.xs,
               fontWeight: "600",
-              fontSize: 20,
+              fontSize: 17,
+              lineHeight: 22,
               fontFamily: fontFamilies.bodySemiBold,
               color: timerColor,
               letterSpacing: 0.4,
@@ -97,6 +99,7 @@ export function Countdown({
             style={{
               marginTop: space.xs,
               fontWeight: "400",
+              fontSize: 11,
               color: colors.textSecondary,
             }}
           >

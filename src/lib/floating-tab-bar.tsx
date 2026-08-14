@@ -7,11 +7,15 @@ export const FLOATING_TAB_BAR_HEIGHT = 64;
 export const FLOATING_TAB_BAR_MARGIN_H = 16;
 export const FLOATING_TAB_BAR_MARGIN_BOTTOM = 12;
 export const FLOATING_TAB_BAR_RADIUS = 999;
+export const FLOATING_TAB_BAR_CONTENT_GAP = space.xl;
 
 /** Extra scroll clearance so content clears the floating bar + safe area. */
 export function floatingTabBarBottomInset(safeBottom: number): number {
   return (
-    safeBottom + FLOATING_TAB_BAR_MARGIN_BOTTOM + FLOATING_TAB_BAR_HEIGHT + space.sm
+    safeBottom +
+    FLOATING_TAB_BAR_MARGIN_BOTTOM +
+    FLOATING_TAB_BAR_HEIGHT +
+    FLOATING_TAB_BAR_CONTENT_GAP
   );
 }
 
@@ -19,12 +23,12 @@ const glassShellStyle: ViewStyle = {
   borderRadius: FLOATING_TAB_BAR_RADIUS,
   overflow: "hidden",
   borderWidth: 1,
-  borderColor: "rgba(255, 255, 255, 0.55)",
+  borderColor: "rgba(255, 255, 255, 0.72)",
   ...shadows.productImage,
   ...(Platform.OS === "web"
     ? ({
         boxShadow:
-          "0 10px 40px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.72)",
+          "0 12px 36px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82)",
       } as ViewStyle)
     : null),
 };
@@ -38,9 +42,9 @@ export function FloatingTabBarGlass({ children, style }: GlassProps) {
   const webGlassLayer: ViewStyle =
     Platform.OS === "web"
       ? ({
-          backgroundColor: "rgba(255, 255, 255, 0.22)",
-          backdropFilter: "blur(32px) saturate(200%)",
-          WebkitBackdropFilter: "blur(32px) saturate(200%)",
+          backgroundColor: "rgba(255, 255, 255, 0.5)",
+          backdropFilter: "blur(24px) saturate(160%)",
+          WebkitBackdropFilter: "blur(24px) saturate(160%)",
         } as ViewStyle)
       : {};
 
@@ -51,7 +55,7 @@ export function FloatingTabBarGlass({ children, style }: GlassProps) {
       ) : (
         <>
           <BlurView
-            intensity={Platform.OS === "ios" ? 90 : 76}
+            intensity={Platform.OS === "ios" ? 82 : 70}
             tint="light"
             experimentalBlurMethod={
               Platform.OS === "android" ? "dimezisBlurView" : undefined
@@ -62,7 +66,7 @@ export function FloatingTabBarGlass({ children, style }: GlassProps) {
             pointerEvents="none"
             style={[
               StyleSheet.absoluteFill,
-              { backgroundColor: "rgba(255, 255, 255, 0.18)" },
+              { backgroundColor: "rgba(255, 255, 255, 0.34)" },
             ]}
           />
         </>

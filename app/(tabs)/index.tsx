@@ -20,6 +20,7 @@ import {
 } from "@/src/data/auctions";
 import { useHomeSearchAutocompleteCandidates } from "@/src/lib/use-home-search-autocomplete";
 import { useWebWideTabHeader } from "@/src/lib/web-tabs-layout";
+import { floatingTabBarBottomInset } from "@/src/lib/floating-tab-bar";
 import { getTrendingGridColumns } from "@/src/theme/layout";
 import { appleSpacing, colors, fontFamilies, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,9 +36,10 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const LATEST_LIMIT = 10;
-const LATEST_CARD_W = 160;
+const LATEST_CARD_W = 188;
 
 function toCardAuction(
   item: AuctionCardAuction & {
@@ -62,6 +64,7 @@ function toCardAuction(
 }
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const wideWebHeader = useWebWideTabHeader();
   const hideHomeLogoRow = process.env.EXPO_OS === "web" && wideWebHeader;
   const { search, setSearch } = useHomeCatalogSearch();
@@ -212,14 +215,14 @@ export default function HomeScreen() {
             />
           }
           contentContainerStyle={{
-            paddingTop: space.md,
+            paddingTop: space.lg,
             paddingHorizontal: space.lg,
-            paddingBottom: space.xxl,
+            paddingBottom: floatingTabBarBottomInset(insets.bottom),
             flexGrow: 1,
           }}
         >
           {!isSearching && featuredList.length ? (
-            <View style={{ marginTop: space.sm }}>
+            <View>
               <HomeFeaturedCarousel
                 auctions={featuredList as AuctionCardAuction[]}
                 toCardAuction={toCardAuction}
@@ -236,7 +239,7 @@ export default function HomeScreen() {
           <View
             style={{
               marginTop: isSearching ? space.sm : appleSpacing.section,
-              marginBottom: space.md,
+              marginBottom: space.lg,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
@@ -297,7 +300,7 @@ export default function HomeScreen() {
                       auction={toCardAuction(item)}
                       compact={multiCol}
                       inGrid={multiCol}
-                      onPress={() => router.push(`/auction/${item.id}`)}
+                      href={`/auction/${item.id}`}
                     />
                   </View>
                 ))}
@@ -334,10 +337,14 @@ export default function HomeScreen() {
               horizontal
               nestedScrollEnabled
               showsHorizontalScrollIndicator={false}
+              decelerationRate="fast"
+              snapToInterval={LATEST_CARD_W + space.md}
+              snapToAlignment="start"
+              disableIntervalMomentum
               style={{ marginHorizontal: -space.lg }}
               contentContainerStyle={{
                 paddingHorizontal: space.lg,
-                gap: space.sm,
+                gap: space.md,
                 paddingBottom: 4,
               }}
             >
@@ -347,7 +354,7 @@ export default function HomeScreen() {
                     auction={toCardAuction(item)}
                     compact
                     inGrid
-                    onPress={() => router.push(`/auction/${item.id}`)}
+                    href={`/auction/${item.id}`}
                   />
                 </View>
               ))}
@@ -369,8 +376,8 @@ const styles = StyleSheet.create({
   stickyChrome: {
     paddingHorizontal: space.lg,
     paddingTop: space.lg,
-    paddingBottom: space.sm,
-    backgroundColor: colors.background,
+    paddingBottom: space.md,
+    backgroundColor: colors.white,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
     zIndex: 2,

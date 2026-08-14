@@ -48,11 +48,11 @@ export function HeaderLogoRow({ onBellPress, wordmark = APP_DISPLAY_NAME }: Prop
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: space.lg,
+        marginBottom: space.md,
       }}
     >
       <HeaderBrandMark wordmark={wordmark} />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
         <ButtonIcon
           name="grid-outline"
           onPress={() => router.push("/categories" as Href)}

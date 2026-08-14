@@ -1,6 +1,9 @@
 import { accentBorderSubtle, colors, radii, shadows } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, View, type PressableProps, type ViewStyle } from "react-native";
+import { useRef } from "react";
+import { Pressable, StyleSheet, View, type PressableProps, type ViewStyle } from "react-native";
+import LottieView from "lottie-react-native";
+import { useReducedMotion } from "react-native-reanimated";
 
 type Props = Pick<PressableProps, "onPress" | "accessibilityState" | "testID"> & {
   /** Inline centered sell control for the floating glass tab bar. */
@@ -16,6 +19,27 @@ export function CreateTabBarButton({
   floating = false,
   style,
 }: Props) {
+  const lottieRef = useRef<LottieView>(null);
+  const reducedMotion = useReducedMotion();
+  const playFeedback = () => {
+    if (reducedMotion) return;
+    lottieRef.current?.reset();
+    lottieRef.current?.play(0, 24);
+  };
+  const animatedIcon = (
+    <>
+      <LottieView
+        ref={lottieRef}
+        source={require("../../../assets/animations/nav-tap.json")}
+        loop={false}
+        autoPlay={false}
+        colorFilters={[{ keypath: "Pulse", color: colors.onAccent }]}
+        style={StyleSheet.absoluteFill}
+      />
+      <Ionicons name="add" size={floating ? 26 : 30} color={colors.onAccent} />
+    </>
+  );
+
   if (floating) {
     return (
       <View style={[{ alignItems: "center", justifyContent: "center" }, style]}>
@@ -23,6 +47,7 @@ export function CreateTabBarButton({
           testID={testID}
           accessibilityRole="button"
           accessibilityState={accessibilityState}
+          onPressIn={playFeedback}
           onPress={onPress}
           style={({ pressed }) => ({
             width: 44,
@@ -38,7 +63,7 @@ export function CreateTabBarButton({
             ...shadows.tabFab,
           })}
         >
-          <Ionicons name="add" size={26} color={colors.onAccent} />
+          {animatedIcon}
         </Pressable>
       </View>
     );
@@ -50,6 +75,7 @@ export function CreateTabBarButton({
         testID={testID}
         accessibilityRole="button"
         accessibilityState={accessibilityState}
+        onPressIn={playFeedback}
         onPress={onPress}
         style={({ pressed }) => ({
           width: 52,
@@ -65,7 +91,7 @@ export function CreateTabBarButton({
           ...shadows.tabFab,
         })}
       >
-        <Ionicons name="add" size={30} color={colors.onAccent} />
+        {animatedIcon}
       </Pressable>
     </View>
   );

@@ -60,7 +60,7 @@ function StoryCard({ item, layoutVariant, width }: StoryCardProps) {
         aspectRatio={layoutVariant === "grid" ? 16 / 9 : undefined}
         height={layoutVariant === "grid" ? undefined : 80}
         width={layoutVariant === "grid" ? "100%" : 112}
-        borderRadius={radii.sm}
+        borderRadius={layoutVariant === "grid" ? 0 : radii.md}
         showBorder={false}
       />
     ) : (
@@ -70,7 +70,7 @@ function StoryCard({ item, layoutVariant, width }: StoryCardProps) {
             ? {
                 width: "100%",
                 aspectRatio: 16 / 9,
-                borderRadius: radii.sm,
+                borderRadius: 0,
                 backgroundColor: colors.accentTint,
                 alignItems: "center",
                 justifyContent: "center",
@@ -78,7 +78,7 @@ function StoryCard({ item, layoutVariant, width }: StoryCardProps) {
             : {
                 width: 112,
                 height: 80,
-                borderRadius: radii.sm,
+                borderRadius: radii.md,
                 backgroundColor: colors.accentTint,
                 alignItems: "center",
                 justifyContent: "center",
@@ -90,14 +90,21 @@ function StoryCard({ item, layoutVariant, width }: StoryCardProps) {
     );
 
   const textBlock = (
-    <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
+    <View
+      style={{
+        flex: 1,
+        minWidth: 0,
+        justifyContent: "center",
+        ...(layoutVariant === "grid" ? { padding: space.md } : null),
+      }}
+    >
       <Text
         numberOfLines={layoutVariant === "grid" ? 4 : 3}
         style={{
           fontFamily: fontFamilies.headingSerif,
-          fontSize: layoutVariant === "grid" ? 16 : 17,
-          lineHeight: layoutVariant === "grid" ? 21 : 22,
-          fontWeight: "600",
+          fontSize: layoutVariant === "grid" ? 18 : 17,
+          lineHeight: layoutVariant === "grid" ? 24 : 23,
+          fontWeight: "400",
           color: colors.text,
         }}
       >
@@ -121,12 +128,15 @@ function StoryCard({ item, layoutVariant, width }: StoryCardProps) {
       accessibilityLabel={item.title}
       style={({ pressed }) => ({
         width: layoutVariant === "grid" && width != null ? width : "100%",
-        opacity: pressed ? 0.9 : 1,
+        opacity: pressed ? 0.92 : 1,
         flexDirection: layoutVariant === "grid" ? "column" : "row",
-        gap: space.md,
-        paddingVertical: space.md,
-        borderBottomWidth: layoutVariant === "row" ? StyleSheet.hairlineWidth : 0,
-        borderBottomColor: colors.border,
+        gap: layoutVariant === "grid" ? 0 : space.md,
+        padding: layoutVariant === "grid" ? 0 : space.md,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.border,
+        borderRadius: radii.lg,
+        backgroundColor: colors.white,
+        overflow: "hidden",
       })}
     >
       {thumb}
@@ -311,7 +321,7 @@ export default function ArtistsScreen() {
                   fontFamily: fontFamilies.headingSerif,
                   fontSize: 26,
                   lineHeight: 32,
-                  fontWeight: "700",
+                  fontWeight: "400",
                   color: colors.text,
                 }}
               >

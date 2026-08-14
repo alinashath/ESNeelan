@@ -130,6 +130,7 @@ export default function MyAuctionDetailScreen() {
   const { data: myCollections = [], refetch: refetchMyCols } = useMySellerCollections();
   const { invalidateCollection, invalidateAll } = useInvalidateSellerCollections();
   const [busyCol, setBusyCol] = useState<string | null>(null);
+  const [listingActionBusy, setListingActionBusy] = useState(false);
   const { width: winW } = useWindowDimensions();
   const isWide = winW >= layout.breakpoints.md;
 
@@ -291,7 +292,9 @@ export default function MyAuctionDetailScreen() {
 
   const liveUi = endsAt ? isAuctionLiveForUi(status, endsAt) : false;
 
-  const canEditListing = status === "draft" || status === "pending_approval";
+  const canEditListing = status === "draft";
+  const canDeleteDraft = canEditListing && bidCount === 0;
+  const canEditInPlace = ["pending_approval", "awaiting_payment", "active", "ended", "cancelled"].includes(status);
   const hideHeroActions = canEditListing;
   const listingShareUrl = buildAuctionPublicUrl(id);
   const listingShareMessage = `${title} — ${formatMoneyWithSign(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
@@ -322,6 +325,73 @@ export default function MyAuctionDetailScreen() {
     (status === "draft" && (bidType === "standard" || bidType === "featured")) ||
     (status === "active" && bidType === "standard") ||
     (status === "active" && feePending);
+
+  async function beginEditInPlace() {
+    if (!session?.user.id || listingActionBusy) return;
+    setListingActionBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("seller_begin_listing_edit", { p_auction_id: id });
+      if (error) throw error;
+      const result = data as { ok?: boolean; error?: string };
+      if (!result?.ok) throw new Error(result?.error ?? "Could not open this listing for editing.");
+      qc.invalidateQueries({ queryKey: ["my-auctions"] });
+      qc.invalidateQueries({ queryKey: ["auction", id] });
+      router.push(`/create/step1-details?id=${id}` as Href);
+    } catch (e: unknown) {
+      Alert.alert("Could not edit listing", e instanceof Error ? e.message : "Try again.");
+    } finally {
+      setListingActionBusy(false);
+    }
+  }
+
+  function confirmEditInPlace() {
+    Alert.alert(
+      status === "active" ? "Withdraw live listing to edit?" : "Edit this listing?",
+      status === "active"
+        ? "The listing will leave the public marketplace while you edit it. Its bid history stays attached. After saving, send it for approval again."
+        : "This listing will return to Draft. Edit it, then send it for approval again.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Continue to edit", onPress: () => void beginEditInPlace() },
+      ],
+    );
+  }
+
+  async function deleteDraft() {
+    setListingActionBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("seller_delete_draft", { p_auction_id: id });
+      if (error) throw error;
+      const result = data as { ok?: boolean; error?: string; storage_paths?: string[] };
+      if (!result?.ok) throw new Error(result?.error ?? "Could not delete draft.");
+      if (result.storage_paths?.length) {
+        const { data: retained, error: retainedError } = await supabase
+          .from("auction_images")
+          .select("storage_path")
+          .in("storage_path", result.storage_paths);
+        if (retainedError) throw retainedError;
+        const retainedPaths = new Set((retained ?? []).map((image) => image.storage_path));
+        const orphanedPaths = result.storage_paths.filter((path) => !retainedPaths.has(path));
+        if (orphanedPaths.length) {
+          const { error: storageError } = await supabase.storage.from("auction-images").remove(orphanedPaths);
+          if (storageError) console.warn("draft storage cleanup", storageError.message);
+        }
+      }
+      qc.invalidateQueries({ queryKey: ["my-auctions"] });
+      router.replace("/my-auctions" as Href);
+    } catch (e: unknown) {
+      Alert.alert("Could not delete draft", e instanceof Error ? e.message : "Try again.");
+    } finally {
+      setListingActionBusy(false);
+    }
+  }
+
+  function confirmDeleteDraft() {
+    Alert.alert("Delete this draft?", "The draft and its photos will be permanently deleted.", [
+      { text: "Keep draft", style: "cancel" },
+      { text: "Delete draft", style: "destructive", onPress: () => void deleteDraft() },
+    ]);
+  }
 
   return (
     <Screen scroll noPadding style={{ backgroundColor: palette.canvasParchment }}>
@@ -366,11 +436,7 @@ export default function MyAuctionDetailScreen() {
         >
           {canEditListing ? (
             <InfoCallout
-              message={
-                status === "draft"
-                  ? "Draft — shoppers do not see this listing until you submit it for approval."
-                  : "Under review — you can still update details; save in the editor, then resubmit from the last step when ready."
-              }
+              message="Draft — shoppers do not see this listing until you review it and submit it for approval."
             />
           ) : null}
 
@@ -402,6 +468,41 @@ export default function MyAuctionDetailScreen() {
               <ButtonSecondary
                 title="Listing fee & submit"
                 onPress={() => router.push(`/create/step3-payment?id=${id}` as Href)}
+              />
+              {canDeleteDraft ? (
+                <ButtonSecondary
+                  title="Delete draft"
+                  icon="trash-outline"
+                  disabled={listingActionBusy}
+                  onPress={confirmDeleteDraft}
+                  style={{ borderColor: colors.danger }}
+                />
+              ) : null}
+            </View>
+          ) : null}
+
+          {canEditInPlace ? (
+            <View
+              style={{
+                marginTop: space.md,
+                padding: space.lg,
+                borderRadius: radii.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.white,
+                gap: space.sm,
+              }}
+            >
+              <TextCaption style={{ letterSpacing: 1, color: colors.textMuted }}>EDIT & RESUBMIT</TextCaption>
+              <TextBody style={{ fontWeight: "600", fontSize: 17 }}>Update this listing</TextBody>
+              <TextCaption style={{ color: colors.textSecondary }}>
+                Keeps the same listing and bid history. It returns to Draft while you edit, then goes through approval again.
+              </TextCaption>
+              <ButtonPrimary
+                title="Edit this listing"
+                icon="create-outline"
+                loading={listingActionBusy}
+                onPress={confirmEditInPlace}
               />
             </View>
           ) : null}

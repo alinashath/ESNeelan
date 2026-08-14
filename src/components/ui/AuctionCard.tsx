@@ -8,12 +8,15 @@ import {
 } from "@/src/lib/ui-motion";
 import {
     accentWash,
+    colors,
     radii,
     space,
     typography,
 } from "@/src/theme/tokens";
 import { useEffect, useState } from "react";
-import { Platform, Pressable, Text, View } from "react-native";
+import { Link, type Href } from "expo-router";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
     useAnimatedStyle,
     useReducedMotion,
@@ -44,7 +47,8 @@ export type AuctionCardAuction = {
 
 type Props = {
   auction: AuctionCardAuction;
-  onPress: () => void;
+  onPress?: () => void;
+  href?: Href;
   compact?: boolean;
   /** Multi-column lists: no outer bottom margin (row gap handled by parent). */
   inGrid?: boolean;
@@ -57,17 +61,13 @@ function endingSoon(endsAt: string) {
 
 const PHOTO_HOVER_SCALE = 1.06;
 
-export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
+export function AuctionCard({ auction, onPress, href, compact, inGrid }: Props) {
   const bid = auction.current_highest_bid ?? auction.starting_price;
   const liveUi = isAuctionLiveForUi(auction.status, auction.ends_at);
   const soldUi = isAuctionSoldForUi(auction.status);
   const urgent = liveUi && endingSoon(auction.ends_at);
   const showClosedOnImage =
     !soldUi && String(auction.status).trim().toLowerCase() === "active" && !liveUi;
-  const imgH = compact ? 160 : 200;
-  const padH = compact ? space.sm : space.lg;
-  const padTop = compact ? space.sm : space.md;
-  const padBottom = compact ? space.md : space.xl;
   const reducedMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const cardAnim = useAnimatedStyle(() => ({
@@ -94,7 +94,7 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
 
   const pressIn = () => {
     if (reducedMotion) return;
-    scale.value = withTiming(0.99, {
+    scale.value = withTiming(0.975, {
       duration: durationPressInMs,
       easing: easingEnter,
     });
@@ -115,9 +115,23 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
   const imageBlock = (
     <ContainedListingPhoto
       uri={auction.image_url}
-      height={imgH}
+      aspectRatio={compact ? 4 / 5 : 4 / 3}
       photoAnimStyle={photoAnimStyle}
+      borderRadius={0}
+      showBorder={false}
     >
+      <LinearGradient
+        pointerEvents="none"
+        colors={[
+          "rgba(0,0,0,0)",
+          "rgba(0,0,0,0.03)",
+          "rgba(0,0,0,0.12)",
+          "rgba(0,0,0,0.3)",
+          "rgba(0,0,0,0.64)",
+        ]}
+        locations={[0.18, 0.42, 0.62, 0.8, 1]}
+        style={StyleSheet.absoluteFill}
+      />
       {statusOverlay}
       {showCountdownOnCard ? (
         <AuctionCountdownBadge
@@ -128,65 +142,105 @@ export function AuctionCard({ auction, onPress, compact, inGrid }: Props) {
           urgent={urgent}
         />
       ) : null}
-    </ContainedListingPhoto>
-  );
-
-  return (
-    <Animated.View
-      style={[
-        {
-          borderRadius: radii.md,
-          overflow: "visible",
-          marginBottom: inGrid ? 0 : space.lg,
-          backgroundColor: "transparent",
-        },
-        cardAnim,
-      ]}
-    >
-      <Pressable
-        onPress={onPress}
-        onPressIn={pressIn}
-        onPressOut={pressOut}
-        onHoverIn={() => {
-          if (Platform.OS === "web") setPhotoHovered(true);
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          left: space.md,
+          right: space.md,
+          bottom: space.md,
         }}
-        onHoverOut={() => {
-          if (Platform.OS === "web") setPhotoHovered(false);
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={`${auction.title}. ${liveUi ? "Live auction" : auction.status}`}
-        android_ripple={{ color: accentWash }}
-        style={({ pressed }) => ({ opacity: pressed ? 0.96 : 1 })}
       >
-        <View>{imageBlock}</View>
-
-        <View
-          style={{
-            paddingHorizontal: padH,
-            paddingTop: padTop,
-            paddingBottom: padBottom,
-          }}
-        >
+        <View style={styles.cardCopy}>
           <Text
             style={[
               typography.cardTitle,
-              {
-                fontSize: compact ? 15 : 17,
-                lineHeight: compact ? 20 : 22,
-                fontWeight: "600",
-              },
+              styles.cardTitle,
+              compact ? styles.cardTitleCompact : styles.cardTitleRegular,
             ]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {auction.title}
           </Text>
-
-          <View style={{ marginTop: space.sm }}>
-            <ValueCurrency amount={bid} size="sm" layout="inline" />
-          </View>
+          <ValueCurrency
+            amount={bid}
+            size="sm"
+            layout="inline"
+            amountColor={colors.white}
+            amountFontWeight="600"
+          />
         </View>
-      </Pressable>
+      </View>
+    </ContainedListingPhoto>
+  );
+
+  const cardVisual = (
+    <Animated.View
+      style={StyleSheet.flatten([
+        {
+          borderRadius: radii.lg,
+          borderCurve: "continuous",
+          overflow: "hidden",
+          marginBottom: inGrid ? 0 : space.lg,
+          backgroundColor: colors.white,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
+        },
+        cardAnim,
+      ])}
+    >
+      {imageBlock}
     </Animated.View>
   );
+
+  const card = (
+    <Pressable
+      onPress={onPress}
+      onPressIn={pressIn}
+      onPressOut={pressOut}
+      onHoverIn={() => {
+        if (Platform.OS === "web") setPhotoHovered(true);
+      }}
+      onHoverOut={() => {
+        if (Platform.OS === "web") setPhotoHovered(false);
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`${auction.title}. ${liveUi ? "Live auction" : auction.status}`}
+      android_ripple={{ color: accentWash }}
+      style={({ pressed }) => ({ opacity: pressed ? 0.96 : 1 })}
+    >
+      {cardVisual}
+    </Pressable>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} asChild>
+        <Link.AppleZoom>{card}</Link.AppleZoom>
+      </Link>
+    );
+  }
+
+  return card;
 }
+
+const styles = StyleSheet.create({
+  cardCopy: {
+    width: "100%",
+    minWidth: 0,
+    gap: space.xs,
+  },
+  cardTitle: {
+    color: colors.white,
+    fontWeight: "400",
+  },
+  cardTitleCompact: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  cardTitleRegular: {
+    fontSize: 16,
+    lineHeight: 21,
+  },
+});

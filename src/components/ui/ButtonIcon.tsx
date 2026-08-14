@@ -25,9 +25,10 @@ export function ButtonIcon({
           {
             width: 44,
             height: 44,
-            borderRadius: radii.pill,
+            borderRadius: radii.md,
             alignItems: "center",
             justifyContent: "center",
+            backgroundColor: state.pressed ? colors.tertiaryMuted : "transparent",
             opacity: state.pressed ? 0.65 : disabled ? 0.35 : 1,
           },
           fromParent,

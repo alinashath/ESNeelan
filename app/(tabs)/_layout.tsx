@@ -6,14 +6,12 @@ import {
 import { WebTabsHeaderBar } from "@/src/components/ui/WebTabsHeaderBar";
 import { HomeCatalogSearchProvider } from "@/src/context/HomeCatalogSearchContext";
 import { useUnreadNotificationCount } from "@/src/data/notifications";
-import { floatingTabBarBottomInset } from "@/src/lib/floating-tab-bar";
 import { useWebWideTabHeader } from "@/src/lib/web-tabs-layout";
 import { layout } from "@/src/theme/layout";
 import { colors } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { StyleSheet, useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const os = process.env.EXPO_OS;
 const isWeb = os === "web";
@@ -21,11 +19,9 @@ const isWeb = os === "web";
 function TabsLayoutInner() {
   const { data: unread = 0 } = useUnreadNotificationCount();
   const wideWebHeader = useWebWideTabHeader();
-  const insets = useSafeAreaInsets();
 
   const useFloatingTabBar = !wideWebHeader;
   const narrowWebBottom = isWeb && !wideWebHeader;
-  const sceneBottomInset = useFloatingTabBar ? floatingTabBarBottomInset(insets.bottom) : 0;
 
   const stackedTabBarStyle = narrowWebBottom
     ? {
@@ -67,7 +63,8 @@ function TabsLayoutInner() {
     borderTopWidth: 0,
     elevation: 0,
     shadowOpacity: 0,
-    height: sceneBottomInset,
+    height: 0,
+    overflow: "visible" as const,
   };
 
   return (
@@ -94,7 +91,6 @@ function TabsLayoutInner() {
         ...(useFloatingTabBar
           ? {
               tabBarShowLabel: false,
-              sceneStyle: { paddingBottom: sceneBottomInset },
               animation: "fade",
             }
           : {}),

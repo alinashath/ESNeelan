@@ -11,8 +11,11 @@ import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { colors, space } from "@/src/theme/tokens";
+import { floatingTabBarBottomInset } from "@/src/lib/floating-tab-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function NotificationsTabScreen() {
+  const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const qc = useQueryClient();
   const { data = [], refetch, isRefetching } = useMyNotifications();
@@ -43,7 +46,7 @@ export default function NotificationsTabScreen() {
         contentContainerStyle={{
           paddingHorizontal: space.lg,
           paddingTop: space.md,
-          paddingBottom: space.xxl,
+          paddingBottom: floatingTabBarBottomInset(insets.bottom),
         }}
         ListHeaderComponent={
           <TextTitle style={{ marginBottom: space.md }}>Alerts</TextTitle>

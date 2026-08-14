@@ -7,7 +7,10 @@ import {
   type ViewProps,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSegments } from "expo-router";
 import { ContentWidthProvider } from "@/src/components/layout/content-width";
+import { floatingTabBarBottomInset } from "@/src/lib/floating-tab-bar";
 import { layout } from "@/src/theme/layout";
 import { colors, space } from "@/src/theme/tokens";
 
@@ -29,6 +32,12 @@ export function Screen({
   noPadding,
   ...rest
 }: Props) {
+  const segments = useSegments();
+  const insets = useSafeAreaInsets();
+  const insideTabs = segments.some((segment) => String(segment) === "(tabs)");
+  const tabContentBottom = insideTabs
+    ? floatingTabBarBottomInset(insets.bottom)
+    : space.xxl;
   const [contentWidth, setContentWidth] = useState<number | undefined>(
     undefined,
   );
@@ -58,12 +67,18 @@ export function Screen({
 
   if (scroll) {
     const baseInset = noPadding
-      ? { paddingHorizontal: 0, paddingTop: 0, paddingBottom: space.xxl }
-      : { padding: space.lg, paddingBottom: space.xxl };
+      ? { paddingHorizontal: 0, paddingTop: 0, paddingBottom: tabContentBottom }
+      : { padding: space.lg, paddingBottom: tabContentBottom };
     const { contentContainerStyle: userContent, ...restScroll } =
       scrollProps ?? {};
     const mergedContent = userContent
-      ? [baseInset, userContent]
+      ? [
+          baseInset,
+          userContent,
+          insideTabs
+            ? { paddingBottom: tabContentBottom }
+            : null,
+        ]
       : baseInset;
     return (
       <SafeAreaView

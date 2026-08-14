@@ -21,6 +21,8 @@ import {
   type ExploreFilterDraft,
 } from "@/src/components/ui/ExploreFiltersModal";
 import { Screen } from "@/src/components/ui/Screen";
+import { floatingTabBarBottomInset } from "@/src/lib/floating-tab-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { SearchField } from "@/src/components/ui/SearchField";
 import { TextBody } from "@/src/components/ui/TextBody";
@@ -35,6 +37,7 @@ function firstSearchParam(v: string | string[] | undefined): string | undefined 
 }
 
 export default function ExploreScreen() {
+  const insets = useSafeAreaInsets();
   const screenW = useScreenContentWidth();
   const gap = space.md;
   const numColumns = getTrendingGridColumns(screenW);
@@ -211,6 +214,11 @@ export default function ExploreScreen() {
         keyExtractor={(item) => item.id}
         key={`explore-cols-${numColumns}`}
         numColumns={numColumns}
+        initialNumToRender={numColumns * 4}
+        maxToRenderPerBatch={numColumns * 3}
+        updateCellsBatchingPeriod={50}
+        windowSize={5}
+        removeClippedSubviews
         columnWrapperStyle={multiCol ? { gap } : undefined}
         ListHeaderComponent={header}
         ListEmptyComponent={listEmpty}
@@ -222,7 +230,7 @@ export default function ExploreScreen() {
             tintColor={colors.primary}
           />
         }
-        contentContainerStyle={{ flexGrow: 1, padding: space.lg, paddingBottom: space.xxl }}
+        contentContainerStyle={{ flexGrow: 1, padding: space.lg, paddingBottom: floatingTabBarBottomInset(insets.bottom) }}
         renderItem={({ item }) => (
           <View style={multiCol ? { width: colW, marginBottom: gap } : undefined}>
             <AuctionCard
@@ -241,7 +249,7 @@ export default function ExploreScreen() {
               }}
               compact={multiCol}
               inGrid={multiCol}
-              onPress={() => router.push(`/auction/${item.id}`)}
+              href={`/auction/${item.id}`}
             />
           </View>
         )}

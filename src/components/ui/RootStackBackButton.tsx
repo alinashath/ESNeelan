@@ -1,7 +1,13 @@
 import { Pressable, StyleSheet, View } from "react-native";
+import { useRef } from "react";
+import LottieView from "lottie-react-native";
+import { useReducedMotion } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { router, type Href } from "expo-router";
-import { colors, shadows } from "@/src/theme/tokens";
+import { colors, radii, shadows } from "@/src/theme/tokens";
+
+export const NAV_BUTTON_SIZE = 44;
+export const NAV_ICON_SIZE = 22;
 
 type Props = {
   /** When the navigator has nothing to pop (e.g. cold open), go here instead. */
@@ -24,7 +30,9 @@ export function RootStackBackButton({
   tintColor = colors.text,
   heroWell = false,
 }: Props) {
-  const icon = <Ionicons name="chevron-back" size={26} color={tintColor} />;
+  const lottieRef = useRef<LottieView>(null);
+  const reducedMotion = useReducedMotion();
+  const icon = <Ionicons name="chevron-back" size={NAV_ICON_SIZE} color={tintColor} />;
   return (
     <Pressable
       onPress={() => {
@@ -34,24 +42,22 @@ export function RootStackBackButton({
           router.replace(fallbackHref);
         }
       }}
+      onPressIn={() => {
+        if (reducedMotion) return;
+        lottieRef.current?.reset();
+        lottieRef.current?.play(0, 24);
+      }}
       hitSlop={12}
       accessibilityRole="button"
       accessibilityLabel="Go back"
-      style={
-        heroWell
-          ? {
-              paddingHorizontal: 2,
-              paddingVertical: 4,
-            }
-          : { paddingHorizontal: 4, paddingVertical: 8 }
-      }
+      style={styles.touchTarget}
     >
       {heroWell ? (
         <View
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            width: NAV_BUTTON_SIZE,
+            height: NAV_BUTTON_SIZE,
+            borderRadius: radii.pill,
             backgroundColor: "rgba(255,255,255,0.94)",
             borderWidth: StyleSheet.hairlineWidth,
             borderColor: colors.border,
@@ -60,14 +66,45 @@ export function RootStackBackButton({
             ...shadows.productImage,
           }}
         >
+          <LottieView
+            ref={lottieRef}
+            source={require("../../../assets/animations/nav-tap.json")}
+            loop={false}
+            autoPlay={false}
+            style={StyleSheet.absoluteFill}
+          />
           {icon}
         </View>
       ) : (
-        icon
+        <View style={styles.iconSlot}>
+          <LottieView
+            ref={lottieRef}
+            source={require("../../../assets/animations/nav-tap.json")}
+            loop={false}
+            autoPlay={false}
+            style={StyleSheet.absoluteFill}
+          />
+          {icon}
+        </View>
       )}
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  iconSlot: {
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  touchTarget: {
+    width: NAV_BUTTON_SIZE,
+    height: NAV_BUTTON_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 /** For `headerLeft: makeRootStackBackHeader("/(tabs)/profile")` */
 export function makeRootStackBackHeader(

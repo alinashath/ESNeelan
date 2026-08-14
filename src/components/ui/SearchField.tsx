@@ -17,7 +17,7 @@ import {
 import { filterHomeSearchAutocompleteRows } from "@/src/lib/home-search-suggestions";
 import { colors, radii, space } from "@/src/theme/tokens";
 
-const MIN_H = 40;
+const MIN_H = 48;
 const DROPDOWN_MAX_H = 280;
 const DEFAULT_AUTOCOMPLETE_LIMIT = 8;
 
@@ -226,13 +226,13 @@ export function SearchField({
           borderRadius: radii.sm,
           backgroundColor: colors.searchBarFill,
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: focused ? colors.primary : colors.border,
           paddingHorizontal: 12,
-          minHeight: 40,
+          minHeight: MIN_H,
         }}
         accessibilityRole="search"
       >
-        <Ionicons name="search" size={20} color={colors.textMuted} />
+        <Ionicons name="search" size={19} color={focused ? colors.primary : colors.textMuted} />
         <TextInput
           ref={inputRef}
           placeholder={placeholder}
@@ -267,7 +267,7 @@ export function SearchField({
               fontSize: 16,
               lineHeight: 22,
               color: colors.text,
-              minHeight: MIN_H - 4,
+              minHeight: MIN_H - 2,
             },
             style,
           ]}

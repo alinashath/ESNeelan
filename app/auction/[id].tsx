@@ -1,4 +1,5 @@
 import { AuctionDetailHeroGallery } from "@/src/components/ui/AuctionDetailHeroGallery";
+import { BrandLoadingMark } from "@/src/components/ui/brand-loading-mark";
 import { Badge } from "@/src/components/ui/Badge";
 import { BidHistoryCollapsible } from "@/src/components/ui/BidHistoryCollapsible";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
@@ -47,7 +48,7 @@ import { accentBorderSubtle, accentWash, colors, fontFamilies, palette, radii, s
 import { AuctionSeoHead } from "@/src/components/web/AuctionSeoHead";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
-import { router, useLocalSearchParams, type Href } from "expo-router";
+import { Link, router, useLocalSearchParams, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, View, useWindowDimensions, Platform } from "react-native";
 import Animated, { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
@@ -97,39 +98,42 @@ function useAuctionTimeProgress(
 function ListingDetailFact({
   label,
   value,
-  half,
 }: {
   label: string;
   value: string;
-  /** Two-column Pinterest-style item details row. */
-  half?: boolean;
 }) {
   return (
     <View
       style={{
-        marginTop: half ? 0 : space.md,
-        width: half ? "48%" : "100%",
-        flexGrow: half ? 1 : undefined,
-        minWidth: half ? 120 : undefined,
+        width: "100%",
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: space.md,
+        paddingVertical: 10,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: colors.border,
       }}
     >
       <TextCaption
         style={{
+          width: "32%",
           fontWeight: "400",
-          letterSpacing: 0.8,
+          letterSpacing: 0.7,
           color: colors.textMuted,
           textTransform: "uppercase",
-          fontSize: 11,
+          fontSize: 10,
         }}
       >
         {label}
       </TextCaption>
       <TextBody
         style={{
-          marginTop: space.xs,
+          flex: 1,
+          minWidth: 0,
           fontWeight: "500",
           fontFamily: fontFamilies.body,
-          lineHeight: 22,
+          fontSize: 14,
+          lineHeight: 20,
           color: colors.text,
         }}
       >
@@ -165,6 +169,7 @@ export default function AuctionDetailScreen() {
   const [buyNowBusy, setBuyNowBusy] = useState(false);
   const [agreeWinnerTerms, setAgreeWinnerTerms] = useState(false);
   const [agreeShareContact, setAgreeShareContact] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const refetchRef = useRef(refetch);
   const refetchBidsRef = useRef(refetchBids);
@@ -582,8 +587,8 @@ export default function AuctionDetailScreen() {
     return (
       <>
         {seoEl}
-        <Screen scroll>
-          <TextBody>Loading…</TextBody>
+        <Screen scroll={false}>
+          <BrandLoadingMark />
         </Screen>
       </>
     );
@@ -760,14 +765,18 @@ export default function AuctionDetailScreen() {
               : null,
           ]}
         >
-          <AuctionDetailHeroGallery
-            imageUrls={imageUrls}
-            shareTitle={`${title} — ${APP_DISPLAY_NAME}`}
-            shareUrl={listingShareUrl}
-            shareMessage={listingShareMessage}
-            showLiveBadge={liveUi}
-            showClosedBadge={String(status).trim().toLowerCase() === "active" && !liveUi}
-          />
+          <Link.AppleZoomTarget>
+            <View>
+              <AuctionDetailHeroGallery
+                imageUrls={imageUrls}
+                shareTitle={`${title} — ${APP_DISPLAY_NAME}`}
+                shareUrl={listingShareUrl}
+                shareMessage={listingShareMessage}
+                showLiveBadge={liveUi}
+                showClosedBadge={String(status).trim().toLowerCase() === "active" && !liveUi}
+              />
+            </View>
+          </Link.AppleZoomTarget>
         </View>
 
         <Animated.View
@@ -786,10 +795,10 @@ export default function AuctionDetailScreen() {
           <TextTitle
             style={{
               marginTop: space.sm,
-              fontSize: 28,
-              lineHeight: 34,
-              fontWeight: "700",
-              letterSpacing: -1.2,
+              fontSize: 26,
+              lineHeight: 32,
+              fontWeight: "600",
+              letterSpacing: -0.8,
               fontFamily: fontFamilies.headingSerif,
               color: palette.onSurface,
             }}
@@ -801,19 +810,17 @@ export default function AuctionDetailScreen() {
             style={{
               marginTop: space.md,
               flexDirection: "row",
-              flexWrap: "wrap",
-              gap: space.sm,
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderColor: colors.border,
             }}
           >
             <View
               style={{
                 flex: 1,
                 minWidth: 140,
-                padding: space.lg,
-                borderRadius: radii.xl,
-                borderWidth: 1,
-                borderColor: colors.hairlineSoft,
-                backgroundColor: colors.surfaceSoft,
+                paddingVertical: space.md,
+                paddingRight: space.md,
               }}
             >
               <TextCaption
@@ -822,7 +829,7 @@ export default function AuctionDetailScreen() {
                   letterSpacing: 1.2,
                   color: colors.textMuted,
                   textTransform: "uppercase",
-                  fontSize: 11,
+                  fontSize: 10,
                 }}
               >
                 Current bid
@@ -830,21 +837,22 @@ export default function AuctionDetailScreen() {
               <View style={{ marginTop: space.xs }}>
                 <ValueCurrency
                   amount={currentBid}
-                  size="hero"
+                  size="compact"
                   amountFontWeight="600"
                 />
               </View>
               <TextCaption
-                style={{ marginTop: space.xs, fontWeight: "400", color: colors.textSecondary }}
+                  style={{ marginTop: 2, fontWeight: "400", color: colors.textSecondary, fontSize: 11 }}
               >
                 {bidCount} {bidCount === 1 ? "bid" : "bids"} placed
               </TextCaption>
               {buyNowPrice != null && liveUi ? (
-                <TextCaption
-                  style={{ marginTop: space.sm, fontWeight: "500", color: colors.text }}
-                >
-                  Buy Now {formatMoneyWithSign(buyNowPrice)}
-                </TextCaption>
+                <View style={{ marginTop: space.xs, flexDirection: "row", alignItems: "center", gap: space.xs }}>
+                  <TextCaption style={{ fontWeight: "500", color: colors.textSecondary, fontSize: 11 }}>
+                    Buy Now
+                  </TextCaption>
+                  <ValueCurrency amount={buyNowPrice} size="sm" amountFontWeight="500" />
+                </View>
               ) : null}
             </View>
             {liveUi ? (
@@ -852,11 +860,10 @@ export default function AuctionDetailScreen() {
                 style={{
                   flex: 1,
                   minWidth: 140,
-                  padding: space.lg,
-                  borderRadius: radii.xl,
-                  borderWidth: 1,
-                  borderColor: colors.hairlineSoft,
-                  backgroundColor: colors.surfaceSoft,
+                  paddingVertical: space.md,
+                  paddingLeft: space.md,
+                  borderLeftWidth: StyleSheet.hairlineWidth,
+                  borderLeftColor: colors.border,
                 }}
               >
                 <Countdown
@@ -873,11 +880,10 @@ export default function AuctionDetailScreen() {
                 style={{
                   flex: 1,
                   minWidth: 140,
-                  padding: space.lg,
-                  borderRadius: radii.xl,
-                  borderWidth: 1,
-                  borderColor: colors.hairlineSoft,
-                  backgroundColor: colors.surfaceSoft,
+                  paddingVertical: space.md,
+                  paddingLeft: space.md,
+                  borderLeftWidth: StyleSheet.hairlineWidth,
+                  borderLeftColor: colors.border,
                 }}
               >
                 <TextCaption
@@ -908,7 +914,7 @@ export default function AuctionDetailScreen() {
               <View
                 style={{
                   marginTop: space.md,
-                  height: 6,
+                  height: 3,
                   borderRadius: radii.pill,
                   backgroundColor: colors.secondaryContainer,
                   overflow: "hidden",
@@ -928,7 +934,7 @@ export default function AuctionDetailScreen() {
                   marginTop: space.xs,
                   textAlign: "right",
                   color: colors.textMuted,
-                  fontSize: 12,
+                  fontSize: 10,
                 }}
               >
                 {timeProgress.elapsedPct}% of auction time elapsed
@@ -1093,7 +1099,7 @@ export default function AuctionDetailScreen() {
                     flexDirection: "row",
                     alignItems: "flex-start",
                     gap: space.sm,
-                    padding: space.md,
+                    padding: space.sm,
                     borderRadius: radii.sm,
                     backgroundColor: accentWash,
                     borderWidth: 1,
@@ -1102,12 +1108,12 @@ export default function AuctionDetailScreen() {
                 >
                   <Ionicons
                     name="information-circle-outline"
-                    size={20}
+                    size={16}
                     color={colors.primary}
                     style={{ marginTop: 1 }}
                   />
                   <TextCaption
-                    style={{ flex: 1, color: colors.textSecondary, lineHeight: 20, fontWeight: "400" }}
+                    style={{ flex: 1, color: colors.textSecondary, fontSize: 11, lineHeight: 16, fontWeight: "400" }}
                   >
                     {bidBannerText}
                   </TextCaption>
@@ -1153,10 +1159,11 @@ export default function AuctionDetailScreen() {
           ) : null}
 
           {liveUi && !session ? (
-            <View style={{ marginTop: space.xl }}>
+            <View style={{ marginTop: space.md }}>
               <ButtonPrimary
                 title="LOG IN TO BID"
                 onPress={() => router.push("/(auth)/login")}
+                style={{ minHeight: 44, paddingVertical: space.sm }}
               />
             </View>
           ) : null}
@@ -1167,7 +1174,7 @@ export default function AuctionDetailScreen() {
             </TextCaption>
           ) : null}
 
-      <View style={{ marginTop: space.xxl }}>
+      <View style={{ marginTop: space.lg }}>
         {(() => {
           const sl = structuredListing;
           const hasLoc = loc.trim().length > 0;
@@ -1184,103 +1191,127 @@ export default function AuctionDetailScreen() {
           if (!hasFacts && !hasDesc) return null;
           return (
             <>
-              <TextTitle
-                style={{
-                  fontSize: 22,
-                  lineHeight: 28,
-                  fontWeight: "600",
-                  fontFamily: fontFamilies.headingSerif,
-                  letterSpacing: -0.5,
-                  color: palette.onSurface,
-                  marginBottom: space.lg,
-                }}
-              >
-                Item details
-              </TextTitle>
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  columnGap: space.md,
-                  rowGap: space.xl,
-                }}
-              >
+              {hasFacts ? (
+                <>
+                  <TextTitle
+                    style={{
+                      fontSize: 17,
+                      lineHeight: 22,
+                      fontWeight: "600",
+                      fontFamily: fontFamilies.headingSerif,
+                      letterSpacing: -0.5,
+                      color: palette.onSurface,
+                      marginBottom: space.sm,
+                    }}
+                  >
+                    Item details
+                  </TextTitle>
+                  <View
+                    style={{
+                      width: "100%",
+                      borderTopWidth: StyleSheet.hairlineWidth,
+                      borderColor: colors.border,
+                    }}
+                  >
                 {sl.conditionLabel?.trim() ? (
-                  <ListingDetailFact half label="Condition" value={sl.conditionLabel.trim()} />
+                  <ListingDetailFact label="Condition" value={sl.conditionLabel.trim()} />
                 ) : null}
                 {sl.dimensionsText ? (
-                  <ListingDetailFact half label="Dimensions" value={sl.dimensionsText} />
+                  <ListingDetailFact label="Dimensions" value={sl.dimensionsText} />
                 ) : null}
-                {sl.sizeText ? <ListingDetailFact half label="Size" value={sl.sizeText} /> : null}
-                {sl.weightText ? <ListingDetailFact half label="Weight" value={sl.weightText} /> : null}
-                {sl.colorsText ? <ListingDetailFact half label="Colours" value={sl.colorsText} /> : null}
+                {sl.sizeText ? <ListingDetailFact label="Size" value={sl.sizeText} /> : null}
+                {sl.weightText ? <ListingDetailFact label="Weight" value={sl.weightText} /> : null}
+                {sl.colorsText ? <ListingDetailFact label="Colours" value={sl.colorsText} /> : null}
                 {sl.materialsText ? (
-                  <ListingDetailFact half label="Materials" value={sl.materialsText} />
+                  <ListingDetailFact label="Materials" value={sl.materialsText} />
                 ) : null}
                 {sl.deliveryLabels.length > 0 || loc.trim().length > 0 ? (
-                  <View style={{ width: "48%", flexGrow: 1, minWidth: 120 }}>
+                  <View
+                    style={{
+                      width: "100%",
+                      flexDirection: "row",
+                      alignItems: "flex-start",
+                      gap: space.md,
+                      paddingVertical: 10,
+                      borderBottomWidth: StyleSheet.hairlineWidth,
+                      borderBottomColor: colors.border,
+                    }}
+                  >
                     <TextCaption
                       style={{
+                        width: "32%",
                         fontWeight: "400",
                         letterSpacing: 0.8,
                         color: colors.textMuted,
                         textTransform: "uppercase",
-                        fontSize: 11,
+                        fontSize: 10,
                       }}
                     >
                       Delivery
                     </TextCaption>
-                    {sl.deliveryLabels.length > 0 ? (
-                      <TextBody
-                        style={{
-                          marginTop: space.xs,
-                          fontWeight: "500",
-                          fontFamily: fontFamilies.body,
-                          lineHeight: 22,
-                          color: colors.text,
-                        }}
-                      >
-                        {sl.deliveryLabels.join(" · ")}
-                      </TextBody>
-                    ) : null}
-                    {loc.trim().length > 0 ? (
-                      <View
-                        style={{
-                          marginTop: space.sm,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          alignSelf: "flex-start",
-                          gap: 4,
-                          paddingHorizontal: space.sm,
-                          paddingVertical: space.xs,
-                          borderRadius: radii.pill,
-                          backgroundColor: colors.surfaceCard,
-                          borderWidth: 1,
-                          borderColor: colors.hairlineSoft,
-                        }}
-                      >
-                        <Ionicons name="location-outline" size={14} color={colors.primary} />
-                        <TextCaption style={{ fontWeight: "400", color: colors.textSecondary, fontSize: 12 }}>
-                          {loc.trim()}
-                        </TextCaption>
-                      </View>
-                    ) : null}
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      {sl.deliveryLabels.length > 0 ? (
+                        <TextBody
+                          style={{
+                            fontWeight: "500",
+                            fontFamily: fontFamilies.body,
+                            fontSize: 14,
+                            lineHeight: 20,
+                            color: colors.text,
+                          }}
+                        >
+                          {sl.deliveryLabels.join(" · ")}
+                        </TextBody>
+                      ) : null}
+                      {loc.trim().length > 0 ? (
+                        <View style={{ marginTop: 2, flexDirection: "row", alignItems: "center", gap: 4 }}>
+                          <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+                          <TextCaption style={{ fontWeight: "400", color: colors.textSecondary, fontSize: 11 }}>
+                            {loc.trim()}
+                          </TextCaption>
+                        </View>
+                      ) : null}
+                    </View>
                   </View>
                 ) : null}
-              </View>
+                  </View>
+                </>
+              ) : null}
               {hasDesc ? (
-                <>
-                  <TextCaption
+                <View style={{ marginTop: hasFacts ? space.lg : 0 }}>
+                  <TextTitle
                     style={{
-                      marginTop: space.lg,
-                      fontWeight: "400",
-                      color: colors.textMuted,
+                      fontSize: 17,
+                      lineHeight: 22,
+                      fontWeight: "600",
+                      fontFamily: fontFamilies.headingSerif,
+                      letterSpacing: -0.5,
+                      color: palette.onSurface,
+                      marginBottom: space.sm,
                     }}
                   >
                     Description
-                  </TextCaption>
-                  <TextBody style={{ marginTop: space.xs }}>{desc.trim()}</TextBody>
-                </>
+                  </TextTitle>
+                  <Pressable
+                    onPress={() => setDescriptionExpanded((expanded) => !expanded)}
+                    accessibilityRole="button"
+                    accessibilityLabel={descriptionExpanded ? "Collapse description" : "Expand description"}
+                    style={{
+                      paddingVertical: 10,
+                      borderTopWidth: StyleSheet.hairlineWidth,
+                      borderBottomWidth: StyleSheet.hairlineWidth,
+                      borderColor: colors.border,
+                    }}
+                  >
+                    <TextBody
+                      numberOfLines={descriptionExpanded ? undefined : 3}
+                      ellipsizeMode="tail"
+                      style={{ fontSize: 13, lineHeight: 18, color: colors.textSecondary }}
+                    >
+                      {desc.trim().replace(/\s+/g, " ")}
+                    </TextBody>
+                  </Pressable>
+                </View>
               ) : null}
             </>
           );
@@ -1288,14 +1319,14 @@ export default function AuctionDetailScreen() {
 
         </View>
 
-        <View style={{ marginTop: space.xxl }}>
+        <View style={{ marginTop: space.xl }}>
         <BidHistoryCollapsible
           bids={bids ?? []}
           startingPrice={Number(a.starting_price)}
         />
       </View>
 
-        <View style={{ marginTop: space.xxl }}>
+        <View style={{ marginTop: space.xl }}>
         <SellerCard
           displayName={sellerName}
           ratingLabel={sellerRatingLabel}
@@ -1364,27 +1395,26 @@ export default function AuctionDetailScreen() {
         style={{
           marginTop: space.xl,
           marginBottom: space.lg,
-          padding: space.lg,
-          backgroundColor: colors.surfaceBlush,
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          borderColor: "rgba(232, 188, 184, 0.25)",
+          paddingVertical: space.md,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.border,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.md }}>
           <Ionicons
             name="shield-checkmark-outline"
-            size={22}
+            size={18}
             color={colors.primary}
             style={{ marginTop: 2 }}
           />
           <View style={{ flex: 1 }}>
-          <TextBody style={{ fontWeight: "600", fontSize: 16, color: palette.onSurface }}>
+          <TextBody style={{ fontWeight: "600", fontSize: 14, lineHeight: 19, color: palette.onSurface }}>
             Payments & delivery
           </TextBody>
-        <TextBody style={{ marginTop: space.sm, color: colors.textSecondary, fontWeight: "400" }}>
+        <TextCaption style={{ marginTop: space.xs, color: colors.textSecondary, fontSize: 11, lineHeight: 17, fontWeight: "400" }}>
           {LISTING_PAYMENT_AND_FULFILMENT_DISCLAIMER}
-        </TextBody>
+        </TextCaption>
         <Pressable
           onPress={() =>
             Alert.alert("Payments & delivery", LISTING_PAYMENT_AND_FULFILMENT_DISCLAIMER)

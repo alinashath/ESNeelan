@@ -9,10 +9,12 @@ import {
   floatingTabSlotStyle,
 } from "@/src/lib/floating-tab-bar";
 import { easingEnter } from "@/src/lib/ui-motion";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import LottieView from "lottie-react-native";
 import Animated, {
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -63,16 +65,24 @@ function TabBarIconSlot({
   focused: boolean;
   children: ReactNode;
 }) {
+  const lottieRef = useRef<LottieView>(null);
+  const didMount = useRef(false);
+  const reducedMotion = useReducedMotion();
   const scale = useSharedValue(focused ? 1.06 : 1);
   const opacity = useSharedValue(focused ? 1 : 0.78);
 
   useEffect(() => {
+    if (didMount.current && focused && !reducedMotion) {
+      lottieRef.current?.reset();
+      lottieRef.current?.play(0, 24);
+    }
+    didMount.current = true;
     scale.value = withSpring(focused ? 1.06 : 1, { damping: 16, stiffness: 280 });
     opacity.value = withTiming(focused ? 1 : 0.78, {
       duration: focused ? 180 : 120,
       easing: easingEnter,
     });
-  }, [focused, opacity, scale]);
+  }, [focused, opacity, reducedMotion, scale]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -89,6 +99,14 @@ function TabBarIconSlot({
         zIndex: 1,
       }}
     >
+      <LottieView
+        ref={lottieRef}
+        source={require("../../../assets/animations/nav-tap.json")}
+        loop={false}
+        autoPlay={false}
+        resizeMode="contain"
+        style={StyleSheet.absoluteFill}
+      />
       <Animated.View style={animStyle}>{children}</Animated.View>
     </Animated.View>
   );

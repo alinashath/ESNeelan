@@ -3,7 +3,7 @@ import {
   durationPressOutMs,
   easingEnter,
 } from "@/src/lib/ui-motion";
-import { buttonPrimaryPadding, colors, radii, space } from "@/src/theme/tokens";
+import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
@@ -80,7 +80,9 @@ export function ButtonPrimary({
           return [
             {
               backgroundColor: bg,
-              ...buttonPrimaryPadding,
+              minHeight: 48,
+              paddingVertical: 12,
+              paddingHorizontal: space.lg,
               borderRadius: radii.sm,
               alignItems: "center",
               justifyContent: "center",
@@ -98,7 +100,7 @@ export function ButtonPrimary({
         ) : (
           <>
             {icon ? <Ionicons name={icon} size={20} color={fg} /> : null}
-            <TextBody style={{ color: fg, fontWeight: "400", fontSize: 14, lineHeight: 20 }}>
+            <TextBody style={{ color: fg, fontFamily: fontFamilies.bodySemiBold, fontWeight: "600", fontSize: 14, lineHeight: 20, letterSpacing: 0.2 }}>
               {title}
             </TextBody>
           </>

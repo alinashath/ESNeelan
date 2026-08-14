@@ -24,21 +24,27 @@ export function SellerCard({
 }: Props) {
   const initial = (displayName.trim()[0] ?? "?").toUpperCase();
   const nameEl = (
-    <TextBody style={{ fontWeight: "600", fontSize: 16, color: colors.text }} numberOfLines={1}>
-      {displayName}
-    </TextBody>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+      <TextBody
+        style={{ flexShrink: 1, fontWeight: "600", fontSize: 14, lineHeight: 19, color: colors.text }}
+        numberOfLines={1}
+      >
+        {displayName}
+      </TextBody>
+      <Ionicons name="checkmark-circle" size={14} color={colors.verifiedBadgeText} />
+    </View>
   );
 
   return (
     <View style={{ marginTop: space.sm }}>
       <TextCaption
         style={{
-          marginBottom: space.md,
+          marginBottom: space.sm,
           fontWeight: "500",
           letterSpacing: 0.6,
           color: colors.textMuted,
           textTransform: "uppercase",
-          fontSize: 11,
+          fontSize: 10,
         }}
       >
         Seller information
@@ -50,37 +56,35 @@ export function SellerCard({
           alignItems: "center",
           justifyContent: "space-between",
           gap: space.md,
-          paddingVertical: space.sm,
-          paddingHorizontal: space.md,
-          borderRadius: radii.pill,
-          backgroundColor: colors.surfaceSoft,
-          borderWidth: 1,
+          paddingVertical: space.md,
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
           borderColor: colors.hairlineSoft,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, flex: 1, minWidth: 0 }}>
           <View
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
               overflow: "hidden",
               backgroundColor: colors.accentMuted,
               alignItems: "center",
               justifyContent: "center",
-              borderWidth: 2,
-              borderColor: colors.white,
+              borderWidth: 1,
+              borderColor: colors.border,
             }}
           >
             {avatarUrl ? (
               <Image
                 source={{ uri: avatarUrl }}
-                style={{ width: 48, height: 48 }}
+                style={{ width: 40, height: 40 }}
                 resizeMode="cover"
                 accessibilityIgnoresInvertColors
               />
             ) : (
-              <TextBody style={{ fontWeight: "600", fontSize: 18, color: colors.primary }}>
+              <TextBody style={{ fontWeight: "600", fontSize: 15, color: colors.primary }}>
                 {initial}
               </TextBody>
             )}
@@ -98,33 +102,6 @@ export function SellerCard({
             ) : (
               nameEl
             )}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                alignSelf: "flex-start",
-                gap: 4,
-                marginTop: 4,
-                paddingHorizontal: 8,
-                paddingVertical: 2,
-                borderRadius: radii.pill,
-                backgroundColor: colors.verifiedBadgeBg,
-                borderWidth: 1,
-                borderColor: colors.verifiedBadgeBorder,
-              }}
-            >
-              <Ionicons name="checkmark-circle" size={11} color={colors.verifiedBadgeText} />
-              <TextCaption
-                style={{
-                  fontWeight: "700",
-                  color: colors.verifiedBadgeText,
-                  fontSize: 10,
-                  letterSpacing: 0.4,
-                }}
-              >
-                VERIFIED
-              </TextCaption>
-            </View>
             {ratingLabel ? (
               <View
                 style={{
@@ -149,14 +126,15 @@ export function SellerCard({
             accessibilityRole="button"
             accessibilityLabel="Contact seller"
             style={({ pressed }) => ({
-              paddingHorizontal: space.lg,
-              paddingVertical: space.sm,
+              minHeight: 36,
+              paddingHorizontal: space.md,
+              paddingVertical: space.xs,
               borderRadius: radii.pill,
               backgroundColor: colors.secondaryContainer,
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <TextCaption style={{ fontWeight: "700", color: colors.textSecondary, fontSize: 12 }}>
+            <TextCaption style={{ fontWeight: "600", color: colors.textSecondary, fontSize: 11 }}>
               Contact
             </TextCaption>
           </Pressable>
