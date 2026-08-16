@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, Platform, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { supabase } from "@/src/lib/supabase";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
@@ -169,6 +169,13 @@ export function SellerPostClosePanel({
     const message = selectNext
       ? "The current high bidder will be skipped and the next eligible bidder (by amount) will be asked for consent."
       : "The current high bidder will be skipped and this listing will be marked cancelled.";
+
+    if (Platform.OS === "web") {
+      const confirmed = globalThis.confirm?.(`${titleAlert}\n\n${message}`) ?? false;
+      if (confirmed) void skipWinner(selectNext);
+      return;
+    }
+
     Alert.alert(titleAlert, message, [
       { text: "Back", style: "cancel" },
       {
