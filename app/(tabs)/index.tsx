@@ -114,7 +114,16 @@ export default function HomeScreen() {
   );
 
   const featuredList = useMemo(
-    () => (auctions ?? []).filter((a) => a.is_featured),
+    () =>
+      (auctions ?? [])
+        .filter((a) => a.is_featured)
+        .sort((a, b) => {
+          const order =
+            (a.featured_sort_order ?? Number.MAX_SAFE_INTEGER) -
+            (b.featured_sort_order ?? Number.MAX_SAFE_INTEGER);
+          if (order !== 0) return order;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        }),
     [auctions],
   );
   const featuredIds = useMemo(() => new Set(featuredList.map((a) => a.id)), [featuredList]);

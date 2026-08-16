@@ -4,7 +4,6 @@ import { collectSubtreeIds } from "@/src/data/category-utils";
 import {
   CATALOG_ENDED_STATUSES,
   CATALOG_LISTING_STATUSES,
-  compareCatalogListings,
 } from "@/src/lib/auction-catalog";
 import { buildAuctionListPresentation } from "@/src/lib/auction-list-presentation";
 import { getAvatarPublicUrl } from "@/src/lib/avatar";
@@ -16,6 +15,7 @@ export type { CategoryRow };
 
 export type AuctionListRow = {
   id: string;
+  created_at: string;
   title: string;
   description?: string;
   status: string;
@@ -72,7 +72,7 @@ export function useActiveAuctions(filters?: {
         .from("auctions")
         .select(
           `
-          id, title, description, status, ends_at, starts_at, current_highest_bid, starting_price, bid_count, category_id, seller_id, is_featured, featured_sort_order,
+          id, created_at, title, description, status, ends_at, starts_at, current_highest_bid, starting_price, bid_count, category_id, seller_id, is_featured, featured_sort_order,
           item_condition, delivery_options, listing_attributes,
           auction_images ( storage_path, sort_order )
         `,
@@ -115,6 +115,7 @@ export function useActiveAuctions(filters?: {
         });
         return {
           id: r.id,
+          created_at: r.created_at,
           title: r.title,
           description: (r as { description?: string | null }).description ?? "",
           status: r.status,
@@ -134,7 +135,7 @@ export function useActiveAuctions(filters?: {
           ...pres,
         };
       });
-      return [...mapped].sort(compareCatalogListings);
+      return mapped;
     },
   });
 }
@@ -153,7 +154,7 @@ export type ExploreCatalogFilters = {
   sellerId?: string;
 };
 
-/** Explore catalog: live + sold/ended; live ranks first, then featured & bid activity. */
+/** Explore catalog: live + sold/ended, always newest listing first. */
 export function useExploreCatalog(filters?: ExploreCatalogFilters) {
   const scope = filters?.listingScope ?? "all";
   const hasBids = filters?.hasBids ?? "any";
@@ -184,7 +185,7 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
         .from("auctions")
         .select(
           `
-          id, title, description, status, ends_at, starts_at, current_highest_bid, starting_price, bid_count, category_id, seller_id, is_featured, featured_sort_order,
+          id, created_at, title, description, status, ends_at, starts_at, current_highest_bid, starting_price, bid_count, category_id, seller_id, is_featured, featured_sort_order,
           item_condition, delivery_options, listing_attributes,
           auction_images ( storage_path, sort_order )
         `,
@@ -238,6 +239,7 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
         });
         return {
           id: r.id,
+          created_at: r.created_at,
           title: r.title,
           description: (r as { description?: string | null }).description ?? "",
           status: r.status,
@@ -258,7 +260,7 @@ export function useExploreCatalog(filters?: ExploreCatalogFilters) {
         };
       });
 
-      return [...mapped].sort(compareCatalogListings);
+      return mapped;
     },
   });
 }
