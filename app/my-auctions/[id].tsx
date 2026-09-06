@@ -27,6 +27,7 @@ import { TextTitle } from "@/src/components/ui/TextTitle";
 import { ValueCurrency } from "@/src/components/ui/ValueCurrency";
 import { auctionDetailStatusText, isAuctionLiveForUi } from "@/src/lib/auction-live";
 import { auctionStatusLabel } from "@/src/lib/auction-status-label";
+import { confirmAction } from "@/src/lib/confirm-action";
 import { formatMoneyWithSign } from "@/src/lib/format-money";
 import { deliveryOptionLabel } from "@/src/lib/listing-delivery-options";
 import { itemConditionLabel } from "@/src/lib/listing-item-condition";
@@ -34,6 +35,24 @@ import { listingAttributeChips } from "@/src/lib/listing-attributes-display";
 import { parseListingAttributesJson } from "@/src/lib/listing-attribute-templates";
 import { APP_DISPLAY_NAME } from "@/src/lib/brand";
 import { buildAuctionPublicUrl } from "@/src/lib/site-url";
+
+function listingEditRpcErrorMessage(code: string | undefined, fallback?: string): string {
+  switch (code) {
+    case "not_authenticated":
+      return "Sign in again to edit this listing.";
+    case "not_found":
+      return "This listing could not be found.";
+    case "forbidden":
+      return "You can only edit your own listings.";
+    case "transaction_in_progress":
+      return "Editing isn’t available while a sale or payment is in progress.";
+    case "function not found":
+    case "PGRST202":
+      return "Listing edit isn’t available on the server yet. Try again after the latest update.";
+    default:
+      return fallback || code || "Could not open this listing for editing.";
+  }
+}
 import { layout } from "@/src/theme/layout";
 import {
   accentBorderSubtle,
@@ -291,11 +310,20 @@ export default function MyAuctionDetailScreen() {
     .map((c) => c.label);
 
   const liveUi = endsAt ? isAuctionLiveForUi(status, endsAt) : false;
+  const pastEndActive = status === "active" && !liveUi;
+  const saleInProgress = [
+    "awaiting_winner_consent",
+    "payment_stage",
+    "won",
+    "paid",
+    "completed",
+  ].includes(status);
 
   const canEditListing = status === "draft";
   const canDeleteDraft = canEditListing && bidCount === 0;
   const canEditInPlace = ["pending_approval", "awaiting_payment", "active", "ended", "cancelled"].includes(status);
   const hideHeroActions = canEditListing;
+  const freshCycleOnEdit = status === "ended" || status === "cancelled" || pastEndActive;
   const listingShareUrl = buildAuctionPublicUrl(id);
   const listingShareMessage = `${title} — ${formatMoneyWithSign(Number(bid))} current bid · ${bidCount} ${bidCount === 1 ? "bid" : "bids"} on ${APP_DISPLAY_NAME}`;
 
@@ -331,9 +359,16 @@ export default function MyAuctionDetailScreen() {
     setListingActionBusy(true);
     try {
       const { data, error } = await supabase.rpc("seller_begin_listing_edit", { p_auction_id: id });
-      if (error) throw error;
+      if (error) {
+        const code = (error as { code?: string; message?: string }).code;
+        const msg = (error as { message?: string }).message ?? "";
+        if (code === "PGRST202" || /could not find.*function|seller_begin_listing_edit/i.test(msg)) {
+          throw new Error(listingEditRpcErrorMessage("PGRST202"));
+        }
+        throw new Error(listingEditRpcErrorMessage(undefined, msg || undefined));
+      }
       const result = data as { ok?: boolean; error?: string };
-      if (!result?.ok) throw new Error(result?.error ?? "Could not open this listing for editing.");
+      if (!result?.ok) throw new Error(listingEditRpcErrorMessage(result?.error));
       qc.invalidateQueries({ queryKey: ["my-auctions"] });
       qc.invalidateQueries({ queryKey: ["auction", id] });
       router.push(`/create/step1-details?id=${id}` as Href);
@@ -344,17 +379,31 @@ export default function MyAuctionDetailScreen() {
     }
   }
 
-  function confirmEditInPlace() {
-    Alert.alert(
-      status === "active" ? "Withdraw live listing to edit?" : "Edit this listing?",
-      status === "active"
-        ? "The listing will leave the public marketplace while you edit it. Its bid history stays attached. After saving, send it for approval again."
-        : "This listing will return to Draft. Edit it, then send it for approval again.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Continue to edit", onPress: () => void beginEditInPlace() },
-      ],
-    );
+  async function confirmEditInPlace() {
+    let title = "Edit this listing?";
+    let message =
+      "This listing will return to Draft. Edit it, then send it for approval again.";
+    if (status === "active" && liveUi) {
+      title = "Withdraw live listing to edit?";
+      message =
+        "The listing will leave the public marketplace while you edit it. Its bid history stays attached. After saving, send it for approval again.";
+    } else if (pastEndActive) {
+      title = "Edit this closed listing?";
+      message =
+        "Bidding has already ended. Editing withdraws it to Draft for a fresh cycle (prior bids won’t carry into a new live run). You’ll need approval again.";
+    } else if (status === "ended" || status === "cancelled") {
+      title = status === "cancelled" ? "Edit this cancelled listing?" : "Edit this ended listing?";
+      message =
+        "It returns to Draft for a fresh listing cycle. Prior auction outcome fields are cleared. Edit it, then send it for approval again.";
+    }
+
+    const ok = await confirmAction({
+      title,
+      message,
+      confirmLabel: "Continue to edit",
+      cancelLabel: "Cancel",
+    });
+    if (ok) void beginEditInPlace();
   }
 
   async function deleteDraft() {
@@ -386,11 +435,15 @@ export default function MyAuctionDetailScreen() {
     }
   }
 
-  function confirmDeleteDraft() {
-    Alert.alert("Delete this draft?", "The draft and its photos will be permanently deleted.", [
-      { text: "Keep draft", style: "cancel" },
-      { text: "Delete draft", style: "destructive", onPress: () => void deleteDraft() },
-    ]);
+  async function confirmDeleteDraft() {
+    const ok = await confirmAction({
+      title: "Delete this draft?",
+      message: "The draft and its photos will be permanently deleted.",
+      confirmLabel: "Delete draft",
+      cancelLabel: "Keep draft",
+      destructive: true,
+    });
+    if (ok) void deleteDraft();
   }
 
   return (
@@ -474,7 +527,7 @@ export default function MyAuctionDetailScreen() {
                   title="Delete draft"
                   icon="trash-outline"
                   disabled={listingActionBusy}
-                  onPress={confirmDeleteDraft}
+                  onPress={() => void confirmDeleteDraft()}
                   style={{ borderColor: colors.danger }}
                 />
               ) : null}
@@ -496,14 +549,30 @@ export default function MyAuctionDetailScreen() {
               <TextCaption style={{ letterSpacing: 1, color: colors.textMuted }}>EDIT & RESUBMIT</TextCaption>
               <TextBody style={{ fontWeight: "600", fontSize: 17 }}>Update this listing</TextBody>
               <TextCaption style={{ color: colors.textSecondary }}>
-                Keeps the same listing and bid history. It returns to Draft while you edit, then goes through approval again.
+                {freshCycleOnEdit
+                  ? "Withdraws to Draft for a fresh cycle on the same listing. You’ll send it for approval again."
+                  : liveUi
+                    ? "Keeps the same listing and bid history. It returns to Draft while you edit, then goes through approval again."
+                    : "Returns to Draft while you edit, then goes through approval again."}
               </TextCaption>
               <ButtonPrimary
                 title="Edit this listing"
                 icon="create-outline"
                 loading={listingActionBusy}
-                onPress={confirmEditInPlace}
+                onPress={() => void confirmEditInPlace()}
               />
+            </View>
+          ) : null}
+
+          {saleInProgress ? (
+            <View style={{ marginTop: space.md }}>
+              <InfoCallout message="Editing isn’t available while a sale or payment is in progress. Finish or cancel the winner flow first." />
+            </View>
+          ) : null}
+
+          {pastEndActive ? (
+            <View style={{ marginTop: space.md }}>
+              <InfoCallout message="Bidding has ended. Finalize to run the winner flow, or edit & resubmit to withdraw this listing to Draft." />
             </View>
           ) : null}
 

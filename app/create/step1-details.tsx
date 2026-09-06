@@ -145,9 +145,26 @@ export default function CreateAuctionStep1Details() {
         .eq("id", draftIdFromRoute)
         .eq("seller_id", session.user.id)
         .maybeSingle();
-      if (error || !row || cancelled) return;
+      if (cancelled) return;
+      if (error) {
+        Alert.alert("Listing", error.message || "Could not load this listing.");
+        router.replace("/my-auctions" as Href);
+        return;
+      }
+      if (!row) {
+        Alert.alert("Listing", "This listing was not found, or you don’t own it.");
+        router.replace("/my-auctions" as Href);
+        return;
+      }
       const r = row as Record<string, unknown>;
-      if (String(r.status ?? "") !== "draft") return;
+      if (String(r.status ?? "") !== "draft") {
+        Alert.alert(
+          "Not editable here",
+          "Only drafts can be edited in this wizard. Open Manage listing and use Edit this listing first.",
+        );
+        router.replace(`/my-auctions/${draftIdFromRoute}` as Href);
+        return;
+      }
       setAuctionName(String(r.title ?? ""));
       setDescription(String(r.description ?? ""));
       setLocation(String(r.location ?? ""));

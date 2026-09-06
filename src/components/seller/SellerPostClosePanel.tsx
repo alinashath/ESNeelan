@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Platform, View } from "react-native";
+import { Alert, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { supabase } from "@/src/lib/supabase";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
@@ -10,13 +10,14 @@ import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import { confirmAction } from "@/src/lib/confirm-action";
+import { formatMoneyWithSign } from "@/src/lib/format-money";
 import {
   formatMaldivesPhoneDisplay,
   sellerAwaitingConsentDeadlineParagraphs,
   sellerHighBidderPendingConsentParagraphs,
   sellerPaymentStageParagraphs,
 } from "@/src/lib/bidmaster-legal-copy";
-import { formatMoneyWithSign } from "@/src/lib/format-money";
 import {
   formatWinnerConsentCountdown,
   isWinnerConsentDeadlinePassed,
@@ -164,26 +165,20 @@ export function SellerPostClosePanel({
     }
   }
 
-  function confirmSkipWinner(selectNext: boolean) {
+  async function confirmSkipWinner(selectNext: boolean) {
     const titleAlert = selectNext ? "Choose next bidder?" : "Cancel winner and end auction?";
     const message = selectNext
       ? "The current high bidder will be skipped and the next eligible bidder (by amount) will be asked for consent."
       : "The current high bidder will be skipped and this listing will be marked cancelled.";
 
-    if (Platform.OS === "web") {
-      const confirmed = globalThis.confirm?.(`${titleAlert}\n\n${message}`) ?? false;
-      if (confirmed) void skipWinner(selectNext);
-      return;
-    }
-
-    Alert.alert(titleAlert, message, [
-      { text: "Back", style: "cancel" },
-      {
-        text: selectNext ? "Choose next bidder" : "Cancel auction",
-        style: selectNext ? "default" : "destructive",
-        onPress: () => void skipWinner(selectNext),
-      },
-    ]);
+    const ok = await confirmAction({
+      title: titleAlert,
+      message,
+      confirmLabel: selectNext ? "Choose next bidder" : "Cancel auction",
+      cancelLabel: "Back",
+      destructive: !selectNext,
+    });
+    if (ok) void skipWinner(selectNext);
   }
 
   async function handleReenable() {

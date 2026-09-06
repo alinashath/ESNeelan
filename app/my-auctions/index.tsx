@@ -96,7 +96,7 @@ export default function MyAuctionsListScreen() {
             ["pending_approval", "PENDING"],
             ["active", "Live"],
             ["won", "WON / PAID"],
-            ["other", "CLOSED"],
+            ["other", "ENDED / OTHER"],
           ] as const
         ).map(([id, label]) => (
           <Chip
@@ -108,6 +108,11 @@ export default function MyAuctionsListScreen() {
           />
         ))}
       </ChipRow>
+      {statusFilter === "other" ? (
+        <TextCaption style={{ marginTop: space.sm, color: colors.textMuted }}>
+          Ended, cancelled, and sold/consent listings. Cancelled and ended (no bids) can be edited from the manage screen; sales in progress cannot.
+        </TextCaption>
+      ) : null}
     </View>
   );
 
@@ -124,7 +129,7 @@ export default function MyAuctionsListScreen() {
           <>
             <TextTitle style={{ marginBottom: space.xs }}>My auctions</TextTitle>
             <TextCaption style={{ marginBottom: space.md, color: colors.textSecondary }}>
-              Drafts, pending approval, and live listings. Tap a row for details.
+              Drafts, pending approval, live, ended, and cancelled listings. Tap a row to manage or edit.
             </TextCaption>
             <ManagedListToolbar
               search={search}
