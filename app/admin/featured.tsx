@@ -21,6 +21,8 @@ import {
 } from "@/src/lib/managed-list";
 import { auctionStatusLabel } from "@/src/lib/auction-status-label";
 import { isAuctionLiveForUi } from "@/src/lib/auction-live";
+import { adminDeleteAuction } from "@/src/data/admin-content";
+import { confirmAction } from "@/src/lib/confirm-action";
 import { colors, radii, space } from "@/src/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -43,6 +45,7 @@ export default function AdminFeaturedScreen() {
   const [search, setSearch] = useState("");
   const [sortId, setSortId] = useState("carousel");
   const [spot, setSpot] = useState<SpotFilter>("all");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { data, refetch, isLoading, isRefetching } = useQuery({
     queryKey: ["admin", "auctions-featured"],
@@ -95,6 +98,29 @@ export default function AdminFeaturedScreen() {
     }
     return copy;
   }, [rows, search, sortId, spot]);
+
+  async function removeListing(row: Row) {
+    const ok = await confirmAction({
+      title: "Delete listing",
+      message: `Permanently delete “${row.title}”? Bids, images, and related records will be removed. This cannot be undone.`,
+      confirmLabel: "Delete listing",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setDeletingId(row.id);
+    try {
+      await adminDeleteAuction(row.id);
+      await refetch();
+      qc.invalidateQueries({ queryKey: ["auctions"] });
+      qc.invalidateQueries({ queryKey: ["admin", "auctions-featured"] });
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete listing.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   async function setFeatured(id: string, next: boolean) {
     const { data: rpc, error } = await supabase.rpc("admin_set_auction_featured", {
@@ -310,6 +336,13 @@ export default function AdminFeaturedScreen() {
                 Turn off featured to remove this ended listing from the home carousel.
               </TextCaption>
             ) : null}
+            <ButtonSecondary
+              title={deletingId === a.id ? "Deleting…" : "Delete listing"}
+              icon="trash-outline"
+              disabled={deletingId === a.id}
+              onPress={() => void removeListing(a)}
+              style={{ alignSelf: "flex-start" }}
+            />
           </View>
           );
         }}

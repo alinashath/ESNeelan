@@ -1,11 +1,16 @@
-import { View } from "react-native";
+import { useState } from "react";
+import { Alert, View } from "react-native";
 import { useLocalSearchParams, router, type Href } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuctionDetail, useAuctionBids } from "@/src/data/auctions";
+import { adminDeleteAuction } from "@/src/data/admin-content";
+import { confirmAction } from "@/src/lib/confirm-action";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
+import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { ValueCurrency } from "@/src/components/ui/ValueCurrency";
 import { auctionStatusLabel } from "@/src/lib/auction-status-label";
 import { space } from "@/src/theme/tokens";
@@ -18,8 +23,38 @@ export default function AdminAuctionDetailScreen() {
       : Array.isArray(params.id)
         ? params.id[0] ?? ""
         : "";
+  const qc = useQueryClient();
   const { data: row, isPending } = useAuctionDetail(id);
   const { data: bids } = useAuctionBids(id);
+  const [deleting, setDeleting] = useState(false);
+
+  async function removeListing() {
+    const title = row ? String((row as Record<string, unknown>).title ?? "this listing") : "this listing";
+    const ok = await confirmAction({
+      title: "Delete listing",
+      message: `Permanently delete “${title}”? Bids, images, and related records will be removed. This cannot be undone.`,
+      confirmLabel: "Delete listing",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setDeleting(true);
+    try {
+      await adminDeleteAuction(id);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["auctions"] }),
+        qc.invalidateQueries({ queryKey: ["auction", id] }),
+        qc.invalidateQueries({ queryKey: ["my-auctions"] }),
+        qc.invalidateQueries({ queryKey: ["admin"] }),
+      ]);
+      router.replace("/admin" as Href);
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete listing.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   if (!id) {
     return (
@@ -84,6 +119,13 @@ export default function AdminAuctionDetailScreen() {
         title="Open shopper listing"
         onPress={() => router.push(`/auction/${id}` as Href)}
         style={{ marginTop: space.xl }}
+      />
+      <ButtonSecondary
+        title={deleting ? "Deleting…" : "Delete listing"}
+        icon="trash-outline"
+        disabled={deleting}
+        onPress={() => void removeListing()}
+        style={{ marginTop: space.md }}
       />
     </Screen>
   );

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Alert, Image, Modal, Pressable, TextInput, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router, type Href } from "expo-router";
 import { supabase } from "@/src/lib/supabase";
 import { storageSignedUrl } from "@/src/lib/storage-signed-url";
 import { useAuctionDetail } from "@/src/data/auctions";
+import { adminDeleteAuction } from "@/src/data/admin-content";
+import { confirmAction } from "@/src/lib/confirm-action";
 import { useQueryClient } from "@tanstack/react-query";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextTitle } from "@/src/components/ui/TextTitle";
@@ -29,6 +31,7 @@ export default function AdminPendingDetailScreen() {
   const [rejectReason, setRejectReason] = useState("");
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [proofOpen, setProofOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function loadProof(path: string) {
     try {
@@ -76,6 +79,36 @@ export default function AdminPendingDetailScreen() {
       qc.invalidateQueries({ queryKey: ["auction-draft", id] });
       qc.invalidateQueries({ queryKey: ["my-auctions"] });
       Alert.alert("Rejected", "Seller has been notified.");
+    }
+  }
+
+  async function removeListing() {
+    const listingTitle = row
+      ? String((row as Record<string, unknown>).title ?? "this listing")
+      : "this listing";
+    const ok = await confirmAction({
+      title: "Delete listing",
+      message: `Permanently delete “${listingTitle}”? This cannot be undone.`,
+      confirmLabel: "Delete listing",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setDeleting(true);
+    try {
+      await adminDeleteAuction(id);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["admin-pending"] }),
+        qc.invalidateQueries({ queryKey: ["admin-awaiting-payment"] }),
+        qc.invalidateQueries({ queryKey: ["admin-queue-counts"] }),
+        qc.invalidateQueries({ queryKey: ["auctions"] }),
+      ]);
+      router.replace("/admin/pending" as Href);
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete listing.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -211,6 +244,14 @@ export default function AdminPendingDetailScreen() {
           This listing is not in an admin approval queue.
         </TextBody>
       ) : null}
+
+      <ButtonSecondary
+        title={deleting ? "Deleting…" : "Delete listing"}
+        icon="trash-outline"
+        disabled={deleting}
+        onPress={() => void removeListing()}
+        style={{ marginTop: space.xl }}
+      />
 
       <Modal visible={rejectOpen} transparent animationType="fade">
         <Pressable

@@ -52,6 +52,8 @@ import { Link, router, useLocalSearchParams, type Href } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, View, useWindowDimensions, Platform } from "react-native";
 import Animated, { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
+import { adminDeleteAuction } from "@/src/data/admin-content";
+import { confirmAction } from "@/src/lib/confirm-action";
 
 function formatAuctionEndsDate(iso: string): string {
   try {
@@ -170,6 +172,7 @@ export default function AuctionDetailScreen() {
   const [agreeWinnerTerms, setAgreeWinnerTerms] = useState(false);
   const [agreeShareContact, setAgreeShareContact] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [adminDeleting, setAdminDeleting] = useState(false);
 
   const refetchRef = useRef(refetch);
   const refetchBidsRef = useRef(refetchBids);
@@ -736,6 +739,36 @@ export default function AuctionDetailScreen() {
     }
   }
 
+  async function adminRemoveListing() {
+    if (!id || profile?.role !== "admin") return;
+    const listingTitle = row
+      ? String((row as Record<string, unknown>).title ?? "this listing")
+      : "this listing";
+    const ok = await confirmAction({
+      title: "Delete listing",
+      message: `Permanently delete “${listingTitle}”? Bids, images, and related records will be removed. This cannot be undone.`,
+      confirmLabel: "Delete listing",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setAdminDeleting(true);
+    try {
+      await adminDeleteAuction(id);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["auctions"] }),
+        qc.invalidateQueries({ queryKey: ["auction", id] }),
+        qc.invalidateQueries({ queryKey: ["admin"] }),
+      ]);
+      router.replace("/(tabs)" as Href);
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete listing.");
+    } finally {
+      setAdminDeleting(false);
+    }
+  }
+
   return (
     <>
       {seoEl}
@@ -805,6 +838,37 @@ export default function AuctionDetailScreen() {
           >
             {title}
           </TextTitle>
+
+          {profile?.role === "admin" ? (
+            <View
+              style={{
+                marginTop: space.md,
+                padding: space.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                borderRadius: radii.md,
+                backgroundColor: colors.white,
+                gap: space.sm,
+              }}
+            >
+              <TextCaption style={{ color: colors.textMuted, letterSpacing: 0.6 }}>
+                ADMIN
+              </TextCaption>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: space.sm }}>
+                <ButtonSecondary
+                  title="Admin detail"
+                  icon="shield-outline"
+                  onPress={() => router.push(`/admin/auction/${id}` as Href)}
+                />
+                <ButtonSecondary
+                  title={adminDeleting ? "Deleting…" : "Delete listing"}
+                  icon="trash-outline"
+                  disabled={adminDeleting}
+                  onPress={() => void adminRemoveListing()}
+                />
+              </View>
+            </View>
+          ) : null}
 
           <View
             style={{

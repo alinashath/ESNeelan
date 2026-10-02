@@ -17,6 +17,8 @@ import {
   useAdminCollectionsFeaturedList,
   type SellerCollectionRow,
 } from "@/src/data/seller-collections";
+import { adminDeleteSellerCollection } from "@/src/data/admin-content";
+import { confirmAction } from "@/src/lib/confirm-action";
 import {
   compareIsoDates,
   compareStringsCaseInsensitive,
@@ -38,6 +40,7 @@ export default function AdminFeaturedCollectionsScreen() {
   const { data, refetch, isRefetching } = useAdminCollectionsFeaturedList({
     enabled: profile?.role === "admin",
   });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const rows = data ?? [];
 
@@ -70,6 +73,29 @@ export default function AdminFeaturedCollectionsScreen() {
     }
     return copy;
   }, [rows, search, sortId, spot]);
+
+  async function removeCollection(row: SellerCollectionRow) {
+    const ok = await confirmAction({
+      title: "Delete collection",
+      message: `Permanently delete “${row.name}”? Items in this collection will be unlinked. This cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setDeletingId(row.id);
+    try {
+      await adminDeleteSellerCollection(row.id);
+      await refetch();
+      qc.invalidateQueries({ queryKey: ["seller-collections"] });
+      qc.invalidateQueries({ queryKey: ["admin", "seller-collections-featured"] });
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete collection.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   async function setFeatured(id: string, next: boolean) {
     const { data: rpc, error } = await supabase.rpc("admin_set_seller_collection_featured", {
@@ -264,6 +290,14 @@ export default function AdminFeaturedCollectionsScreen() {
                 </View>
               </View>
             ) : null}
+
+            <ButtonSecondary
+              title={deletingId === item.id ? "Deleting…" : "Delete collection"}
+              icon="trash-outline"
+              disabled={deletingId === item.id}
+              onPress={() => void removeCollection(item)}
+              style={{ marginTop: space.md, alignSelf: "flex-start" }}
+            />
           </View>
         )}
         ListEmptyComponent={
