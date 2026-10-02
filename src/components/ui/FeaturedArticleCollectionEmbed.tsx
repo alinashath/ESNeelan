@@ -99,7 +99,7 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
   if (isLoading) {
     return (
       <View style={{ paddingVertical: space.lg, alignItems: "center" }}>
-        <ActivityIndicator color={colors.accent} accessibilityLabel="Loading collection" />
+        <ActivityIndicator color={colors.accent} accessibilityLabel="Loading event" />
       </View>
     );
   }
@@ -116,7 +116,7 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
         }}
       >
         <TextBody style={{ color: colors.textMuted }}>
-          This collection is not available or may be restricted.
+          This event is not available or may be restricted.
         </TextBody>
       </View>
     );
@@ -162,7 +162,7 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
           </TextCaption>
         ) : null}
 
-        <Text style={{ ...typography.title, fontSize: 22, lineHeight: 28 }}>{data.name.trim() || "Collection"}</Text>
+        <Text style={{ ...typography.title, fontSize: 22, lineHeight: 28 }}>{data.name.trim() || "Event"}</Text>
 
         {data.description.trim() ? (
           <TextBody style={{ marginTop: space.sm, lineHeight: 22, color: colors.textSecondary }}>
@@ -170,19 +170,10 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
           </TextBody>
         ) : null}
 
-        <Pressable
-          onPress={() => router.push(`/seller/${data.seller_id}` as Href)}
-          style={{ marginTop: space.md, alignSelf: "flex-start" }}
-          accessibilityRole="button"
-          accessibilityLabel="View seller storefront"
-        >
-          <TextCaption style={{ fontWeight: "600", color: colors.primary }}>View seller →</TextCaption>
-        </Pressable>
-
         {top.length ? (
           <>
             <TextTitle style={{ marginTop: space.lg, marginBottom: space.sm, fontSize: 16 }}>
-              Featured from this collection
+              Featured from this event
             </TextTitle>
             <View style={{ flexDirection: "row", gap: space.sm }}>
               {top.map((item) => (
@@ -191,13 +182,13 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
             </View>
           </>
         ) : (
-          <TextBody style={{ marginTop: space.lg, color: colors.textMuted }}>No listings in this collection yet.</TextBody>
+          <TextBody style={{ marginTop: space.lg, color: colors.textMuted }}>No listings in this event yet.</TextBody>
         )}
 
         <Pressable
           onPress={openCollection}
           accessibilityRole="button"
-          accessibilityLabel="View full collection"
+          accessibilityLabel="View full event"
           style={({ pressed }) => ({
             marginTop: space.lg,
             flexDirection: "row",
@@ -208,7 +199,7 @@ export function FeaturedArticleCollectionEmbed({ collectionId, caption }: Props)
           })}
         >
           <TextBody style={{ fontWeight: "700", color: colors.primary, fontSize: 15 }}>
-            {moreCount > 0 ? `View more (${moreCount} more)` : "View collection"}
+            {moreCount > 0 ? `View more (${moreCount} more)` : "View event"}
           </TextBody>
           <Ionicons name="chevron-forward" size={18} color={colors.primary} />
         </Pressable>

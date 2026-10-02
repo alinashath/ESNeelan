@@ -5,7 +5,6 @@ import {
   Image,
   Pressable,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   View,
@@ -29,7 +28,7 @@ import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ButtonSecondary } from "@/src/components/ui/ButtonSecondary";
 import { Chip } from "@/src/components/ui/Chip";
 import { ChipRow } from "@/src/components/ui/ChipRow";
-import { useAdminFeaturedArticle } from "@/src/data/featured-articles";
+import { deleteFeaturedArticle, useAdminFeaturedArticle } from "@/src/data/featured-articles";
 import { useAdminAuctionSearchForArticles, useAuctionEmbedById } from "@/src/data/auctions";
 import {
   useAdminCollectionSearchForArticles,
@@ -38,6 +37,7 @@ import {
 import type { ArticleAuctionDisplay } from "@/src/components/ui/FeaturedArticleAuctionEmbed";
 import { FeaturedArticlePhotoEditor } from "@/src/components/ui/FeaturedArticlePhotoEditor";
 import { useAuth } from "@/src/providers/AuthProvider";
+import { confirmAction } from "@/src/lib/confirm-action";
 import {
   removeFeaturedArticleImage,
   resolveFeaturedArticleCoverDisplayUrl,
@@ -92,6 +92,7 @@ export default function AdminFeaturedArticleEditorScreen() {
   const [homeSort, setHomeSort] = useState("0");
   const [blocks, setBlocks] = useState<FeaturedArticleBlock[]>([]);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const hydratedForId = useRef<string | null>(null);
 
@@ -184,48 +185,46 @@ export default function AdminFeaturedArticleEditorScreen() {
     }
   }
 
-  function clearCoverImage() {
+  async function clearCoverImage() {
     const hasStorage = Boolean(coverStoragePath.trim());
     const hasUrl = Boolean(coverExternalUrl.trim());
     if (!hasStorage && !hasUrl) return;
-    Alert.alert("Remove cover", "Clear the cover image?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: async () => {
-          setCoverBusy(true);
-          try {
-            if (hasStorage) {
-              await removeFeaturedArticleImage(coverStoragePath.trim());
-            }
-            setCoverStoragePath("");
-            setCoverExternalUrl("");
-          } finally {
-            setCoverBusy(false);
-          }
-        },
-      },
-    ]);
+    const ok = await confirmAction({
+      title: "Remove cover",
+      message: "Clear the cover image?",
+      confirmLabel: "Remove",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+    setCoverBusy(true);
+    try {
+      if (hasStorage) {
+        await removeFeaturedArticleImage(coverStoragePath.trim());
+      }
+      setCoverStoragePath("");
+      setCoverExternalUrl("");
+    } finally {
+      setCoverBusy(false);
+    }
   }
 
   const canSave = useMemo(() => {
     return Boolean(id && title.trim() && slug.trim());
   }, [id, title, slug]);
 
-  async function save() {
+  async function persist(nextStatus: "draft" | "published", opts?: { silent?: boolean }): Promise<boolean> {
     if (!id || !canSave) {
       Alert.alert("Missing fields", "Title and slug are required.");
-      return;
+      return false;
     }
     const sortN = Math.min(1_000_000, Math.max(0, Math.floor(Number(homeSort) || 0)));
-    const nextStatus = published ? "published" : "draft";
     const nextPublishedAt =
       nextStatus === "published" ? (publishedAt ?? new Date().toISOString()) : null;
 
     setSaving(true);
     try {
-      const { error: upErr } = await supabase
+      const { data, error: upErr } = await supabase
         .from("featured_articles")
         .update({
           title: title.trim(),
@@ -238,19 +237,93 @@ export default function AdminFeaturedArticleEditorScreen() {
           published_at: nextPublishedAt,
           home_sort_order: sortN,
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       if (upErr) {
         Alert.alert("Save failed", upErr.message);
-        return;
+        return false;
       }
+      if (!data?.length) {
+        Alert.alert("Save failed", "No rows updated. Check that you are signed in as an admin.");
+        return false;
+      }
+      setPublished(nextStatus === "published");
       setPublishedAt(nextPublishedAt);
       await refetch();
       qc.invalidateQueries({ queryKey: ["admin", "featured-articles"] });
       qc.invalidateQueries({ queryKey: ["featured-articles"] });
       qc.invalidateQueries({ queryKey: ["featured-article", slug.trim()] });
-      Alert.alert("Saved", "Article updated.");
+      if (!opts?.silent) {
+        Alert.alert(
+          "Saved",
+          nextStatus === "published" ? "Article published." : "Draft saved.",
+        );
+      }
+      return true;
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveDraft() {
+    await persist("draft");
+  }
+
+  async function publishArticle() {
+    const ok = await confirmAction({
+      title: "Publish article?",
+      message: "This story will appear on the home feed and public article page.",
+      confirmLabel: "Publish",
+      cancelLabel: "Cancel",
+    });
+    if (!ok) return;
+    await persist("published");
+  }
+
+  async function unpublishToDraft() {
+    const ok = await confirmAction({
+      title: "Move to draft?",
+      message: "The story will leave the home feed until you publish again.",
+      confirmLabel: "Save as draft",
+      cancelLabel: "Cancel",
+    });
+    if (!ok) return;
+    await persist("draft");
+  }
+
+  async function previewArticle() {
+    if (!canSave) {
+      Alert.alert("Missing fields", "Title and slug are required before preview.");
+      return;
+    }
+    // Persist current edits (keep published status if already live) so preview matches the editor.
+    const nextStatus = published ? "published" : "draft";
+    const saved = await persist(nextStatus, { silent: true });
+    if (!saved) return;
+    router.push(`/article/${encodeURIComponent(slug.trim())}?preview=1` as Href);
+  }
+
+  async function removeArticle() {
+    if (!id) return;
+    const ok = await confirmAction({
+      title: "Delete article",
+      message: `Remove “${title.trim() || "this article"}”? This cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      await deleteFeaturedArticle(id);
+      qc.invalidateQueries({ queryKey: ["admin", "featured-articles"] });
+      qc.invalidateQueries({ queryKey: ["featured-articles"] });
+      qc.invalidateQueries({ queryKey: ["featured-article", slug.trim()] });
+      router.replace("/admin/articles" as Href);
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete article.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -299,23 +372,15 @@ export default function AdminFeaturedArticleEditorScreen() {
         }}
       >
         <TextTitle style={{ marginBottom: space.sm }}>Edit article</TextTitle>
-        <View
+        <TextCaption
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
             marginBottom: space.lg,
+            color: published ? colors.primary : colors.textMuted,
+            fontWeight: "600",
           }}
         >
-          <TextLabel>PUBLISHED ON HOME</TextLabel>
-          <Switch
-            value={published}
-            onValueChange={(v) => {
-              setPublished(v);
-              if (v && !publishedAt) setPublishedAt(new Date().toISOString());
-            }}
-          />
-        </View>
+          {published ? "Status: Live on home" : "Status: Draft"}
+        </TextCaption>
 
         <TextLabel>TITLE</TextLabel>
         <TextInput
@@ -472,10 +537,43 @@ export default function AdminFeaturedArticleEditorScreen() {
         </ChipRow>
 
         <View style={{ marginTop: space.xl, gap: space.sm }}>
-          <ButtonPrimary title={saving ? "Saving…" : "Save"} loading={saving} disabled={saving || !canSave} onPress={() => void save()} />
+          {published ? (
+            <ButtonPrimary
+              title={saving ? "Saving…" : "Update published"}
+              loading={saving}
+              disabled={saving || deleting || !canSave}
+              onPress={() => void persist("published")}
+            />
+          ) : (
+            <ButtonPrimary
+              title={saving ? "Saving…" : "Save draft"}
+              loading={saving}
+              disabled={saving || deleting || !canSave}
+              onPress={() => void saveDraft()}
+            />
+          )}
+          {published ? (
+            <ButtonSecondary
+              title="Unpublish to draft"
+              disabled={saving || deleting}
+              onPress={() => void unpublishToDraft()}
+            />
+          ) : (
+            <ButtonSecondary
+              title={saving ? "Publishing…" : "Publish"}
+              disabled={saving || deleting || !canSave}
+              onPress={() => void publishArticle()}
+            />
+          )}
           <ButtonSecondary
-            title="Preview public page"
-            onPress={() => router.push(`/article/${encodeURIComponent(slug.trim())}` as Href)}
+            title={saving ? "Saving preview…" : "Preview"}
+            disabled={saving || deleting || !canSave}
+            onPress={() => void previewArticle()}
+          />
+          <ButtonSecondary
+            title={deleting ? "Deleting…" : "Delete article"}
+            disabled={saving || deleting}
+            onPress={() => void removeArticle()}
           />
         </View>
       </ScrollView>

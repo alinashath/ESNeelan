@@ -320,7 +320,7 @@ export default function SellerStorefrontScreen() {
       {sellerCollections?.length ? (
         <View style={{ marginTop: space.lg }}>
           <TextCaption style={{ fontWeight: "600", marginBottom: space.sm, letterSpacing: 0.4 }}>
-            COLLECTIONS
+            EVENTS
           </TextCaption>
           <ScrollView
             horizontal
@@ -361,6 +361,11 @@ export default function SellerStorefrontScreen() {
                   ) : null}
                 </ContainedListingPhoto>
                 <View style={{ padding: space.sm }}>
+                  {col.is_featured ? (
+                    <TextCaption style={{ fontWeight: "700", fontSize: 10, letterSpacing: 0.8, color: colors.accent, marginBottom: 2 }}>
+                      FEATURED
+                    </TextCaption>
+                  ) : null}
                   <TextCaption numberOfLines={2} style={{ fontWeight: "600", fontSize: 12 }}>
                     {col.name}
                   </TextCaption>

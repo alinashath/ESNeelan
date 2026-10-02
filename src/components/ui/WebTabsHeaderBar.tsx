@@ -33,6 +33,7 @@ type TabBarProps = {
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   index: "home-outline",
   explore: "compass-outline",
+  collections: "albums-outline",
   artists: "color-palette-outline",
   create: "add-circle-outline",
   notifications: "notifications-outline",
@@ -43,7 +44,7 @@ const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 const ROUTES_IN_HEADER_SCROLL = new Set([
   "index",
   "explore",
-  "artists",
+  "collections",
   "create",
 ]);
 
@@ -80,21 +81,18 @@ export function WebTabsHeaderBar(
 ) {
   const { state, descriptors, insets, unread } = props;
   const router = useRouter();
-  const pathname = usePathname();
   const activeName = useActiveTabRouteName();
   const { search, setSearch } = useHomeCatalogSearch();
   const searchAutocompleteCandidates = useHomeSearchAutocompleteCandidates();
   const { session, loading: authLoading } = useAuth();
   const showSignUpBtn = !authLoading && !session;
-  const categoriesFocused = pathname.startsWith("/categories");
-
   const routes = state.routes.filter((r) => ROUTES_IN_HEADER_SCROLL.has(r.name));
 
   const navItems: HeaderNavItem[] = [];
   for (const route of routes) {
     const { options } = descriptors[route.key]!;
     const label = options.title ?? route.name;
-    const focused = !categoriesFocused && route.name === activeName;
+    const focused = route.name === activeName;
     const rawBadge = options.tabBarBadge;
     const badge =
       typeof rawBadge === "number" && rawBadge > 0 ? rawBadge : null;
@@ -106,16 +104,6 @@ export function WebTabsHeaderBar(
       badge,
       onPress: () => router.navigate(hrefForRoute(route.name)),
     });
-    if (route.name === "explore") {
-      navItems.push({
-        key: "categories",
-        label: "Categories",
-        icon: "grid-outline",
-        focused: categoriesFocused,
-        badge: null,
-        onPress: () => router.push("/categories" as Href),
-      });
-    }
   }
 
   return (
@@ -178,7 +166,7 @@ export function WebTabsHeaderBar(
           })}
         </ScrollView>
 
-        {activeName === "index" && !categoriesFocused ? (
+        {activeName === "index" ? (
           <View style={styles.searchWrap}>
             <SearchField
               placeholder="Search"

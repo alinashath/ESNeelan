@@ -96,7 +96,7 @@ export default function RootLayout() {
             name="collection/[id]"
             options={{
               headerShown: true,
-              title: "Collection",
+              title: "Event",
               headerTintColor: colors.text,
               headerShadowVisible: false,
               headerStyle: { backgroundColor: colors.background },

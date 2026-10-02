@@ -12,13 +12,19 @@ export type SellerCollectionRow = {
   cover_url: string | null;
   created_at: string;
   updated_at: string;
+  is_featured: boolean;
+  featured_sort_order: number | null;
+  view_count: number;
   item_count?: number;
+  seller_display_name?: string | null;
 };
 
-const collectionListSelect = "id, seller_id, name, description, cover_storage_path, created_at, updated_at";
+const collectionListSelect =
+  "id, seller_id, name, description, cover_storage_path, created_at, updated_at, is_featured, featured_sort_order, view_count";
 
 function mapCollectionRow(row: Record<string, unknown>): SellerCollectionRow {
   const path = (row.cover_storage_path as string | null) ?? null;
+  const profiles = row.profiles as { display_name?: string | null } | null | undefined;
   return {
     id: String(row.id),
     seller_id: String(row.seller_id),
@@ -28,8 +34,41 @@ function mapCollectionRow(row: Record<string, unknown>): SellerCollectionRow {
     cover_url: path ? storagePublicUrl(SELLER_COLLECTION_COVERS_BUCKET, path) : null,
     created_at: String(row.created_at ?? ""),
     updated_at: String(row.updated_at ?? ""),
+    is_featured: Boolean(row.is_featured),
+    featured_sort_order:
+      row.featured_sort_order != null && Number.isFinite(Number(row.featured_sort_order))
+        ? Number(row.featured_sort_order)
+        : null,
+    view_count: Number.isFinite(Number(row.view_count)) ? Number(row.view_count) : 0,
     item_count: typeof row.item_count === "number" ? row.item_count : undefined,
+    seller_display_name:
+      typeof profiles?.display_name === "string"
+        ? profiles.display_name
+        : typeof row.seller_display_name === "string"
+          ? row.seller_display_name
+          : null,
   };
+}
+
+function compareCollectionsForHub(a: SellerCollectionRow, b: SellerCollectionRow): number {
+  if (Boolean(b.is_featured) !== Boolean(a.is_featured)) {
+    return a.is_featured ? -1 : 1;
+  }
+  if (a.is_featured && b.is_featured) {
+    const ao = a.featured_sort_order ?? 999_999;
+    const bo = b.featured_sort_order ?? 999_999;
+    if (ao !== bo) return ao - bo;
+  }
+  if (b.view_count !== a.view_count) return b.view_count - a.view_count;
+  return String(b.created_at).localeCompare(String(a.created_at));
+}
+
+function compareCollectionsForHome(a: SellerCollectionRow, b: SellerCollectionRow): number {
+  if (Boolean(b.is_featured) !== Boolean(a.is_featured)) {
+    return a.is_featured ? -1 : 1;
+  }
+  if (b.view_count !== a.view_count) return b.view_count - a.view_count;
+  return String(b.created_at).localeCompare(String(a.created_at));
 }
 
 /** Public storefront: a seller’s collections (metadata only). */
@@ -42,11 +81,62 @@ export function useSellerCollectionsCatalog(sellerId: string | undefined) {
         .from("seller_collections")
         .select(collectionListSelect)
         .eq("seller_id", sellerId as string)
+        .order("is_featured", { ascending: false })
+        .order("featured_sort_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((r) => mapCollectionRow(r as Record<string, unknown>));
     },
   });
+}
+
+/** Collections hub: latest public collections, featured first. */
+export function useCollectionsHub() {
+  return useQuery({
+    queryKey: ["seller-collections", "hub"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seller_collections")
+        .select(`${collectionListSelect}, profiles!seller_collections_seller_id_fkey ( display_name )`)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      const rows = (data ?? []).map((r) => mapCollectionRow(r as Record<string, unknown>));
+      return rows.sort(compareCollectionsForHub);
+    },
+  });
+}
+
+/** Home rail: featured, then most viewed, then latest. */
+export function useHomeCollections(limit = 12) {
+  return useQuery({
+    queryKey: ["seller-collections", "home", limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seller_collections")
+        .select(collectionListSelect)
+        .order("is_featured", { ascending: false })
+        .order("view_count", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(Math.max(1, Math.min(limit, 40)));
+      if (error) throw error;
+      return (data ?? [])
+        .map((r) => mapCollectionRow(r as Record<string, unknown>))
+        .sort(compareCollectionsForHome);
+    },
+  });
+}
+
+/** Fire-and-forget public view increment (RPC). */
+export async function recordSellerCollectionView(collectionId: string): Promise<void> {
+  const id = collectionId.trim();
+  if (!id) return;
+  const { error } = await supabase.rpc("increment_seller_collection_view", {
+    p_collection_id: id,
+  });
+  if (error) {
+    console.warn("increment_seller_collection_view", error.message);
+  }
 }
 
 /** Logged-in seller’s collections. */
@@ -180,6 +270,25 @@ export function useAdminCollectionSearchForArticles(q: string, options?: { enabl
         .ilike("name", `%${safe}%`)
         .order("updated_at", { ascending: false })
         .limit(30);
+      if (error) throw error;
+      return (data ?? []).map((r) => mapCollectionRow(r as Record<string, unknown>));
+    },
+  });
+}
+
+/** Admin: manage featured collections for the Collections hub. */
+export function useAdminCollectionsFeaturedList(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ["admin", "seller-collections-featured"],
+    enabled: options?.enabled ?? true,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("seller_collections")
+        .select(`${collectionListSelect}, profiles!seller_collections_seller_id_fkey ( display_name )`)
+        .order("is_featured", { ascending: false })
+        .order("featured_sort_order", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(200);
       if (error) throw error;
       return (data ?? []).map((r) => mapCollectionRow(r as Record<string, unknown>));
     },

@@ -137,16 +137,23 @@ function TabsLayoutInner() {
         }}
       />
       <Tabs.Screen
-        name="artists"
+        name="collections"
         options={{
-          title: "Stories",
+          title: "Events",
           tabBarIcon: ({ color, size }) => (
             <Ionicons
-              name="color-palette-outline"
+              name="albums-outline"
               color={color}
               size={narrowWebBottom ? size + 2 : size}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="artists"
+        options={{
+          title: "Stories",
+          href: null,
         }}
       />
       <Tabs.Screen

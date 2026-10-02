@@ -6,14 +6,24 @@ const corsHeaders: Record<string, string> = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+/** Normalize to E.164 +960XXXXXXX so ADMIN_PHONES can be 7910106 or +9607910106. */
+function normalizeAdminPhone(raw: string): string | null {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 7) return `+960${digits}`;
+  if (digits.length === 10 && digits.startsWith("960")) return `+${digits}`;
+  if (digits.length >= 11 && digits.startsWith("960")) return `+${digits.slice(0, 10)}`;
+  if (raw.trim().startsWith("+") && digits.length >= 10) return `+${digits}`;
+  return null;
+}
+
 function parseAdminPhones(raw: string | undefined): Set<string> {
   if (!raw) return new Set();
-  return new Set(
-    raw
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-  );
+  const out = new Set<string>();
+  for (const part of raw.split(",")) {
+    const n = normalizeAdminPhone(part.trim());
+    if (n) out.add(n);
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -45,7 +55,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const phone = user.phone ?? user.user_metadata?.phone_e164;
+    const rawPhone = user.phone ?? user.user_metadata?.phone_e164;
+    const phone = typeof rawPhone === "string" ? normalizeAdminPhone(rawPhone) : null;
     if (!phone) {
       return new Response(JSON.stringify({ ok: true, promoted: false }), {
         status: 200,

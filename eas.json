@@ -45,6 +45,7 @@
     "production": {
       "ios": {
         "appleTeamId": "4632C9Q3LJ",
+        "ascAppId": "6794699146",
         "language": "en-US"
       }
     }

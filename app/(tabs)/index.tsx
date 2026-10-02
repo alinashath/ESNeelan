@@ -6,6 +6,7 @@ import { HeaderLogoRow } from "@/src/components/ui/HeaderLogoRow";
 import { resolveTabRouteSeo, SiteSeoHead } from "@/src/components/web/SiteSeoHead";
 import { HomeFeaturedArticles } from "@/src/components/ui/HomeFeaturedArticles";
 import { HomeFeaturedCarousel } from "@/src/components/ui/HomeFeaturedCarousel";
+import { HomeEventsRow } from "@/src/components/ui/HomeEventsRow";
 import { HomeMarketingFooter } from "@/src/components/ui/HomeMarketingFooter";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
 import { Screen } from "@/src/components/ui/Screen";
@@ -236,6 +237,12 @@ export default function HomeScreen() {
                 auctions={featuredList as AuctionCardAuction[]}
                 toCardAuction={toCardAuction}
               />
+            </View>
+          ) : null}
+
+          {!isSearching ? (
+            <View style={{ marginHorizontal: -space.lg }}>
+              <HomeEventsRow />
             </View>
           ) : null}
 

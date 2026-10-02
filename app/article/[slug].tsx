@@ -5,13 +5,14 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useFeaturedArticleBySlug } from "@/src/data/featured-articles";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextBody } from "@/src/components/ui/TextBody";
+import { TextCaption } from "@/src/components/ui/TextCaption";
 import { FeaturedArticleBlockView } from "@/src/components/ui/FeaturedArticleBlockView";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
 import { ArticleShareActions } from "@/src/components/ui/ArticleShareActions";
 import { FeaturedArticleSeoHead } from "@/src/components/web/FeaturedArticleSeoHead";
 import { buildFeaturedArticlePublicUrl } from "@/src/lib/site-url";
 import { optimizeArticleCoverImageUrl } from "@/src/lib/article-cover-image-url";
-import { colors, space, typography } from "@/src/theme/tokens";
+import { colors, radii, space, typography } from "@/src/theme/tokens";
 import { layout } from "@/src/theme/layout";
 
 const HERO_IMAGE_DISPLAY_W = 960;
@@ -26,9 +27,15 @@ export default function FeaturedArticleScreen() {
 
   const shareUrl = slug ? buildFeaturedArticlePublicUrl(slug) : "";
   const shareTitle = data?.title?.trim() || "Article";
+  const isDraft = data?.status === "draft";
 
   useLayoutEffect(() => {
     if (!slug) {
+      navigation.setOptions({ headerRight: () => null });
+      return;
+    }
+    // Drafts are admin-only; skip share chrome in preview/draft mode.
+    if (isDraft) {
       navigation.setOptions({ headerRight: () => null });
       return;
     }
@@ -42,7 +49,7 @@ export default function FeaturedArticleScreen() {
         />
       ),
     });
-  }, [navigation, slug, shareUrl, shareTitle, data?.excerpt]);
+  }, [navigation, slug, shareUrl, shareTitle, data?.excerpt, isDraft]);
 
   if (!slug) {
     return (
@@ -91,6 +98,7 @@ export default function FeaturedArticleScreen() {
   }
 
   const heroUri = optimizeArticleCoverImageUrl(data.cover_display_url, HERO_IMAGE_DISPLAY_W);
+  const showDraftBanner = isDraft;
 
   return (
     <>
@@ -115,6 +123,28 @@ export default function FeaturedArticleScreen() {
             alignSelf: "center",
           }}
         >
+          {showDraftBanner ? (
+            <View
+              style={{
+                marginHorizontal: space.lg,
+                marginTop: space.md,
+                marginBottom: space.sm,
+                paddingVertical: space.sm,
+                paddingHorizontal: space.md,
+                borderRadius: radii.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.surfaceSoft,
+              }}
+            >
+              <TextCaption style={{ fontWeight: "700", color: colors.primary }}>
+                DRAFT PREVIEW
+              </TextCaption>
+              <TextBody style={{ marginTop: 4, color: colors.textSecondary }}>
+                Only admins can see this story until it is published.
+              </TextBody>
+            </View>
+          ) : null}
           {heroUri ? (
             <ContainedListingPhoto
               uri={heroUri}
@@ -131,7 +161,9 @@ export default function FeaturedArticleScreen() {
                 {data.excerpt}
               </TextBody>
             ) : null}
-            <ArticleShareActions title={data.title} url={shareUrl} excerpt={data.excerpt} />
+            {!isDraft ? (
+              <ArticleShareActions title={data.title} url={shareUrl} excerpt={data.excerpt} />
+            ) : null}
             <View style={{ marginTop: space.xl }}>
               <FeaturedArticleBlockView blocks={data.blocks} />
             </View>

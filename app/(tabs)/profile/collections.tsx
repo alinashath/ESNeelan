@@ -9,6 +9,7 @@ import { TextBody } from "@/src/components/ui/TextBody";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { ButtonPrimary } from "@/src/components/ui/ButtonPrimary";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
+import { Badge } from "@/src/components/ui/Badge";
 import { useAuth } from "@/src/providers/AuthProvider";
 import { useMySellerCollections } from "@/src/data/seller-collections";
 import { supabase } from "@/src/lib/supabase";
@@ -130,9 +131,12 @@ export default function ProfileCollectionsListScreen() {
                 ) : null}
               </ContainedListingPhoto>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <TextBody style={{ fontWeight: "600" }} numberOfLines={2}>
-                  {item.name}
-                </TextBody>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.xs }}>
+                  <TextBody style={{ fontWeight: "600", flexShrink: 1 }} numberOfLines={2}>
+                    {item.name}
+                  </TextBody>
+                  {item.is_featured ? <Badge title="FEATURED" variant="accent" compact /> : null}
+                </View>
                 {item.description.trim() ? (
                   <TextCaption numberOfLines={2} style={{ marginTop: 4, color: colors.textSecondary }}>
                     {item.description.trim()}

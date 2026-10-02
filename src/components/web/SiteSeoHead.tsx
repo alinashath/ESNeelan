@@ -56,6 +56,7 @@ const HOME_TITLE = HOME_PAGE_TITLE;
 const TAB_PAGE_TITLES: Record<string, string> = {
   "/": HOME_TITLE,
   "/explore": `Explore | ${APP_DISPLAY_NAME}`,
+  "/collections": `Events | ${APP_DISPLAY_NAME}`,
   "/artists": `Stories | ${APP_DISPLAY_NAME}`,
   "/notifications": `Alerts | ${APP_DISPLAY_NAME}`,
   "/profile": `Profile | ${APP_DISPLAY_NAME}`,

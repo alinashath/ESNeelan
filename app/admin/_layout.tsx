@@ -38,6 +38,13 @@ export default function AdminLayout() {
         }}
       />
       <Stack.Screen
+        name="featured-collections"
+        options={{
+          title: "Featured collections",
+          headerLeft: makeRootStackBackHeader("/admin" as Href, colors.text),
+        }}
+      />
+      <Stack.Screen
         name="settings"
         options={{
           title: "Platform settings",

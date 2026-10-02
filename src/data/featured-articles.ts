@@ -205,3 +205,16 @@ export function useAdminFeaturedArticle(id: string | undefined, options?: { enab
     },
   });
 }
+
+/** Admin delete. Uses `.select()` so RLS silent no-ops surface as an error. */
+export async function deleteFeaturedArticle(id: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("featured_articles")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) throw error;
+  if (!data?.length) {
+    throw new Error("Article was not deleted. Check that you are signed in as an admin.");
+  }
+}

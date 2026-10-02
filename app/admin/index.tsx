@@ -101,6 +101,13 @@ export default function AdminHome() {
           onPress={() => router.push("/admin/featured" as Href)}
         />
         <AdminMenuTile
+          icon="albums-outline"
+          title="Featured collections"
+          subtitle="Spotlight on the Events tab"
+          tone="navy"
+          onPress={() => router.push("/admin/featured-collections" as Href)}
+        />
+        <AdminMenuTile
           icon="newspaper-outline"
           title="Featured articles"
           subtitle="Editorial stories on the home feed"

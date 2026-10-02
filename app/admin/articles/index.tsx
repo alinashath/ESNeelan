@@ -3,7 +3,6 @@ import { Alert, FlatList, Pressable, View } from "react-native";
 import { router, type Href } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/src/lib/supabase";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
@@ -15,7 +14,12 @@ import { Chip } from "@/src/components/ui/Chip";
 import { ChipRow } from "@/src/components/ui/ChipRow";
 import { ManagedListToolbar } from "@/src/components/ui/ManagedListToolbar";
 import { useAuth } from "@/src/providers/AuthProvider";
-import { useAdminFeaturedArticlesList, type AdminFeaturedArticleListRow } from "@/src/data/featured-articles";
+import {
+  deleteFeaturedArticle,
+  useAdminFeaturedArticlesList,
+  type AdminFeaturedArticleListRow,
+} from "@/src/data/featured-articles";
+import { confirmAction } from "@/src/lib/confirm-action";
 import { textMatchesQuery } from "@/src/lib/managed-list";
 import { colors, radii, space } from "@/src/theme/tokens";
 
@@ -26,6 +30,7 @@ export default function AdminFeaturedArticlesIndex() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { data, isLoading, refetch, isRefetching } = useAdminFeaturedArticlesList({
     enabled: profile?.role === "admin",
@@ -48,22 +53,27 @@ export default function AdminFeaturedArticlesIndex() {
   }, [rows, search, status]);
 
   async function removeArticle(row: AdminFeaturedArticleListRow) {
-    Alert.alert("Delete article", `Remove “${row.title}”? This cannot be undone.`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          const { error } = await supabase.from("featured_articles").delete().eq("id", row.id);
-          if (error) {
-            Alert.alert("Error", error.message);
-            return;
-          }
-          await refetch();
-          qc.invalidateQueries({ queryKey: ["featured-articles"] });
-        },
-      },
-    ]);
+    const ok = await confirmAction({
+      title: "Delete article",
+      message: `Remove “${row.title}”? This cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      destructive: true,
+    });
+    if (!ok) return;
+
+    setDeletingId(row.id);
+    try {
+      await deleteFeaturedArticle(row.id);
+      await refetch();
+      qc.invalidateQueries({ queryKey: ["featured-articles"] });
+      qc.invalidateQueries({ queryKey: ["featured-article", row.slug] });
+      qc.invalidateQueries({ queryKey: ["admin", "featured-article", row.id] });
+    } catch (e: unknown) {
+      Alert.alert("Error", e instanceof Error ? e.message : "Could not delete article.");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   if (profile?.role !== "admin") {
@@ -177,7 +187,11 @@ export default function AdminFeaturedArticlesIndex() {
                 title="Preview"
                 onPress={() => router.push(`/article/${encodeURIComponent(a.slug)}` as Href)}
               />
-              <ButtonSecondary title="Delete" onPress={() => removeArticle(a)} />
+              <ButtonSecondary
+                title={deletingId === a.id ? "Deleting…" : "Delete"}
+                onPress={() => void removeArticle(a)}
+                disabled={deletingId === a.id}
+              />
             </View>
           </View>
         )}

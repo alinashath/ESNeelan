@@ -1,20 +1,22 @@
-import { useCallback, useLayoutEffect } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   RefreshControl,
   View,
 } from "react-native";
 import { ContainedListingPhoto } from "@/src/components/ui/ContainedListingPhoto";
-import { router, useLocalSearchParams, useNavigation, useFocusEffect, type Href } from "expo-router";
+import { useLocalSearchParams, useNavigation, useFocusEffect } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { TextTitle } from "@/src/components/ui/TextTitle";
 import { TextBody } from "@/src/components/ui/TextBody";
-import { TextCaption } from "@/src/components/ui/TextCaption";
+import { Badge } from "@/src/components/ui/Badge";
 import { AuctionCard } from "@/src/components/ui/AuctionCard";
 import { ListEmptyState } from "@/src/components/ui/ListEmptyState";
-import { useSellerCollectionDetail } from "@/src/data/seller-collections";
+import {
+  recordSellerCollectionView,
+  useSellerCollectionDetail,
+} from "@/src/data/seller-collections";
 import { useScreenContentWidth } from "@/src/components/layout/content-width";
 import { layout } from "@/src/theme/layout";
 import { colors, radii, space } from "@/src/theme/tokens";
@@ -24,6 +26,7 @@ export default function PublicCollectionScreen() {
   const params = useLocalSearchParams<{ id: string | string[] }>();
   const id =
     typeof params.id === "string" ? params.id : Array.isArray(params.id) ? (params.id[0] ?? "") : "";
+  const recordedViewForId = useRef<string | null>(null);
 
   const screenW = useScreenContentWidth();
   const storeW = Math.min(screenW, layout.articleReadingMaxWidth);
@@ -39,10 +42,14 @@ export default function PublicCollectionScreen() {
   useFocusEffect(
     useCallback(() => {
       void refetch();
-    }, [refetch]),
+      if (id && recordedViewForId.current !== id) {
+        recordedViewForId.current = id;
+        void recordSellerCollectionView(id);
+      }
+    }, [refetch, id]),
   );
 
-  const title = data?.name?.trim() || "Collection";
+  const title = data?.name?.trim() || "Event";
 
   useLayoutEffect(() => {
     navigation.setOptions({ title });
@@ -59,20 +66,15 @@ export default function PublicCollectionScreen() {
           style={{ marginBottom: space.md }}
         />
       ) : null}
-      <TextTitle style={{ letterSpacing: -0.3 }}>{data.name}</TextTitle>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm }}>
+        <TextTitle style={{ letterSpacing: -0.3, flexShrink: 1 }}>{data.name}</TextTitle>
+        {data.is_featured ? <Badge title="FEATURED" variant="accent" compact /> : null}
+      </View>
       {data.description.trim() ? (
         <TextBody style={{ marginTop: space.sm, color: colors.textSecondary, lineHeight: 22 }}>
           {data.description.trim()}
         </TextBody>
       ) : null}
-      <Pressable
-        onPress={() => router.push(`/seller/${data.seller_id}` as Href)}
-        style={{ marginTop: space.md }}
-        accessibilityRole="button"
-        accessibilityLabel="View seller storefront"
-      >
-        <TextCaption style={{ fontWeight: "600", color: colors.primary }}>View seller →</TextCaption>
-      </Pressable>
     </View>
   ) : null;
 
@@ -89,8 +91,8 @@ export default function PublicCollectionScreen() {
   if (isError) {
     return (
       <Screen scroll>
-        <TextTitle>Collection</TextTitle>
-        <TextBody style={{ marginTop: space.md }}>This collection is unavailable.</TextBody>
+        <TextTitle>Event</TextTitle>
+        <TextBody style={{ marginTop: space.md }}>This event is unavailable.</TextBody>
       </Screen>
     );
   }
@@ -107,7 +109,7 @@ export default function PublicCollectionScreen() {
     return (
       <Screen scroll>
         <TextTitle>Not found</TextTitle>
-        <TextBody style={{ marginTop: space.md }}>This collection does not exist or is private.</TextBody>
+        <TextBody style={{ marginTop: space.md }}>This event does not exist or is private.</TextBody>
       </Screen>
     );
   }
@@ -117,7 +119,7 @@ export default function PublicCollectionScreen() {
       <ListEmptyState
         icon="albums-outline"
         title="No public listings yet"
-        description="The seller has not added visible listings to this collection."
+        description="No visible listings have been added to this event yet."
       />
     ) : null;
 
