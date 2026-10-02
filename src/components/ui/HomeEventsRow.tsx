@@ -15,13 +15,21 @@ import { TextSectionTitle } from "@/src/components/ui/TextSectionTitle";
 import { TextCaption } from "@/src/components/ui/TextCaption";
 import { colors, fontFamilies, radii, space } from "@/src/theme/tokens";
 
-const CARD_W = 220;
-const IMG_H = 140;
-const BODY_H = 112;
-const TITLE_LH = 22;
+/** Match Stories home cards (`HomeFeaturedArticles`) for a uniform rail. */
+const CARD_W = 300;
+const IMG_H = 176;
+const BODY_H = 188;
+const TITLE_LH = 24;
 const TITLE_LINES = 2;
+const EXCERPT_LH = 18;
+const EXCERPT_LINES = 2;
+const SPOTLIGHT_H = 14;
 
 function EventCard({ item, lead }: { item: SellerCollectionRow; lead: boolean }) {
+  const excerpt =
+    item.description?.trim() ||
+    (item.seller_display_name?.trim() ? `By ${item.seller_display_name.trim()}` : " ");
+
   return (
     <Pressable
       onPress={() => router.push(`/collection/${item.id}` as Href)}
@@ -56,36 +64,43 @@ function EventCard({ item, lead }: { item: SellerCollectionRow; lead: boolean })
             justifyContent: "center",
           }}
         >
-          <Ionicons name="albums-outline" size={36} color={colors.primary} />
+          <Ionicons name="albums-outline" size={40} color={colors.primary} />
         </View>
       )}
       <View
         style={{
-          paddingHorizontal: space.md,
-          paddingVertical: space.sm,
+          paddingHorizontal: space.lg,
+          paddingVertical: space.md,
           height: BODY_H,
           justifyContent: "space-between",
         }}
       >
         <View>
-          {item.is_featured ? (
-            <TextCaption
-              style={{
-                fontWeight: "700",
-                letterSpacing: 0.8,
-                color: colors.accent,
-                fontSize: 10,
-                marginBottom: 4,
-              }}
-            >
-              FEATURED
-            </TextCaption>
-          ) : null}
+          <View
+            style={{
+              height: SPOTLIGHT_H,
+              marginBottom: space.xs,
+              justifyContent: "center",
+            }}
+          >
+            {item.is_featured || lead ? (
+              <TextCaption
+                style={{
+                  fontWeight: "700",
+                  letterSpacing: 0.8,
+                  color: colors.accent,
+                  fontSize: 10,
+                }}
+              >
+                {item.is_featured ? "FEATURED" : "SPOTLIGHT"}
+              </TextCaption>
+            ) : null}
+          </View>
           <Text
             numberOfLines={TITLE_LINES}
             style={{
               fontFamily: fontFamilies.headingSerif,
-              fontSize: 17,
+              fontSize: 19,
               lineHeight: TITLE_LH,
               height: TITLE_LH * TITLE_LINES,
               fontWeight: "400",
@@ -94,6 +109,16 @@ function EventCard({ item, lead }: { item: SellerCollectionRow; lead: boolean })
           >
             {item.name}
           </Text>
+          <TextCaption
+            numberOfLines={EXCERPT_LINES}
+            style={{
+              marginTop: space.xs,
+              lineHeight: EXCERPT_LH,
+              minHeight: EXCERPT_LH * EXCERPT_LINES,
+            }}
+          >
+            {excerpt}
+          </TextCaption>
         </View>
         <View
           style={{
